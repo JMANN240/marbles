@@ -1,4 +1,4 @@
-use crate::{Scene, ball::Ball, wall::Wall};
+use crate::{ball::{TrackedBall}, wall::Wall, Scene};
 use macroquad::{audio::load_sound, prelude::*};
 
 pub async fn scene_1() -> Scene {
@@ -49,7 +49,7 @@ pub async fn scene_1() -> Scene {
 
     Scene {
         balls: vec![
-            Ball::new(
+            TrackedBall::new(
                 "Fireball".to_string(),
                 dvec2(
                     100.0 + rand::gen_range(-5.0, 5.0),
@@ -61,7 +61,7 @@ pub async fn scene_1() -> Scene {
                 RED,
                 piano_c6,
             ),
-            Ball::new(
+            TrackedBall::new(
                 "Deep Blue".to_string(),
                 dvec2(
                     400.0 + rand::gen_range(-5.0, 5.0),
@@ -73,7 +73,7 @@ pub async fn scene_1() -> Scene {
                 BLUE,
                 piano_e6,
             ),
-            Ball::new(
+            TrackedBall::new(
                 "White Light".to_string(),
                 dvec2(
                     200.0 + rand::gen_range(-5.0, 5.0),
@@ -85,7 +85,7 @@ pub async fn scene_1() -> Scene {
                 WHITE,
                 piano_g6,
             ),
-            Ball::new(
+            TrackedBall::new(
                 "Green Machine".to_string(),
                 dvec2(
                     300.0 + rand::gen_range(-5.0, 5.0),
@@ -146,19 +146,19 @@ pub async fn scene_2() -> Scene {
 
     Scene {
         balls: vec![
-            Ball::new(
+            TrackedBall::new(
                 "Fireball".to_string(),
                 dvec2(
                     255.0 + rand::gen_range(-5.0, 5.0),
                     50.0 + rand::gen_range(-5.0, 5.0),
                 ),
-                dvec2(1000.0, 0.0),
+                dvec2(0.0, 0.0),
                 8.0,
                 elasticity,
                 RED,
                 piano_c6,
             ),
-            Ball::new(
+            TrackedBall::new(
                 "Deep Blue".to_string(),
                 dvec2(
                     285.0 + rand::gen_range(-5.0, 5.0),
@@ -170,7 +170,7 @@ pub async fn scene_2() -> Scene {
                 BLUE,
                 piano_e6,
             ),
-            Ball::new(
+            TrackedBall::new(
                 "White Light".to_string(),
                 dvec2(
                     225.0 + rand::gen_range(-5.0, 5.0),
@@ -182,7 +182,78 @@ pub async fn scene_2() -> Scene {
                 WHITE,
                 piano_g6,
             ),
-            Ball::new(
+            TrackedBall::new(
+                "Green Machine".to_string(),
+                dvec2(
+                    315.0 + rand::gen_range(-5.0, 5.0),
+                    50.0 + rand::gen_range(-5.0, 5.0),
+                ),
+                dvec2(0.0, 0.0),
+                8.0,
+                elasticity,
+                GREEN,
+                piano_c7,
+            ),
+        ],
+        walls,
+        winners: Vec::new(),
+    }
+}
+
+pub async fn scene_3() -> Scene {
+    let piano_c6 = load_sound("piano_c6.wav").await.unwrap();
+    let piano_e6 = load_sound("piano_e6.wav").await.unwrap();
+    let piano_g6 = load_sound("piano_g6.wav").await.unwrap();
+    let piano_c7 = load_sound("piano_c7.wav").await.unwrap();
+
+    let mut walls = vec![
+        Wall::horizontal(0.0, false),
+        Wall::vertical(0.0, false),
+        Wall::horizontal(screen_height() as f64, true),
+        Wall::vertical(screen_width() as f64, false),
+    ];
+
+    let elasticity = 0.9;
+
+    Scene {
+        balls: vec![
+            TrackedBall::new(
+                "Fireball".to_string(),
+                dvec2(
+                    255.0 + rand::gen_range(-5.0, 5.0),
+                    50.0 + rand::gen_range(-5.0, 5.0),
+                ),
+                dvec2(0.0, 0.0),
+                8.0,
+                elasticity,
+                RED,
+                piano_c6,
+            ),
+            TrackedBall::new(
+                "Deep Blue".to_string(),
+                dvec2(
+                    285.0 + rand::gen_range(-5.0, 5.0),
+                    50.0 + rand::gen_range(-5.0, 5.0),
+                ),
+                dvec2(0.0, 0.0),
+                8.0,
+                elasticity,
+                BLUE,
+                piano_e6,
+            ),
+            TrackedBall::new(
+                "White Light".to_string(),
+                dvec2(
+                    225.0 + rand::gen_range(-5.0, 5.0),
+                    50.0 + rand::gen_range(-5.0, 5.0),
+                ),
+                dvec2(0.0, 0.0),
+                8.0,
+                elasticity,
+                WHITE,
+                piano_g6,
+            ),
+            TrackedBall::new(
                 "Green Machine".to_string(),
                 dvec2(
                     315.0 + rand::gen_range(-5.0, 5.0),

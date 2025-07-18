@@ -1,9 +1,9 @@
-use ball::Ball;
+use ball::{Ball, BaseBall, TrackedBall};
 use macroquad::{
     audio::{PlaySoundParams, play_sound},
     prelude::*,
 };
-use scenes::{scene_1, scene_2};
+use scenes::{scene_1, scene_2, scene_3};
 use wall::Wall;
 
 mod ball;
@@ -54,7 +54,7 @@ async fn main() {
 }
 
 pub struct Scene {
-    balls: Vec<Ball>,
+    balls: Vec<TrackedBall>,
     walls: Vec<Wall>,
     winners: Vec<usize>,
 }
