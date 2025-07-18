@@ -1,12 +1,13 @@
-use ball::{Ball, BaseBall, TrackedBall};
+use ball::Ball;
 use macroquad::{
     audio::{PlaySoundParams, play_sound},
     prelude::*,
 };
-use scenes::{scene_1, scene_2, scene_3};
+use scenes::{scene_1, scene_2, scene_3, scene_4};
 use wall::Wall;
 
 mod ball;
+mod drawer;
 mod scenes;
 mod wall;
 
@@ -29,7 +30,7 @@ const COUNTDOWN_SECONDS: usize = 5;
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut scene = scene_2().await;
+    let mut scene = scene_4().await;
 
     loop {
         if get_time() >= COUNTDOWN_SECONDS as f64 {
@@ -54,7 +55,7 @@ async fn main() {
 }
 
 pub struct Scene {
-    balls: Vec<TrackedBall>,
+    balls: Vec<Box<dyn Ball>>,
     walls: Vec<Wall>,
     winners: Vec<usize>,
 }
@@ -66,14 +67,16 @@ impl Scene {
         let dt = get_frame_time() as f64 * TIMESCALE / PHYSICS_STEPS as f64;
 
         for _ in 0..PHYSICS_STEPS {
-            self.balls = self
+            let new_attributes: Vec<(DVec2, DVec2)> = self
                 .balls
-                .iter().enumerate()
+                .iter()
+                .enumerate()
                 .map(|(index, ball)| {
-                    let mut new_ball = ball.clone();
+                    let mut position_offsets = Vec::new();
+                    let mut velocity_offsets = Vec::new();
 
                     // Gravity
-                    new_ball.set_velocity(new_ball.get_velocity() + dvec2(0.0, 500.0) * dt);
+                    velocity_offsets.push(dvec2(0.0, 500.0) * dt);
 
                     // Walls
                     let wall_intersection_points = self
@@ -82,7 +85,10 @@ impl Scene {
                         .filter_map(|wall| {
                             let intersection_point = ball.get_intersection_point(wall);
 
-                            if wall.is_goal() && intersection_point.is_some() && !self.winners.contains(&index) {
+                            if wall.is_goal()
+                                && intersection_point.is_some()
+                                && !self.winners.contains(&index)
+                            {
                                 self.winners.push(index);
                             }
 
@@ -95,17 +101,13 @@ impl Scene {
                         let intersection_vector = ball.get_position() - intersection_point;
                         let overlap =
                             MIN_OVERLAP.max(ball.get_radius() - intersection_vector.length());
-                        new_ball.set_position(
-                            new_ball.get_position() + intersection_vector.normalize() * overlap,
-                        );
-                        new_ball.set_velocity(
-                            new_ball.get_velocity()
-                                - ((2.0 * ball.get_velocity()).dot(intersection_vector)
-                                    / (intersection_vector.length()
-                                        * intersection_vector.length()))
-                                    * (intersection_vector)
-                                    * ball.get_elasticity()
-                                    / number_of_wall_intersection_points as f64,
+                        position_offsets.push(intersection_vector.normalize() * overlap);
+                        velocity_offsets.push(
+                            -((2.0 * ball.get_velocity()).dot(intersection_vector)
+                                / (intersection_vector.length() * intersection_vector.length()))
+                                * (intersection_vector)
+                                * ball.get_elasticity()
+                                / number_of_wall_intersection_points as f64,
                         );
                     }
 
@@ -124,41 +126,44 @@ impl Scene {
                                 ball.get_radius() + other_ball.get_radius()
                                     - intersection_vector.length(),
                             );
-                            new_ball.set_position(
-                                new_ball.get_position() + intersection_vector.normalize() * overlap,
-                            );
-                            new_ball.set_velocity(
-                                new_ball.get_velocity()
-                                    - (2.0 * other_ball.get_mass()
-                                        / (ball.get_mass() + other_ball.get_mass()))
-                                        * ((ball.get_velocity() - other_ball.get_velocity())
-                                            .dot(intersection_vector)
-                                            / (intersection_vector.length()
-                                                * intersection_vector.length()))
-                                        * (intersection_vector)
-                                        * ball.get_elasticity(),
+                            position_offsets.push(intersection_vector.normalize() * overlap);
+                            velocity_offsets.push(
+                                -(2.0 * other_ball.get_mass()
+                                    / (ball.get_mass() + other_ball.get_mass()))
+                                    * ((ball.get_velocity() - other_ball.get_velocity())
+                                        .dot(intersection_vector)
+                                        / (intersection_vector.length()
+                                            * intersection_vector.length()))
+                                    * (intersection_vector)
+                                    * ball.get_elasticity(),
                             );
                         }
                     }
 
-                    let dv = new_ball.get_velocity().distance(ball.get_velocity());
-                    let _v_dot = new_ball.get_velocity().dot(ball.get_velocity());
+                    let new_position = ball.get_position() + position_offsets.iter().sum::<DVec2>();
+                    let new_velocity = ball.get_velocity() + velocity_offsets.iter().sum::<DVec2>();
+
+                    let dv = new_velocity.distance(ball.get_velocity());
+                    let _v_dot = new_velocity.dot(ball.get_velocity());
 
                     if dv >= 100.0 {
                         play_sound(
-                            new_ball.get_sound(),
+                            ball.get_sound(),
                             PlaySoundParams {
                                 looped: false,
-                                volume: ((dv - 100.0) / 500.0).min(10.0) as f32,
+                                volume: ((dv - 100.0) / 2000.0).min(1.0) as f32,
                             },
                         );
                     }
 
-                    new_ball.set_position(new_ball.get_position() + new_ball.get_velocity() * dt);
-
-                    new_ball
+                    (new_position, new_velocity)
                 })
                 .collect();
+
+            for (ball, (new_position, new_velocity)) in self.balls.iter_mut().zip(new_attributes) {
+                ball.set_position(new_position + new_velocity * dt);
+                ball.set_velocity(new_velocity);
+            }
         }
     }
 
@@ -181,7 +186,7 @@ impl Scene {
                 screen_width() / 2.0 - measure_text(&text, None, font_size as u16, 1.0).width / 2.0,
                 font_size + font_size * index as f32,
                 font_size,
-                winner.get_color(),
+                winner.get_name_color(),
                 4,
             );
         }
@@ -191,21 +196,9 @@ impl Scene {
 pub fn draw_text_outline(text: &str, x: f32, y: f32, font_size: f32, color: Color, thickness: i32) {
     for i in -thickness..=thickness {
         for j in -thickness..=thickness {
-            draw_text(
-                &text,
-                x + i as f32,
-                y + j as f32,
-                font_size,
-                BLACK,
-            );
+            draw_text(&text, x + i as f32, y + j as f32, font_size, BLACK);
         }
     }
 
-    draw_text(
-        &text,
-        x,
-        y,
-        font_size,
-        color,
-    );
+    draw_text(&text, x, y, font_size, color);
 }
