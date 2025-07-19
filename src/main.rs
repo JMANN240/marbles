@@ -27,7 +27,7 @@ fn window_conf() -> Conf {
     }
 }
 
-const COUNTDOWN_SECONDS: usize = 1;
+const COUNTDOWN_SECONDS: usize = 3;
 const RESET_SECONDS: usize = 10;
 
 #[macroquad::main(window_conf)]
