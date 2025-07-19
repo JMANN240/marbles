@@ -1,0 +1,61 @@
+scene = 4
+
+[[ball_positions]]
+x = 270
+y = 20
+vx = 500
+vy = 0
+
+[[ball_positions]]
+x = 270
+y = 40
+vx = -500
+vy = 0
+
+[[ball_positions]]
+x = 270
+y = 60
+vx = 500
+vy = 0
+
+[[ball_positions]]
+x = 270
+y = 80
+vx = -500
+vy = 0
+
+[[balls]]
+name = "Green Machine"
+r = 0
+g = 0.9
+b = 0.2
+radius = 8
+elasticity = 0.99
+sound = "piano_c6.wav"
+
+[[balls]]
+name = "Deep Blue"
+r = 0
+g = 0.5
+b = 1.0
+radius = 8
+elasticity = 0.99
+sound = "piano_e6.wav"
+
+[[balls]]
+name = "Fireball"
+r = 1.0
+g = 0.1
+b = 0.1
+radius = 8
+elasticity = 0.99
+sound = "piano_g6.wav"
+
+[[balls]]
+name = "White Light"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 8
+elasticity = 0.99
+sound = "piano_c7.wav"

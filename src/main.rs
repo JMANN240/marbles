@@ -1,10 +1,11 @@
 use ball::Ball;
 use macroquad::{
-    audio::{play_sound, PlaySoundParams},
-    prelude::*, rand::ChooseRandom,
+    audio::{play_sound, PlaySoundParams}, prelude::*
 };
 use ::rand::{random_bool, random_range};
-use scenes::{scene_1, scene_2, scene_3, scene_4};
+use scenes::{build_balls, scene_1, scene_2, scene_3, scene_4};
+use serde::Deserialize;
+use toml::from_str;
 use wall::Wall;
 
 mod ball;
@@ -30,10 +31,49 @@ fn window_conf() -> Conf {
 const COUNTDOWN_SECONDS: usize = 3;
 const RESET_SECONDS: usize = 10;
 
+#[derive(Deserialize)]
+pub struct ConfigPosition {
+    x: f64,
+    y: f64,
+    vx: f64,
+    vy: f64,
+}
+
+#[derive(Deserialize)]
+pub struct BallConfig {
+    name: String,
+    r: f32,
+    g: f32,
+    b: f32,
+    radius: f64,
+    elasticity: f64,
+    sound: String,
+}
+
+#[derive(Deserialize)]
+pub struct Config {
+    balls: Vec<BallConfig>,
+    ball_positions: Vec<ConfigPosition>,
+    scene: usize,
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
     loop {
-        let mut scene = scene_1().await;
+        let config_string = std::fs::read_to_string("config.toml").unwrap();
+        let mut config = from_str::<Config>(&config_string).unwrap();
+
+        let balls = build_balls(&mut config.ball_positions, &config.balls).await;
+
+        let mut scene = if config.scene == 1 {
+            scene_1(balls).await
+        } else if config.scene == 2 {
+            scene_2(balls).await
+        } else if config.scene == 3 {
+            scene_3(balls).await
+        } else {
+            scene_4(balls).await
+        };
 
         let mut maybe_all_won_time = None;
         loop {

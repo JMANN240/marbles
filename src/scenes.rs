@@ -1,13 +1,41 @@
 use crate::{
-    ball::{base_ball::BaseBall, tracked_ball::TrackedBall}, drawer::{base_drawer::BaseDrawer, tail_drawer::TailDrawer}, wall::Wall, Scene
+    ball::{tracked_ball::TrackedBall, Ball}, drawer::tail_drawer::TailDrawer, wall::Wall, BallConfig, ConfigPosition, Scene
 };
-use macroquad::{audio::load_sound, prelude::*};
+use macroquad::{audio::load_sound, prelude::*, rand::ChooseRandom};
 
-pub async fn scene_1() -> Scene {
-    let piano_c6 = load_sound("piano_c6.wav").await.unwrap();
-    let piano_e6 = load_sound("piano_e6.wav").await.unwrap();
-    let piano_g6 = load_sound("piano_g6.wav").await.unwrap();
-    let piano_c7 = load_sound("piano_c7.wav").await.unwrap();
+pub async fn build_balls(ball_positions: &mut Vec<ConfigPosition>, ball_configs: &Vec<BallConfig>) -> Vec<Box<dyn Ball>> {
+    let mut balls: Vec<Box<dyn Ball>> = Vec::new();
+
+    ball_positions.shuffle();
+
+    for (ball_position, ball_config) in ball_positions.iter().zip(ball_configs) {
+        let color = Color {
+            r: ball_config.r,
+            b: ball_config.b,
+            g: ball_config.g,
+            a: 1.0,
+        };
+
+        balls.push(Box::new(TrackedBall::new(
+            ball_config.name.clone(),
+            color,
+            dvec2(
+                ball_position.x + rand::gen_range(-1.0, 1.0),
+                ball_position.y,
+            ),
+            dvec2(ball_position.vx, ball_position.vy),
+            ball_config.radius,
+            ball_config.elasticity,
+            TailDrawer::new(color, BLACK),
+            load_sound(&ball_config.sound).await.unwrap(),
+        )));
+    }
+
+    balls
+}
+
+pub async fn scene_1(balls: Vec<Box<dyn Ball>>) -> Scene {
+    let offset = 100.0;
 
     let mut walls = vec![
         Wall::horizontal(0.0, false),
@@ -15,10 +43,6 @@ pub async fn scene_1() -> Scene {
         Wall::horizontal(screen_height() as f64, true),
         Wall::vertical(screen_width() as f64, false),
     ];
-
-    let offset = 100.0;
-
-    let elasticity = 0.9;
 
     for i in 0..8 {
         walls.push(Wall::new(
@@ -50,72 +74,14 @@ pub async fn scene_1() -> Scene {
     }
 
     Scene {
-        balls: vec![
-            Box::new(TrackedBall::new(
-                "Fireball".to_string(),
-                RED,
-                dvec2(
-                    100.0 + rand::gen_range(-5.0, 5.0),
-                    50.0 + rand::gen_range(-5.0, 5.0),
-                ),
-                dvec2(0.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(RED, BLACK),
-                piano_c6,
-            )),
-            Box::new(TrackedBall::new(
-                "Deep Blue".to_string(),
-                BLUE,
-                dvec2(
-                    400.0 + rand::gen_range(-5.0, 5.0),
-                    50.0 + rand::gen_range(-5.0, 5.0),
-                ),
-                dvec2(0.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(BLUE, BLACK),
-                piano_e6,
-            )),
-            Box::new(TrackedBall::new(
-                "White Light".to_string(),
-                WHITE,
-                dvec2(
-                    200.0 + rand::gen_range(-5.0, 5.0),
-                    50.0 + rand::gen_range(-5.0, 5.0),
-                ),
-                dvec2(0.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(WHITE, BLACK),
-                piano_g6,
-            )),
-            Box::new(TrackedBall::new(
-                "Green Machine".to_string(),
-                GREEN,
-                dvec2(
-                    300.0 + rand::gen_range(-5.0, 5.0),
-                    50.0 + rand::gen_range(-5.0, 5.0),
-                ),
-                dvec2(0.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(GREEN, BLACK),
-                piano_c7,
-            )),
-        ],
+        balls,
         walls,
         winners: Vec::new(),
         particles: Vec::new(),
     }
 }
 
-pub async fn scene_2() -> Scene {
-    let piano_c6 = load_sound("piano_c6.wav").await.unwrap();
-    let piano_e6 = load_sound("piano_e6.wav").await.unwrap();
-    let piano_g6 = load_sound("piano_g6.wav").await.unwrap();
-    let piano_c7 = load_sound("piano_c7.wav").await.unwrap();
-
+pub async fn scene_2(balls: Vec<Box<dyn Ball>>) -> Scene {
     let mut walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -123,7 +89,6 @@ pub async fn scene_2() -> Scene {
         Wall::vertical(screen_width() as f64, false),
     ];
 
-    let elasticity = 0.9;
 
     let max_columns = 8;
     let x_spacing = screen_width() as f64 / (max_columns as f64 + 1.0);
@@ -142,72 +107,14 @@ pub async fn scene_2() -> Scene {
     }
 
     Scene {
-        balls: vec![
-            Box::new(TrackedBall::new(
-                "Fireball".to_string(),
-                RED,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    16.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(YELLOW, RED),
-                piano_c6,
-            )),
-            Box::new(TrackedBall::new(
-                "Deep Blue".to_string(),
-                BLUE,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    48.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(BLUE, BLACK),
-                piano_e6,
-            )),
-            Box::new(TrackedBall::new(
-                "White Light".to_string(),
-                WHITE,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    80.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(WHITE, WHITE),
-                piano_g6,
-            )),
-            Box::new(TrackedBall::new(
-                "Green Machine".to_string(),
-                GREEN,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    112.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(GREEN, BLACK),
-                piano_c7,
-            )),
-        ],
+        balls,
         walls,
         winners: Vec::new(),
         particles: Vec::new(),
     }
 }
 
-pub async fn scene_3() -> Scene {
-    let piano_c6 = load_sound("piano_c6.wav").await.unwrap();
-    let piano_e6 = load_sound("piano_e6.wav").await.unwrap();
-    let piano_g6 = load_sound("piano_g6.wav").await.unwrap();
-    let piano_c7 = load_sound("piano_c7.wav").await.unwrap();
-
+pub async fn scene_3(balls: Vec<Box<dyn Ball>>) -> Scene {
     let walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -215,75 +122,15 @@ pub async fn scene_3() -> Scene {
         Wall::vertical(screen_width() as f64, false),
     ];
 
-    let elasticity = 0.9;
-
     Scene {
-        balls: vec![
-            Box::new(TrackedBall::new(
-                "Fireball".to_string(),
-                RED,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    16.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(YELLOW, RED),
-                piano_c6,
-            )),
-            Box::new(TrackedBall::new(
-                "Deep Blue".to_string(),
-                BLUE,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    48.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(BLUE, BLACK),
-                piano_e6,
-            )),
-            Box::new(TrackedBall::new(
-                "White Light".to_string(),
-                WHITE,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    80.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(WHITE, WHITE),
-                piano_g6,
-            )),
-            Box::new(TrackedBall::new(
-                "Green Machine".to_string(),
-                GREEN,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    112.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(GREEN, BLACK),
-                piano_c7,
-            )),
-        ],
+        balls,
         walls,
         winners: Vec::new(),
         particles: Vec::new(),
     }
 }
 
-pub async fn scene_4() -> Scene {
-    let piano_c6 = load_sound("piano_c6.wav").await.unwrap();
-    let piano_e6 = load_sound("piano_e6.wav").await.unwrap();
-    let piano_g6 = load_sound("piano_g6.wav").await.unwrap();
-    let piano_c7 = load_sound("piano_c7.wav").await.unwrap();
-
+pub async fn scene_4(balls: Vec<Box<dyn Ball>>) -> Scene {
     let walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -301,63 +148,8 @@ pub async fn scene_4() -> Scene {
         ),
     ];
 
-    let elasticity = 0.99;
-
     Scene {
-        balls: vec![
-            Box::new(TrackedBall::new(
-                "Fireball".to_string(),
-                RED,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    16.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(YELLOW, RED),
-                piano_c6,
-            )),
-            Box::new(TrackedBall::new(
-                "Deep Blue".to_string(),
-                BLUE,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    48.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(BLUE, BLACK),
-                piano_e6,
-            )),
-            Box::new(TrackedBall::new(
-                "White Light".to_string(),
-                WHITE,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    80.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(WHITE, WHITE),
-                piano_g6,
-            )),
-            Box::new(TrackedBall::new(
-                "Green Machine".to_string(),
-                GREEN,
-                dvec2(
-                    screen_width() as f64 * 0.5 + rand::gen_range(-1.0, 1.0),
-                    112.0,
-                ),
-                dvec2(1000.0, 0.0),
-                8.0,
-                elasticity,
-                TailDrawer::new(GREEN, BLACK),
-                piano_c7,
-            )),
-        ],
+        balls,
         walls,
         winners: Vec::new(),
         particles: Vec::new(),
