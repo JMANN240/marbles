@@ -1,8 +1,8 @@
 use crate::{
-    BallConfig, ConfigPosition, Scene,
+    BallConfig, ConfigPosition, PHYSICS_STEPS, TIMESCALE,
     ball::{Ball, PhysicsBall},
     drawer::tail_drawer::TailDrawer,
-    particle::system::ParticleSystem,
+    scene::Scene,
     wall::Wall,
 };
 use macroquad::{audio::load_sound, prelude::*, rand::ChooseRandom};
@@ -96,12 +96,7 @@ pub async fn scene_1(balls: Vec<Ball>) -> Scene {
         ));
     }
 
-    Scene {
-        balls,
-        walls,
-        winners: Vec::new(),
-        particles: ParticleSystem::default(),
-    }
+    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
 }
 
 pub async fn scene_2(balls: Vec<Ball>) -> Scene {
@@ -128,12 +123,7 @@ pub async fn scene_2(balls: Vec<Ball>) -> Scene {
         }
     }
 
-    Scene {
-        balls,
-        walls,
-        winners: Vec::new(),
-        particles: ParticleSystem::default(),
-    }
+    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
 }
 
 pub async fn scene_3(balls: Vec<Ball>) -> Scene {
@@ -144,12 +134,7 @@ pub async fn scene_3(balls: Vec<Ball>) -> Scene {
         Wall::vertical(screen_width() as f64, false),
     ];
 
-    Scene {
-        balls,
-        walls,
-        winners: Vec::new(),
-        particles: ParticleSystem::default(),
-    }
+    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
 }
 
 pub async fn scene_4(balls: Vec<Ball>) -> Scene {
@@ -170,10 +155,5 @@ pub async fn scene_4(balls: Vec<Ball>) -> Scene {
         ),
     ];
 
-    Scene {
-        balls,
-        walls,
-        winners: Vec::new(),
-        particles: ParticleSystem::default(),
-    }
+    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
 }

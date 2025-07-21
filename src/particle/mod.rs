@@ -234,8 +234,8 @@ impl Particle for ConfettiParticle {
         draw_rectangle_ex(
             self.position.x as f32,
             self.position.y as f32,
-            self.radius as f32,
-            self.radius as f32,
+            self.radius as f32 * (1.0 - self.get_age_percent()) as f32,
+            self.radius as f32 * (1.0 - self.get_age_percent()) as f32,
             DrawRectangleParams {
                 offset: vec2(0.5, 0.5),
                 rotation: get_time() as f32 * self.rotation_speed as f32,
