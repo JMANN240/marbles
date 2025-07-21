@@ -1,18 +1,14 @@
 use crate::{
     BallConfig, ConfigPosition, Scene,
-    ball::Ball,
+    ball::{Ball, PhysicsBall},
     drawer::tail_drawer::TailDrawer,
-    particle::{
-        FireParticle, ShrinkingParticle,
-        emitter::{BaseParticleEmitter, FrequencyParticleEmitter},
-        system::ParticleSystem,
-    },
+    particle::system::ParticleSystem,
     wall::Wall,
 };
 use macroquad::{audio::load_sound, prelude::*, rand::ChooseRandom};
 
 pub async fn build_balls(
-    ball_positions: &mut Vec<ConfigPosition>,
+    ball_positions: &mut [ConfigPosition],
     ball_configs: &Vec<BallConfig>,
 ) -> Vec<Ball> {
     let mut balls: Vec<Ball> = Vec::new();
@@ -32,13 +28,15 @@ pub async fn build_balls(
             ball_position.y,
         );
 
-        let mut ball = Ball::new(
+        let ball = Ball::new(
             ball_config.name.clone(),
             color,
-            position,
-            dvec2(ball_position.vx, ball_position.vy),
-            ball_config.radius,
-            ball_config.elasticity,
+            PhysicsBall::new(
+                position,
+                dvec2(ball_position.vx, ball_position.vy),
+                ball_config.radius,
+                ball_config.elasticity,
+            ),
             Box::new(TailDrawer::new(color, BLACK, 1000)),
             load_sound(&ball_config.sound).await.unwrap(),
         );

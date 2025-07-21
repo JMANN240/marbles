@@ -17,15 +17,10 @@ impl Ball {
     pub fn new(
         name: String,
         name_color: Color,
-        position: DVec2,
-        velocity: DVec2,
-        radius: f64,
-        elasticity: f64,
+        physics_ball: PhysicsBall,
         mut drawer: Box<dyn Drawer>,
         sound: Sound,
     ) -> Self {
-        let physics_ball = PhysicsBall::new(position, velocity, radius, elasticity);
-
         drawer.init(&physics_ball);
 
         Self {

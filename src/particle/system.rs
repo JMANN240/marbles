@@ -55,7 +55,7 @@ impl ParticleSystem {
         &mut self.emitters
     }
 
-    pub fn add_emitter(&mut self, emitter: Box<dyn ParticleEmitter>) {
+    pub fn _add_emitter(&mut self, emitter: Box<dyn ParticleEmitter>) {
         self.emitters.push(emitter);
     }
 }

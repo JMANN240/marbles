@@ -33,7 +33,7 @@ pub struct BaseParticle {
 }
 
 impl BaseParticle {
-    pub fn new(position: DVec2, radius: f64, color: Color, max_age: f64) -> Self {
+    pub fn _new(position: DVec2, radius: f64, color: Color, max_age: f64) -> Self {
         Self {
             position,
             radius,
@@ -142,7 +142,7 @@ pub struct FireParticle {
 }
 
 impl FireParticle {
-    pub fn new(position: DVec2, radius: f64, max_age: f64) -> Self {
+    pub fn _new(position: DVec2, radius: f64, max_age: f64) -> Self {
         Self {
             position,
             radius,

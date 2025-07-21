@@ -43,9 +43,9 @@ impl Drawer for TailDrawer {
         let font_size = 24.0;
 
         draw_text_outline(
-            &text,
+            text,
             ball.get_position().x as f32
-                - measure_text(&text, None, font_size as u16, 1.0).width / 2.0,
+                - measure_text(text, None, font_size as u16, 1.0).width / 2.0,
             ball.get_position().y as f32 - 2.0 * ball.get_radius() as f32,
             font_size,
             ball.get_name_color(),

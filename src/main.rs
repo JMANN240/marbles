@@ -328,9 +328,9 @@ impl Scene {
 pub fn draw_text_outline(text: &str, x: f32, y: f32, font_size: f32, color: Color, thickness: i32) {
     for i in -thickness..=thickness {
         for j in -thickness..=thickness {
-            draw_text(&text, x + i as f32, y + j as f32, font_size, BLACK);
+            draw_text(text, x + i as f32, y + j as f32, font_size, BLACK);
         }
     }
 
-    draw_text(&text, x, y, font_size, color);
+    draw_text(text, x, y, font_size, color);
 }
