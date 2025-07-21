@@ -1,6 +1,6 @@
 use clap::Parser;
 use macroquad::prelude::*;
-use scenes::{build_balls, scene_1, scene_2, scene_3, scene_4};
+use scenes::{build_balls, scene_1, scene_2, scene_3, scene_4, scene_5};
 use serde::Deserialize;
 use toml::from_str;
 
@@ -85,8 +85,10 @@ async fn main() {
             scene_2(balls, cli.timescale, cli.physics_steps).await
         } else if config.scene == 3 {
             scene_3(balls, cli.timescale, cli.physics_steps).await
-        } else {
+        } else if config.scene == 4 {
             scene_4(balls, cli.timescale, cli.physics_steps).await
+        } else {
+            scene_5(balls, cli.timescale, cli.physics_steps).await
         };
 
         let mut maybe_all_won_time = None;

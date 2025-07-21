@@ -1,5 +1,7 @@
+use std::f64::consts::PI;
+
 use crate::{
-    ball::{Ball, PhysicsBall}, drawer::{base_drawer::BaseDrawer, tail_drawer::TailDrawer}, scene::Scene, wall::Wall, BallConfig, ConfigPosition
+    ball::{Ball, PhysicsBall}, drawer::tail_drawer::TailDrawer, scene::Scene, wall::{circle_wall::CircleWall, straight_wall::StraightWall, Wall}, BallConfig, ConfigPosition
 };
 use macroquad::{audio::load_sound, prelude::*, rand::ChooseRandom};
 
@@ -56,51 +58,51 @@ pub async fn build_balls(
 pub async fn scene_1(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
     let offset = 100.0;
 
-    let mut walls = vec![
-        Wall::horizontal(0.0, false),
-        Wall::vertical(0.0, false),
-        Wall::horizontal(screen_height() as f64, true),
-        Wall::vertical(screen_width() as f64, false),
+    let mut walls: Vec<Box<dyn Wall>> = vec![
+        Box::new(StraightWall::horizontal(0.0, false)),
+        Box::new(StraightWall::vertical(0.0, false)),
+        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
+        Box::new(StraightWall::vertical(screen_width() as f64, false)),
     ];
 
     for i in 0..8 {
-        walls.push(Wall::new(
+        walls.push(Box::new(StraightWall::new(
             dvec2(0.0, 100.0 + offset * i as f64),
             dvec2(
                 screen_width() as f64 * 0.5 - 16.0,
                 125.0 + offset * i as f64,
             ),
             false,
-        ));
-        walls.push(Wall::new(
+        )));
+        walls.push(Box::new(StraightWall::new(
             dvec2(
                 screen_width() as f64 * 0.5 + 16.0,
                 125.0 + offset * i as f64,
             ),
             dvec2(screen_width() as f64, 100.0 + offset * i as f64),
             false,
-        ));
-        walls.push(Wall::new(
+        )));
+        walls.push(Box::new(StraightWall::new(
             dvec2(screen_width() as f64 * 0.5, 150.0 + offset * i as f64),
             dvec2(32.0, 175.0 + offset * i as f64),
             false,
-        ));
-        walls.push(Wall::new(
+        )));
+        walls.push(Box::new(StraightWall::new(
             dvec2(screen_width() as f64 * 0.5, 150.0 + offset * i as f64),
             dvec2(screen_width() as f64 - 32.0, 175.0 + offset * i as f64),
             false,
-        ));
+        )));
     }
 
     Scene::new(balls, walls, timescale, physics_steps)
 }
 
 pub async fn scene_2(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
-    let mut walls = vec![
-        Wall::horizontal(0.0, false),
-        Wall::vertical(0.0, false),
-        Wall::horizontal(screen_height() as f64, true),
-        Wall::vertical(screen_width() as f64, false),
+    let mut walls: Vec<Box<dyn Wall>> = vec![
+        Box::new(StraightWall::horizontal(0.0, false)),
+        Box::new(StraightWall::vertical(0.0, false)),
+        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
+        Box::new(StraightWall::vertical(screen_width() as f64, false)),
     ];
 
     let max_columns = 8;
@@ -114,8 +116,8 @@ pub async fn scene_2(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> 
             let x = (x_spacing * 0.5 * column_offset as f64) + x_spacing * i as f64;
             let y = 100.0 + 36.0 * j as f64;
 
-            walls.push(Wall::new(dvec2(x - 12.0, y), dvec2(x, y - 6.0), false));
-            walls.push(Wall::new(dvec2(x + 12.0, y), dvec2(x, y - 6.0), false));
+            walls.push(Box::new(StraightWall::new(dvec2(x - 12.0, y), dvec2(x, y - 6.0), false)));
+            walls.push(Box::new(StraightWall::new(dvec2(x + 12.0, y), dvec2(x, y - 6.0), false)));
         }
     }
 
@@ -123,33 +125,59 @@ pub async fn scene_2(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> 
 }
 
 pub async fn scene_3(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
-    let walls = vec![
-        Wall::horizontal(0.0, false),
-        Wall::vertical(0.0, false),
-        Wall::horizontal(screen_height() as f64, true),
-        Wall::vertical(screen_width() as f64, false),
+    let walls: Vec<Box<dyn Wall>> = vec![
+        Box::new(StraightWall::horizontal(0.0, false)),
+        Box::new(StraightWall::vertical(0.0, false)),
+        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
+        Box::new(StraightWall::vertical(screen_width() as f64, false)),
     ];
 
     Scene::new(balls, walls, timescale, physics_steps)
 }
 
 pub async fn scene_4(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
-    let walls = vec![
-        Wall::horizontal(0.0, false),
-        Wall::vertical(0.0, false),
-        Wall::horizontal(screen_height() as f64, true),
-        Wall::vertical(screen_width() as f64, false),
-        Wall::new(
+    let walls: Vec<Box<dyn Wall>> = vec![
+        Box::new(StraightWall::horizontal(0.0, false)),
+        Box::new(StraightWall::vertical(0.0, false)),
+        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
+        Box::new(StraightWall::vertical(screen_width() as f64, false)),
+        Box::new(StraightWall::new(
             dvec2(screen_width() as f64 * 0.25, 0.0),
             dvec2(screen_width() as f64 * 0.475, screen_height() as f64 * 0.9),
             false,
-        ),
-        Wall::new(
+        )),
+        Box::new(StraightWall::new(
             dvec2(screen_width() as f64 * 0.75, 0.0),
             dvec2(screen_width() as f64 * 0.525, screen_height() as f64 * 0.9),
             false,
-        ),
+        )),
     ];
+
+    Scene::new(balls, walls, timescale, physics_steps)
+}
+
+pub async fn scene_5(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
+    let mut walls: Vec<Box<dyn Wall>> = vec![
+        Box::new(StraightWall::horizontal(0.0, false)),
+        Box::new(StraightWall::vertical(0.0, false)),
+        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
+        Box::new(StraightWall::vertical(screen_width() as f64, false)),
+    ];
+
+    let max_columns = 10;
+    let x_spacing = screen_width() as f64 / (max_columns as f64 + 1.0);
+
+    for j in 0..16 {
+        let column_offset = j % 2;
+        let columns = max_columns + 2 - column_offset;
+
+        for i in 0..columns {
+            let x = (x_spacing * 0.5 * column_offset as f64) + x_spacing * i as f64;
+            let y = 100.0 + x_spacing * j as f64;
+
+            walls.push(Box::new(CircleWall::new(dvec2(x, y), 8.0, 0.0, 360.0, false)));
+        }
+    }
 
     Scene::new(balls, walls, timescale, physics_steps)
 }

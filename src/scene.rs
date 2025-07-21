@@ -21,7 +21,7 @@ const MIN_OVERLAP: f64 = 0.01;
 
 pub struct Scene {
     balls: Vec<Ball>,
-    walls: Vec<Wall>,
+    walls: Vec<Box<dyn Wall>>,
     winners: Vec<usize>,
     particles: ParticleSystem,
     timescale: f64,
@@ -29,7 +29,7 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(balls: Vec<Ball>, walls: Vec<Wall>, timescale: f64, physics_steps: usize) -> Self {
+    pub fn new(balls: Vec<Ball>, walls: Vec<Box<dyn Wall>>, timescale: f64, physics_steps: usize) -> Self {
         Self {
             balls,
             walls,
@@ -81,7 +81,7 @@ impl Scene {
                     .walls
                     .iter()
                     .filter_map(|wall| {
-                        let maybe_intersection_point = ball.get_intersection_point(wall);
+                        let maybe_intersection_point = ball.get_intersection_point(wall.as_ref());
 
                         if let Some(intersection_point) = maybe_intersection_point {
                             let intersection_vector = ball.get_position() - intersection_point;
