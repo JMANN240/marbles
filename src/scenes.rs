@@ -1,9 +1,5 @@
 use crate::{
-    BallConfig, ConfigPosition, PHYSICS_STEPS, TIMESCALE,
-    ball::{Ball, PhysicsBall},
-    drawer::tail_drawer::TailDrawer,
-    scene::Scene,
-    wall::Wall,
+    ball::{Ball, PhysicsBall}, drawer::{base_drawer::BaseDrawer, tail_drawer::TailDrawer}, scene::Scene, wall::Wall, BallConfig, ConfigPosition
 };
 use macroquad::{audio::load_sound, prelude::*, rand::ChooseRandom};
 
@@ -37,7 +33,7 @@ pub async fn build_balls(
                 ball_config.radius,
                 ball_config.elasticity,
             ),
-            Box::new(TailDrawer::new(color, BLACK, 1000)),
+            Box::new(TailDrawer::new(color, BLACK, 100, 10)),
             load_sound(&ball_config.sound).await.unwrap(),
         );
 
@@ -57,7 +53,7 @@ pub async fn build_balls(
     balls
 }
 
-pub async fn scene_1(balls: Vec<Ball>) -> Scene {
+pub async fn scene_1(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
     let offset = 100.0;
 
     let mut walls = vec![
@@ -96,10 +92,10 @@ pub async fn scene_1(balls: Vec<Ball>) -> Scene {
         ));
     }
 
-    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
+    Scene::new(balls, walls, timescale, physics_steps)
 }
 
-pub async fn scene_2(balls: Vec<Ball>) -> Scene {
+pub async fn scene_2(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
     let mut walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -123,10 +119,10 @@ pub async fn scene_2(balls: Vec<Ball>) -> Scene {
         }
     }
 
-    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
+    Scene::new(balls, walls, timescale, physics_steps)
 }
 
-pub async fn scene_3(balls: Vec<Ball>) -> Scene {
+pub async fn scene_3(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
     let walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -134,10 +130,10 @@ pub async fn scene_3(balls: Vec<Ball>) -> Scene {
         Wall::vertical(screen_width() as f64, false),
     ];
 
-    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
+    Scene::new(balls, walls, timescale, physics_steps)
 }
 
-pub async fn scene_4(balls: Vec<Ball>) -> Scene {
+pub async fn scene_4(balls: Vec<Ball>, timescale: f64, physics_steps: usize) -> Scene {
     let walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -155,5 +151,5 @@ pub async fn scene_4(balls: Vec<Ball>) -> Scene {
         ),
     ];
 
-    Scene::new(balls, walls, TIMESCALE, PHYSICS_STEPS)
+    Scene::new(balls, walls, timescale, physics_steps)
 }

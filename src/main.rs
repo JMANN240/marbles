@@ -1,3 +1,4 @@
+use clap::Parser;
 use macroquad::prelude::*;
 use scenes::{build_balls, scene_1, scene_2, scene_3, scene_4};
 use serde::Deserialize;
@@ -10,9 +11,6 @@ mod scene;
 mod scenes;
 mod wall;
 
-const PHYSICS_STEPS: usize = 100;
-const TIMESCALE: f64 = 1.0;
-
 const SCALE: f64 = 0.5;
 
 fn window_conf() -> Conf {
@@ -24,9 +22,6 @@ fn window_conf() -> Conf {
         ..Default::default()
     }
 }
-
-const COUNTDOWN_SECONDS: usize = 3;
-const RESET_SECONDS: usize = 10;
 
 #[derive(Deserialize)]
 pub struct ConfigPosition {
@@ -54,8 +49,28 @@ pub struct Config {
     scene: usize,
 }
 
+#[derive(Parser)]
+pub struct Cli {
+    #[arg(short, long)]
+    endless: bool,
+
+    #[arg(short, long, default_value_t = 3)]
+    countdown_seconds: usize,
+
+    #[arg(short, long, default_value_t = 10)]
+    reset_seconds: usize,
+
+    #[arg(short, long, default_value_t = 1.0)]
+    timescale: f64,
+
+    #[arg(short, long, default_value_t = 100)]
+    physics_steps: usize,
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
+    let cli = Cli::parse();
+
     let mut time_offset = 0.0;
 
     loop {
@@ -65,34 +80,33 @@ async fn main() {
         let balls = build_balls(&mut config.ball_positions, &config.balls).await;
 
         let mut scene = if config.scene == 1 {
-            scene_1(balls).await
+            scene_1(balls, cli.timescale, cli.physics_steps).await
         } else if config.scene == 2 {
-            scene_2(balls).await
+            scene_2(balls, cli.timescale, cli.physics_steps).await
         } else if config.scene == 3 {
-            scene_3(balls).await
+            scene_3(balls, cli.timescale, cli.physics_steps).await
         } else {
-            scene_4(balls).await
+            scene_4(balls, cli.timescale, cli.physics_steps).await
         };
 
         let mut maybe_all_won_time = None;
         loop {
             let scene_time = get_time() - time_offset;
 
-            if scene_time >= COUNTDOWN_SECONDS as f64 {
+            if scene_time >= cli.countdown_seconds as f64 {
                 scene.update();
             }
 
             scene.draw();
 
-            if scene_time.floor() < COUNTDOWN_SECONDS as f64 {
-                let text = format!("{}", COUNTDOWN_SECONDS as f64 - scene_time.floor(),);
+            if scene_time.floor() < cli.countdown_seconds as f64 {
+                let text = format!("{}", cli.countdown_seconds as f64 - scene_time.floor(),);
                 draw_text_outline(
                     &text,
                     screen_width() / 2.0 - measure_text(&text, None, 256, 1.0).width / 2.0,
                     screen_height() / 2.0,
                     256.0,
                     WHITE,
-                    16,
                 );
             }
 
@@ -101,10 +115,10 @@ async fn main() {
                 maybe_all_won_time = Some(scene_time);
             }
 
-            if let Some(all_won_time) = maybe_all_won_time {
+            if cli.endless && let Some(all_won_time) = maybe_all_won_time {
                 let text = format!(
                     "{}",
-                    RESET_SECONDS as f64 - (scene_time - all_won_time).floor()
+                    cli.reset_seconds as f64 - (scene_time - all_won_time).floor()
                 );
 
                 draw_text_outline(
@@ -113,10 +127,9 @@ async fn main() {
                     screen_height() / 2.0,
                     256.0,
                     WHITE,
-                    16,
                 );
 
-                if scene_time >= all_won_time + RESET_SECONDS as f64 {
+                if scene_time >= all_won_time + cli.reset_seconds as f64 {
                     time_offset = get_time();
                     break;
                 }
@@ -127,10 +140,14 @@ async fn main() {
     }
 }
 
-pub fn draw_text_outline(text: &str, x: f32, y: f32, font_size: f32, color: Color, thickness: i32) {
-    for i in -thickness..=thickness {
-        for j in -thickness..=thickness {
-            draw_text(text, x + i as f32, y + j as f32, font_size, BLACK);
+pub fn draw_text_outline(text: &str, x: f32, y: f32, font_size: f32, color: Color) {
+    let pixel_size = (font_size / 16.0).ceil();
+
+    for i in -1..=1 {
+        for j in -1..=1 {
+            if i != 0 || j != 0 {
+                draw_text(text, x + i as f32 * pixel_size, y + j as f32 * pixel_size, font_size, BLACK);
+            }
         }
     }
 

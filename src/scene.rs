@@ -212,12 +212,12 @@ impl Scene {
     }
 
     pub fn draw(&self) {
-        for ball in self.balls.iter() {
-            ball.draw();
-        }
-
         for wall in self.walls.iter() {
             wall.draw();
+        }
+
+        for ball in self.balls.iter() {
+            ball.draw();
         }
 
         self.particles.draw();
@@ -233,7 +233,6 @@ impl Scene {
                 font_size + font_size * index as f32,
                 font_size,
                 winner.get_name_color(),
-                4,
             );
         }
     }
