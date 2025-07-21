@@ -1,10 +1,10 @@
-use crate::ball::Ball;
+use crate::ball::{Ball, PhysicsBall};
 
 pub mod base_drawer;
 pub mod tail_drawer;
 
 pub trait Drawer {
-    type BallType: Ball;
-
-    fn draw(&self, ball: &Self::BallType);
+    fn init(&mut self, ball: &PhysicsBall);
+    fn update(&mut self, ball: &PhysicsBall);
+    fn draw(&self, ball: &Ball);
 }

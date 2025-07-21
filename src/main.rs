@@ -1,8 +1,16 @@
+use std::f64::consts::PI;
+
+use ::rand::random_range;
 use ball::Ball;
 use macroquad::{
-    audio::{play_sound, PlaySoundParams}, prelude::*
+    audio::{PlaySoundParams, play_sound},
+    prelude::*,
 };
-use ::rand::{random_bool, random_range};
+use particle::{
+    ConfettiParticle, ShrinkingParticle,
+    emitter::{BaseParticleEmitter, ParticleEmitter},
+    system::ParticleSystem,
+};
 use scenes::{build_balls, scene_1, scene_2, scene_3, scene_4};
 use serde::Deserialize;
 use toml::from_str;
@@ -10,6 +18,7 @@ use wall::Wall;
 
 mod ball;
 mod drawer;
+mod particle;
 mod scenes;
 mod wall;
 
@@ -80,9 +89,9 @@ async fn main() {
             if get_time() >= COUNTDOWN_SECONDS as f64 {
                 scene.update();
             }
-    
+
             scene.draw();
-    
+
             if get_time().floor() < COUNTDOWN_SECONDS as f64 {
                 let text = format!("{}", COUNTDOWN_SECONDS as f64 - get_time().floor(),);
                 draw_text_outline(
@@ -100,7 +109,10 @@ async fn main() {
             }
 
             if let Some(all_won_time) = maybe_all_won_time {
-                let text = format!("{}", RESET_SECONDS as f64 - (get_time() - all_won_time).floor());
+                let text = format!(
+                    "{}",
+                    RESET_SECONDS as f64 - (get_time() - all_won_time).floor()
+                );
 
                 draw_text_outline(
                     &text,
@@ -121,58 +133,11 @@ async fn main() {
     }
 }
 
-#[derive(Clone, Copy)]
-pub enum ParticleLayer {
-    Back,
-    Front,
-}
-
-#[derive(Clone, Copy)]
-pub struct Particle {
-    position: DVec2,
-    size: f64,
-    age: f64,
-    max_age: f64,
-    layer: ParticleLayer,
-}
-
-impl Particle {
-    pub fn new(position: DVec2, size: f64, max_age: f64, layer: ParticleLayer) -> Self {
-        Self {
-            position,
-            size,
-            age: 0.0,
-            max_age,
-            layer,
-        }
-    }
-
-    pub fn update(&mut self, dt: f64) {
-        self.age += dt;
-    }
-
-    pub fn draw(&self) {
-        let percent = self.age / self.max_age;
-
-        draw_circle(
-            self.position.x as f32,
-            self.position.y as f32,
-            (self.size * (1.0 - percent)) as f32,
-            Color {
-                a: 1.0,
-                r: 1.0,
-                g: 1.0,
-                b: 1.0,
-            },
-        );
-    }
-}
-
 pub struct Scene {
-    balls: Vec<Box<dyn Ball>>,
+    balls: Vec<Ball>,
     walls: Vec<Wall>,
     winners: Vec<usize>,
-    particles: Vec<Particle>,
+    particles: ParticleSystem,
 }
 
 const MIN_OVERLAP: f64 = 0.01;
@@ -208,16 +173,35 @@ impl Scene {
                                     .dot(intersection_vector.normalize())
                                     .abs();
                                 if v_dot >= 100.0 {
-                                    self.particles.push(Particle::new(
+                                    self.particles.spawn(Box::new(ShrinkingParticle::new(
                                         intersection_point,
                                         v_dot.sqrt() / 2.0,
+                                        WHITE,
                                         0.2,
-                                        ParticleLayer::Front,
-                                    ));
+                                    )));
                                 }
 
                                 if wall.is_goal() && !self.winners.contains(&index) {
                                     self.winners.push(index);
+
+                                    let emitter = BaseParticleEmitter::new(
+                                        ball.get_position(),
+                                        ball.get_radius(),
+                                        |position, _spread| {
+                                            Box::new(ConfettiParticle::new(
+                                                position,
+                                                DVec2::from_angle(random_range(
+                                                    (1.25 * PI)..(1.75 * PI),
+                                                )) * random_range(100.0..=1000.0),
+                                                random_range(4.0..=8.0),
+                                                2.0,
+                                            ))
+                                        },
+                                    );
+
+                                    for _ in 0..100 {
+                                        self.particles.spawn(emitter.generate_particle());
+                                    }
                                 }
                             }
 
@@ -256,12 +240,12 @@ impl Scene {
                                 .dot(intersection_vector.normalize())
                                 .abs();
                             if v_dot >= 100.0 {
-                                self.particles.push(Particle::new(
+                                self.particles.spawn(Box::new(ShrinkingParticle::new(
                                     ball.get_position().midpoint(other_ball.get_position()),
                                     v_dot.sqrt() / 2.0,
+                                    WHITE,
                                     0.2,
-                                    ParticleLayer::Front,
-                                ));
+                                )));
                             }
 
                             let overlap = MIN_OVERLAP.max(
@@ -303,28 +287,17 @@ impl Scene {
                 .collect();
 
             for (ball, (new_position, new_velocity)) in self.balls.iter_mut().zip(new_attributes) {
-                ball.set_position(new_position + new_velocity * dt);
+                ball.set_position(new_position);
                 ball.set_velocity(new_velocity);
+
+                ball.update(dt);
             }
 
-            for particle in self.particles.iter_mut() {
-                particle.update(dt);
-            }
-
-            self.particles = self
-                .particles
-                .iter()
-                .cloned()
-                .filter(|particle| particle.age <= particle.max_age)
-                .collect();
+            self.particles.update(dt);
         }
     }
 
     pub fn draw(&self) {
-        for particle in self.particles.iter().filter(|particle| matches!(particle.layer, ParticleLayer::Back)) {
-            particle.draw();
-        }
-
         for ball in self.balls.iter() {
             ball.draw();
         }
@@ -333,9 +306,7 @@ impl Scene {
             wall.draw();
         }
 
-        for particle in self.particles.iter().filter(|particle| matches!(particle.layer, ParticleLayer::Front)) {
-            particle.draw();
-        }
+        self.particles.draw();
 
         for (index, winner_index) in self.winners.iter().enumerate() {
             let winner = self.balls.get(*winner_index).unwrap();

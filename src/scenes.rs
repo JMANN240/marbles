@@ -1,10 +1,21 @@
 use crate::{
-    ball::{tracked_ball::TrackedBall, Ball}, drawer::tail_drawer::TailDrawer, wall::Wall, BallConfig, ConfigPosition, Scene
+    BallConfig, ConfigPosition, Scene,
+    ball::Ball,
+    drawer::tail_drawer::TailDrawer,
+    particle::{
+        FireParticle, ShrinkingParticle,
+        emitter::{BaseParticleEmitter, FrequencyParticleEmitter},
+        system::ParticleSystem,
+    },
+    wall::Wall,
 };
 use macroquad::{audio::load_sound, prelude::*, rand::ChooseRandom};
 
-pub async fn build_balls(ball_positions: &mut Vec<ConfigPosition>, ball_configs: &Vec<BallConfig>) -> Vec<Box<dyn Ball>> {
-    let mut balls: Vec<Box<dyn Ball>> = Vec::new();
+pub async fn build_balls(
+    ball_positions: &mut Vec<ConfigPosition>,
+    ball_configs: &Vec<BallConfig>,
+) -> Vec<Ball> {
+    let mut balls: Vec<Ball> = Vec::new();
 
     ball_positions.shuffle();
 
@@ -16,25 +27,39 @@ pub async fn build_balls(ball_positions: &mut Vec<ConfigPosition>, ball_configs:
             a: 1.0,
         };
 
-        balls.push(Box::new(TrackedBall::new(
+        let position = dvec2(
+            ball_position.x + rand::gen_range(-1.0, 1.0),
+            ball_position.y,
+        );
+
+        let mut ball = Ball::new(
             ball_config.name.clone(),
             color,
-            dvec2(
-                ball_position.x + rand::gen_range(-1.0, 1.0),
-                ball_position.y,
-            ),
+            position,
             dvec2(ball_position.vx, ball_position.vy),
             ball_config.radius,
             ball_config.elasticity,
-            TailDrawer::new(color, BLACK),
+            Box::new(TailDrawer::new(color, BLACK, 1000)),
             load_sound(&ball_config.sound).await.unwrap(),
-        )));
+        );
+
+        // ball.get_particles_mut()
+        //     .add_emitter(Box::new(FrequencyParticleEmitter::new(
+        //         position,
+        //         10.0,
+        //         120.0,
+        //         |position, _spread| {
+        //             Box::new(FireParticle::new(position, 4.0, 0.5))
+        //         },
+        //     )));
+
+        balls.push(ball);
     }
 
     balls
 }
 
-pub async fn scene_1(balls: Vec<Box<dyn Ball>>) -> Scene {
+pub async fn scene_1(balls: Vec<Ball>) -> Scene {
     let offset = 100.0;
 
     let mut walls = vec![
@@ -77,18 +102,17 @@ pub async fn scene_1(balls: Vec<Box<dyn Ball>>) -> Scene {
         balls,
         walls,
         winners: Vec::new(),
-        particles: Vec::new(),
+        particles: ParticleSystem::default(),
     }
 }
 
-pub async fn scene_2(balls: Vec<Box<dyn Ball>>) -> Scene {
+pub async fn scene_2(balls: Vec<Ball>) -> Scene {
     let mut walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
         Wall::horizontal(screen_height() as f64, true),
         Wall::vertical(screen_width() as f64, false),
     ];
-
 
     let max_columns = 8;
     let x_spacing = screen_width() as f64 / (max_columns as f64 + 1.0);
@@ -110,11 +134,11 @@ pub async fn scene_2(balls: Vec<Box<dyn Ball>>) -> Scene {
         balls,
         walls,
         winners: Vec::new(),
-        particles: Vec::new(),
+        particles: ParticleSystem::default(),
     }
 }
 
-pub async fn scene_3(balls: Vec<Box<dyn Ball>>) -> Scene {
+pub async fn scene_3(balls: Vec<Ball>) -> Scene {
     let walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -126,11 +150,11 @@ pub async fn scene_3(balls: Vec<Box<dyn Ball>>) -> Scene {
         balls,
         walls,
         winners: Vec::new(),
-        particles: Vec::new(),
+        particles: ParticleSystem::default(),
     }
 }
 
-pub async fn scene_4(balls: Vec<Box<dyn Ball>>) -> Scene {
+pub async fn scene_4(balls: Vec<Ball>) -> Scene {
     let walls = vec![
         Wall::horizontal(0.0, false),
         Wall::vertical(0.0, false),
@@ -152,6 +176,6 @@ pub async fn scene_4(balls: Vec<Box<dyn Ball>>) -> Scene {
         balls,
         walls,
         winners: Vec::new(),
-        particles: Vec::new(),
+        particles: ParticleSystem::default(),
     }
 }

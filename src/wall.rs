@@ -8,7 +8,11 @@ pub struct Wall {
 
 impl Wall {
     pub fn new(start: DVec2, end: DVec2, is_goal: bool) -> Self {
-        Self { start, end, is_goal }
+        Self {
+            start,
+            end,
+            is_goal,
+        }
     }
 
     pub fn vertical(x: f64, is_goal: bool) -> Self {
