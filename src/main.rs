@@ -136,3 +136,20 @@ pub fn draw_text_outline(text: &str, x: f32, y: f32, font_size: f32, color: Colo
 
     draw_text(text, x, y, font_size, color);
 }
+
+pub fn lerp_f64(start: f64, end: f64, t: f64) -> f64 {
+    start * (1.0 * t) + end * t
+}
+
+pub fn lerp_f32(start: f32, end: f32, t: f32) -> f32 {
+    start * (1.0 * t) + end * t
+}
+
+pub fn lerp_color(start: Color, end: Color, t: f32) -> Color {
+    Color {
+        r: lerp_f32(start.r, end.r, t),
+        g: lerp_f32(start.g, end.g, t),
+        b: lerp_f32(start.b, end.b, t),
+        a: lerp_f32(start.a, end.a, t),
+    }
+}
