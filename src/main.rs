@@ -57,9 +57,6 @@ pub struct Cli {
     #[arg(short, long)]
     endless: bool,
 
-    #[arg(short, long)]
-    render: bool,
-
     #[arg(short, long, default_value_t = 3)]
     countdown_seconds: usize,
 
@@ -79,28 +76,14 @@ async fn main() {
 
     let mut time_offset = 0.0;
 
-    let render_target = render_target_ex(
-        (1080.0 * SCALE) as u32,
-        (1920.0 * SCALE) as u32,
-        RenderTargetParams {
-            sample_count: 8,
-            depth: false,
-        },
-    );
-
     let zoom = 1.2;
 
     let camera = Camera2D {
         zoom: vec2(
             2.0 / (1080.0 * SCALE * zoom),
-            if cli.render { -2.0 } else { 2.0 } / (1920.0 * SCALE * zoom),
+            2.0 / (1920.0 * SCALE * zoom),
         ),
         offset: vec2(-1.0 / zoom, 1.0 / zoom),
-        render_target: if cli.render {
-            Some(render_target)
-        } else {
-            None
-        },
         ..Camera2D::default()
     };
 
