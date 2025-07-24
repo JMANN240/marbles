@@ -67,7 +67,7 @@ impl<F> FrequencyParticleEmitter<F>
 where
     F: Fn(DVec2, f64) -> Box<dyn Particle>,
 {
-    pub fn _new(position: DVec2, spread: f64, frequency: f64, particle_generator: F) -> Self {
+    pub fn new(position: DVec2, spread: f64, frequency: f64, particle_generator: F) -> Self {
         Self {
             position,
             spread,

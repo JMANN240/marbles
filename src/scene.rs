@@ -8,12 +8,12 @@ use macroquad::{
 
 use crate::{
     ball::Ball,
-    draw_text_outline,
     particle::{
         ConfettiParticle, ShrinkingParticle,
         emitter::{BaseParticleEmitter, ParticleEmitter},
         system::ParticleSystem,
     },
+    util::draw_text_outline,
     wall::Wall,
 };
 
@@ -29,7 +29,12 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(balls: Vec<Ball>, walls: Vec<Box<dyn Wall>>, timescale: f64, physics_steps: usize) -> Self {
+    pub fn new(
+        balls: Vec<Ball>,
+        walls: Vec<Box<dyn Wall>>,
+        timescale: f64,
+        physics_steps: usize,
+    ) -> Self {
         Self {
             balls,
             walls,
@@ -212,6 +217,8 @@ impl Scene {
     }
 
     pub fn draw(&self) {
+        clear_background(BLACK);
+
         for wall in self.walls.iter() {
             wall.draw();
         }

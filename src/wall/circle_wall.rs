@@ -70,10 +70,8 @@ impl Wall for CircleWall {
 
         let d = (dx.powi(2) + dy.powi(2)).sqrt();
 
-        if d > wr + br {
-            return None;
-        } else if d < (wr - br).abs() {
-            return None;
+        if d > wr + br || d < (wr - br).abs() {
+            None
         } else {
             let a = (wr.powi(2) - br.powi(2) + d.powi(2)) / (2.0 * d);
             let h = (wr.powi(2) - a.powi(2)).sqrt();
@@ -89,8 +87,10 @@ impl Wall for CircleWall {
             let iy2 = p2y + h * (bx - wx) / d;
             let i2 = dvec2(ix2, iy2);
 
-            let theta1 = ((i1 - self.get_position()).to_angle() as f64 / PI * 180.0 + 360.0) % 360.0;
-            let theta2 = ((i2 - self.get_position()).to_angle() as f64 / PI * 180.0 + 360.0) % 360.0;
+            let theta1 =
+                ((i1 - self.get_position()).to_angle() as f64 / PI * 180.0 + 360.0) % 360.0;
+            let theta2 =
+                ((i2 - self.get_position()).to_angle() as f64 / PI * 180.0 + 360.0) % 360.0;
 
             let theta1_valid = (self.get_start()..=self.get_end()).contains(&theta1);
             let theta2_valid = (self.get_start()..=self.get_end()).contains(&theta2);

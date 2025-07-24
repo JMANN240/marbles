@@ -4,7 +4,8 @@ use macroquad::prelude::*;
 
 use crate::{
     ball::{Ball, PhysicsBall},
-    draw_text_outline, lerp_color,
+    draw_text_outline,
+    util::lerp_color,
 };
 
 use super::Drawer;
@@ -57,7 +58,7 @@ impl Drawer for TailDrawer {
                 position.x as f32,
                 position.y as f32,
                 ball.get_radius() as f32 * percent,
-                lerp_color(self.start_color, self.end_color, percent),
+                lerp_color(self.start_color, self.end_color, 1.0 - percent),
             );
         }
 

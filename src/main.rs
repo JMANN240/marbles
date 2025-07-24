@@ -1,17 +1,19 @@
 use clap::Parser;
 use macroquad::prelude::*;
-use scenes::{build_balls, scene_1, scene_2, scene_3, scene_4, scene_5};
+use scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6};
 use serde::Deserialize;
 use toml::from_str;
+use util::draw_text_outline;
 
 mod ball;
 mod drawer;
 mod particle;
 mod scene;
 mod scenes;
+mod util;
 mod wall;
 
-const SCALE: f64 = 0.5;
+const SCALE: f32 = 0.5;
 
 fn window_conf() -> Conf {
     Conf {
@@ -23,12 +25,14 @@ fn window_conf() -> Conf {
     }
 }
 
-#[derive(Deserialize)]
-pub struct ConfigPosition {
-    x: f64,
-    y: f64,
-    vx: f64,
-    vy: f64,
+fn _window_conf_square() -> Conf {
+    Conf {
+        window_width: (1024.0 * SCALE) as i32,
+        window_height: (1024.0 * SCALE) as i32,
+        window_title: "BallRace".to_owned(),
+        sample_count: 8,
+        ..Default::default()
+    }
 }
 
 #[derive(Deserialize)]
@@ -45,7 +49,6 @@ pub struct BallConfig {
 #[derive(Deserialize)]
 pub struct Config {
     balls: Vec<BallConfig>,
-    ball_positions: Vec<ConfigPosition>,
     scene: usize,
 }
 
@@ -53,6 +56,9 @@ pub struct Config {
 pub struct Cli {
     #[arg(short, long)]
     endless: bool,
+
+    #[arg(short, long)]
+    render: bool,
 
     #[arg(short, long, default_value_t = 3)]
     countdown_seconds: usize,
@@ -73,22 +79,49 @@ async fn main() {
 
     let mut time_offset = 0.0;
 
+    let render_target = render_target_ex(
+        (1080.0 * SCALE) as u32,
+        (1920.0 * SCALE) as u32,
+        RenderTargetParams {
+            sample_count: 8,
+            depth: false,
+        },
+    );
+
+    let zoom = 1.2;
+
+    let camera = Camera2D {
+        zoom: vec2(
+            2.0 / (1080.0 * SCALE * zoom),
+            if cli.render { -2.0 } else { 2.0 } / (1920.0 * SCALE * zoom),
+        ),
+        offset: vec2(-1.0 / zoom, 1.0 / zoom),
+        render_target: if cli.render {
+            Some(render_target)
+        } else {
+            None
+        },
+        ..Camera2D::default()
+    };
+
+    set_camera(&camera);
+
     loop {
         let config_string = std::fs::read_to_string("config.toml").unwrap();
-        let mut config = from_str::<Config>(&config_string).unwrap();
-
-        let balls = build_balls(&mut config.ball_positions, &config.balls).await;
+        let config = from_str::<Config>(&config_string).unwrap();
 
         let mut scene = if config.scene == 1 {
-            scene_1(balls, cli.timescale, cli.physics_steps).await
+            scene_1(config.balls, cli.timescale, cli.physics_steps).await
         } else if config.scene == 2 {
-            scene_2(balls, cli.timescale, cli.physics_steps).await
+            scene_2(config.balls, cli.timescale, cli.physics_steps).await
         } else if config.scene == 3 {
-            scene_3(balls, cli.timescale, cli.physics_steps).await
+            scene_3(config.balls, cli.timescale, cli.physics_steps).await
         } else if config.scene == 4 {
-            scene_4(balls, cli.timescale, cli.physics_steps).await
+            scene_4(config.balls, cli.timescale, cli.physics_steps).await
+        } else if config.scene == 5 {
+            scene_5(config.balls, cli.timescale, cli.physics_steps).await
         } else {
-            scene_5(balls, cli.timescale, cli.physics_steps).await
+            scene_6(config.balls, cli.timescale, cli.physics_steps).await
         };
 
         let mut maybe_all_won_time = None;
@@ -117,7 +150,9 @@ async fn main() {
                 maybe_all_won_time = Some(scene_time);
             }
 
-            if cli.endless && let Some(all_won_time) = maybe_all_won_time {
+            if cli.endless
+                && let Some(all_won_time) = maybe_all_won_time
+            {
                 let text = format!(
                     "{}",
                     cli.reset_seconds as f64 - (scene_time - all_won_time).floor()
@@ -139,36 +174,5 @@ async fn main() {
 
             next_frame().await;
         }
-    }
-}
-
-pub fn draw_text_outline(text: &str, x: f32, y: f32, font_size: f32, color: Color) {
-    let pixel_size = (font_size / 16.0).ceil();
-
-    for i in -1..=1 {
-        for j in -1..=1 {
-            if i != 0 || j != 0 {
-                draw_text(text, x + i as f32 * pixel_size, y + j as f32 * pixel_size, font_size, BLACK);
-            }
-        }
-    }
-
-    draw_text(text, x, y, font_size, color);
-}
-
-pub fn lerp_f64(start: f64, end: f64, t: f64) -> f64 {
-    start * (1.0 * t) + end * t
-}
-
-pub fn lerp_f32(start: f32, end: f32, t: f32) -> f32 {
-    start * (1.0 * t) + end * t
-}
-
-pub fn lerp_color(start: Color, end: Color, t: f32) -> Color {
-    Color {
-        r: lerp_f32(start.r, end.r, t),
-        g: lerp_f32(start.g, end.g, t),
-        b: lerp_f32(start.b, end.b, t),
-        a: lerp_f32(start.a, end.a, t),
     }
 }
