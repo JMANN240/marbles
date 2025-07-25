@@ -27,6 +27,23 @@ impl StraightWall {
         Self::new(dvec2(-10000.0, y), dvec2(10000.0, y), is_goal)
     }
 
+    pub fn screen() -> Vec<Self> {
+        vec![
+            Self::new(dvec2(0.0, 0.0), dvec2(screen_width() as f64, 0.0), false),
+            Self::new(
+                dvec2(screen_width() as f64, 0.0),
+                dvec2(screen_width() as f64, screen_height() as f64),
+                false,
+            ),
+            Self::new(
+                dvec2(screen_width() as f64, screen_height() as f64),
+                dvec2(0.0, screen_height() as f64),
+                true,
+            ),
+            Self::new(dvec2(0.0, screen_height() as f64), dvec2(0.0, 0.0), false),
+        ]
+    }
+
     pub fn get_start(&self) -> DVec2 {
         self.start
     }

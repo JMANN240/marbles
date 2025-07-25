@@ -8,6 +8,7 @@ use macroquad::{
 
 use crate::{
     ball::Ball,
+    collision::Collision,
     particle::{
         ConfettiParticle, ShrinkingParticle,
         emitter::{BaseParticleEmitter, ParticleEmitter},
@@ -61,15 +62,21 @@ impl Scene {
         self.physics_steps
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self) -> Vec<Collision> {
         let dt = get_frame_time() as f64 * self.get_timescale() / self.get_physics_steps() as f64;
 
+        let mut collisions = Vec::new();
+
         for _ in 0..self.get_physics_steps() {
-            self.step_physics(dt);
+            collisions.append(&mut self.step_physics(dt));
         }
+
+        collisions
     }
 
-    pub fn step_physics(&mut self, dt: f64) {
+    pub fn step_physics(&mut self, dt: f64) -> Vec<Collision> {
+        let mut collisions = Vec::new();
+
         let new_attributes: Vec<(DVec2, DVec2)> = self
             .balls
             .iter()
@@ -193,11 +200,15 @@ impl Scene {
                 let _v_dot = new_velocity.dot(ball.get_velocity());
 
                 if dv >= 100.0 {
+                    let volume = ((dv - 100.0) / 2000.0).min(1.0) as f32;
+
+                    collisions.push(Collision::new(ball.get_sound_path().to_path_buf(), volume));
+
                     play_sound(
                         ball.get_sound(),
                         PlaySoundParams {
                             looped: false,
-                            volume: ((dv - 100.0) / 2000.0).min(1.0) as f32,
+                            volume,
                         },
                     );
                 }
@@ -214,6 +225,8 @@ impl Scene {
         }
 
         self.particles.update(dt);
+
+        collisions
     }
 
     pub fn draw(&self) {

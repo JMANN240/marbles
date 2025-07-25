@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     BallConfig,
     ball::{Ball, PhysicsBall},
@@ -49,8 +51,10 @@ pub async fn build_balls(ball_configs: &[BallConfig], positions: &mut [DVec2]) -
             } else {
                 TailDrawer::new(color, BLACK, 100, 10)
             }),
+            PathBuf::from(ball_config.sound.clone()),
             load_sound(&ball_config.sound).await.unwrap(),
-        );
+        )
+        .await;
 
         if ball_config.name == "Fireball" {
             ball.get_particles_mut()
@@ -71,12 +75,10 @@ pub async fn build_balls(ball_configs: &[BallConfig], positions: &mut [DVec2]) -
 pub async fn scene_1(balls: Vec<BallConfig>, timescale: f64, physics_steps: usize) -> Scene {
     let offset = 100.0;
 
-    let mut walls: Vec<Box<dyn Wall>> = vec![
-        Box::new(StraightWall::horizontal(0.0, false)),
-        Box::new(StraightWall::vertical(0.0, false)),
-        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
-        Box::new(StraightWall::vertical(screen_width() as f64, false)),
-    ];
+    let mut walls: Vec<Box<dyn Wall>> = StraightWall::screen()
+        .into_iter()
+        .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+        .collect();
 
     for i in 0..8 {
         walls.push(Box::new(StraightWall::new(
@@ -122,12 +124,10 @@ pub async fn scene_1(balls: Vec<BallConfig>, timescale: f64, physics_steps: usiz
 }
 
 pub async fn scene_2(balls: Vec<BallConfig>, timescale: f64, physics_steps: usize) -> Scene {
-    let mut walls: Vec<Box<dyn Wall>> = vec![
-        Box::new(StraightWall::horizontal(0.0, false)),
-        Box::new(StraightWall::vertical(0.0, false)),
-        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
-        Box::new(StraightWall::vertical(screen_width() as f64, false)),
-    ];
+    let mut walls: Vec<Box<dyn Wall>> = StraightWall::screen()
+        .into_iter()
+        .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+        .collect();
 
     let max_columns = 8;
     let x_spacing = screen_width() as f64 / (max_columns as f64 + 1.0);
@@ -168,12 +168,10 @@ pub async fn scene_2(balls: Vec<BallConfig>, timescale: f64, physics_steps: usiz
 }
 
 pub async fn scene_3(balls: Vec<BallConfig>, timescale: f64, physics_steps: usize) -> Scene {
-    let walls: Vec<Box<dyn Wall>> = vec![
-        Box::new(StraightWall::horizontal(0.0, false)),
-        Box::new(StraightWall::vertical(0.0, false)),
-        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
-        Box::new(StraightWall::vertical(screen_width() as f64, false)),
-    ];
+    let walls: Vec<Box<dyn Wall>> = StraightWall::screen()
+        .into_iter()
+        .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+        .collect();
 
     let mut positions = space_evenly(
         balls.len(),
@@ -190,22 +188,22 @@ pub async fn scene_3(balls: Vec<BallConfig>, timescale: f64, physics_steps: usiz
 }
 
 pub async fn scene_4(balls: Vec<BallConfig>, timescale: f64, physics_steps: usize) -> Scene {
-    let walls: Vec<Box<dyn Wall>> = vec![
-        Box::new(StraightWall::horizontal(0.0, false)),
-        Box::new(StraightWall::vertical(0.0, false)),
-        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
-        Box::new(StraightWall::vertical(screen_width() as f64, false)),
-        Box::new(StraightWall::new(
-            dvec2(screen_width() as f64 * 0.25, 0.0),
-            dvec2(screen_width() as f64 * 0.475, screen_height() as f64 * 0.9),
-            false,
-        )),
-        Box::new(StraightWall::new(
-            dvec2(screen_width() as f64 * 0.75, 0.0),
-            dvec2(screen_width() as f64 * 0.525, screen_height() as f64 * 0.9),
-            false,
-        )),
-    ];
+    let mut walls: Vec<Box<dyn Wall>> = StraightWall::screen()
+        .into_iter()
+        .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+        .collect();
+
+    walls.push(Box::new(StraightWall::new(
+        dvec2(screen_width() as f64 * 0.25, 0.0),
+        dvec2(screen_width() as f64 * 0.475, screen_height() as f64 * 0.9),
+        false,
+    )));
+
+    walls.push(Box::new(StraightWall::new(
+        dvec2(screen_width() as f64 * 0.75, 0.0),
+        dvec2(screen_width() as f64 * 0.525, screen_height() as f64 * 0.9),
+        false,
+    )));
 
     let mut positions = space_evenly(
         balls.len(),
@@ -222,12 +220,10 @@ pub async fn scene_4(balls: Vec<BallConfig>, timescale: f64, physics_steps: usiz
 }
 
 pub async fn scene_5(balls: Vec<BallConfig>, timescale: f64, physics_steps: usize) -> Scene {
-    let mut walls: Vec<Box<dyn Wall>> = vec![
-        Box::new(StraightWall::horizontal(0.0, false)),
-        Box::new(StraightWall::vertical(0.0, false)),
-        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
-        Box::new(StraightWall::vertical(screen_width() as f64, false)),
-    ];
+    let mut walls: Vec<Box<dyn Wall>> = StraightWall::screen()
+        .into_iter()
+        .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+        .collect();
 
     let max_columns = 12;
     let x_spacing = screen_width() as f64 / (max_columns as f64 + 1.0);
@@ -265,12 +261,10 @@ pub async fn scene_5(balls: Vec<BallConfig>, timescale: f64, physics_steps: usiz
 }
 
 pub async fn scene_6(balls: Vec<BallConfig>, timescale: f64, physics_steps: usize) -> Scene {
-    let mut walls: Vec<Box<dyn Wall>> = vec![
-        Box::new(StraightWall::horizontal(0.0, false)),
-        Box::new(StraightWall::vertical(0.0, false)),
-        Box::new(StraightWall::horizontal(screen_height() as f64, true)),
-        Box::new(StraightWall::vertical(screen_width() as f64, false)),
-    ];
+    let mut walls: Vec<Box<dyn Wall>> = StraightWall::screen()
+        .into_iter()
+        .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+        .collect();
 
     let wall_size = screen_width() as f64 / 2.0 - 9.0;
 

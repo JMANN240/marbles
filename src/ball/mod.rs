@@ -1,6 +1,12 @@
-use std::f64::consts::PI;
+use std::{
+    f64::consts::PI,
+    path::{Path, PathBuf},
+};
 
-use macroquad::{audio::Sound, prelude::*};
+use macroquad::{
+    audio::Sound,
+    prelude::*,
+};
 
 use crate::{drawer::Drawer, particle::system::ParticleSystem, wall::Wall};
 
@@ -9,16 +15,18 @@ pub struct Ball {
     name_color: Color,
     physics_ball: PhysicsBall,
     drawer: Box<dyn Drawer>,
+    sound_path: PathBuf,
     sound: Sound,
     particles: ParticleSystem,
 }
 
 impl Ball {
-    pub fn new(
+    pub async fn new(
         name: String,
         name_color: Color,
         physics_ball: PhysicsBall,
         mut drawer: Box<dyn Drawer>,
+        sound_path: PathBuf,
         sound: Sound,
     ) -> Self {
         drawer.init(&physics_ball);
@@ -28,6 +36,7 @@ impl Ball {
             name_color,
             physics_ball,
             drawer,
+            sound_path,
             sound,
             particles: ParticleSystem::default(),
         }
@@ -63,6 +72,10 @@ impl Ball {
 
     pub fn get_elasticity(&self) -> f64 {
         self.physics_ball.get_elasticity()
+    }
+
+    pub fn get_sound_path(&self) -> &Path {
+        &self.sound_path
     }
 
     pub fn get_sound(&self) -> &Sound {
