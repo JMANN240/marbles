@@ -95,7 +95,7 @@ async fn main() {
     let mut render_time = 0.0;
     let mut time_offset = 0.0;
 
-    let zoom = 1.2;
+    let zoom = 1.125;
 
     let camera = Camera2D {
         zoom: vec2(2.0 / (1080.0 * SCALE * zoom), 2.0 / (1920.0 * SCALE * zoom)),
