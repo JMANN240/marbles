@@ -37,12 +37,22 @@ impl CircleWall {
         self.start
     }
 
+    pub fn get_start_mod(&self) -> f64 {
+        self.get_start() % 360.0
+    }
+
     pub fn get_end(&self) -> f64 {
         self.end
+    }
+
+    pub fn get_end_mod(&self) -> f64 {
+        self.get_end() % 360.0
     }
 }
 
 impl Wall for CircleWall {
+    fn update(&mut self, _dt: f64) {}
+
     fn draw(&self) {
         draw_arc(
             self.get_position().x as f32,
@@ -92,8 +102,17 @@ impl Wall for CircleWall {
             let theta2 =
                 ((i2 - self.get_position()).to_angle() as f64 / PI * 180.0 + 360.0) % 360.0;
 
-            let theta1_valid = (self.get_start()..=self.get_end()).contains(&theta1);
-            let theta2_valid = (self.get_start()..=self.get_end()).contains(&theta2);
+            let theta1_valid = if self.get_start_mod() < self.get_end_mod() {
+                (self.get_start_mod()..=self.get_end_mod()).contains(&theta1)
+            } else {
+                !(self.get_end_mod()..=self.get_start_mod()).contains(&theta1)
+            };
+
+            let theta2_valid = if self.get_start_mod() < self.get_end_mod() {
+                (self.get_start_mod()..=self.get_end_mod()).contains(&theta2)
+            } else {
+                !(self.get_end_mod()..=self.get_start_mod()).contains(&theta2)
+            };
 
             Some(match (theta1_valid, theta2_valid) {
                 (true, true) => i1.midpoint(i2),

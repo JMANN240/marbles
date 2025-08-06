@@ -1,12 +1,29 @@
-use ::rand::random_range;
+use ::rand::{random_bool, random_range};
 use macroquad::{color::hsl_to_rgb, prelude::*};
 
 pub mod emitter;
 pub mod system;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ParticleLayer {
+    Front,
+    Back,
+}
+
+impl ParticleLayer {
+    pub fn random() -> Self {
+        if random_bool(0.5) {
+            Self::Front
+        } else {
+            Self::Back
+        }
+    }
+}
+
 pub trait Particle {
     fn update(&mut self, dt: f64);
     fn draw(&self);
+    fn get_layer(&self) -> ParticleLayer;
 
     fn should_be_removed(&self) -> bool;
 }
@@ -30,16 +47,24 @@ pub struct BaseParticle {
     color: Color,
     age: f64,
     max_age: f64,
+    layer: ParticleLayer,
 }
 
 impl BaseParticle {
-    pub fn _new(position: DVec2, radius: f64, color: Color, max_age: f64) -> Self {
+    pub fn _new(
+        position: DVec2,
+        radius: f64,
+        color: Color,
+        max_age: f64,
+        layer: ParticleLayer,
+    ) -> Self {
         Self {
             position,
             radius,
             color,
             age: 0.0,
             max_age,
+            layer,
         }
     }
 }
@@ -56,6 +81,10 @@ impl Particle for BaseParticle {
             self.radius as f32,
             self.color,
         );
+    }
+
+    fn get_layer(&self) -> ParticleLayer {
+        self.layer
     }
 
     fn should_be_removed(&self) -> bool {
@@ -81,26 +110,38 @@ impl MaxAgingParticle for BaseParticle {
 
 pub struct ShrinkingParticle {
     position: DVec2,
+    velocity: DVec2,
     radius: f64,
     color: Color,
     age: f64,
     max_age: f64,
+    layer: ParticleLayer,
 }
 
 impl ShrinkingParticle {
-    pub fn new(position: DVec2, radius: f64, color: Color, max_age: f64) -> Self {
+    pub fn new(
+        position: DVec2,
+        velocity: DVec2,
+        radius: f64,
+        color: Color,
+        max_age: f64,
+        layer: ParticleLayer,
+    ) -> Self {
         Self {
             position,
+            velocity,
             radius,
             color,
             age: 0.0,
             max_age,
+            layer,
         }
     }
 }
 
 impl Particle for ShrinkingParticle {
     fn update(&mut self, dt: f64) {
+        self.position += self.velocity * dt;
         self.age += dt;
     }
 
@@ -111,6 +152,10 @@ impl Particle for ShrinkingParticle {
             (self.radius * (1.0 - self.get_age_percent())) as f32,
             self.color,
         );
+    }
+
+    fn get_layer(&self) -> ParticleLayer {
+        self.layer
     }
 
     fn should_be_removed(&self) -> bool {
@@ -139,15 +184,17 @@ pub struct FireParticle {
     radius: f64,
     age: f64,
     max_age: f64,
+    layer: ParticleLayer,
 }
 
 impl FireParticle {
-    pub fn new(position: DVec2, radius: f64, max_age: f64) -> Self {
+    pub fn new(position: DVec2, radius: f64, max_age: f64, layer: ParticleLayer) -> Self {
         Self {
             position,
             radius,
             age: 0.0,
             max_age,
+            layer,
         }
     }
 }
@@ -175,6 +222,10 @@ impl Particle for FireParticle {
             (self.radius * (1.0 - self.get_age_percent())) as f32,
             color,
         );
+    }
+
+    fn get_layer(&self) -> ParticleLayer {
+        self.layer
     }
 
     fn should_be_removed(&self) -> bool {
@@ -206,10 +257,17 @@ pub struct ConfettiParticle {
     rotation_speed: f64,
     age: f64,
     max_age: f64,
+    layer: ParticleLayer,
 }
 
 impl ConfettiParticle {
-    pub fn new(position: DVec2, velocity: DVec2, radius: f64, max_age: f64) -> Self {
+    pub fn new(
+        position: DVec2,
+        velocity: DVec2,
+        radius: f64,
+        max_age: f64,
+        layer: ParticleLayer,
+    ) -> Self {
         Self {
             position,
             velocity,
@@ -218,6 +276,7 @@ impl ConfettiParticle {
             rotation_speed: random_range(1.0..=8.0),
             age: 0.0,
             max_age,
+            layer,
         }
     }
 }
@@ -242,6 +301,10 @@ impl Particle for ConfettiParticle {
                 color: self.color,
             },
         );
+    }
+
+    fn get_layer(&self) -> ParticleLayer {
+        self.layer
     }
 
     fn should_be_removed(&self) -> bool {

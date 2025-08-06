@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use super::{Particle, emitter::ParticleEmitter};
+use super::{Particle, ParticleLayer, emitter::ParticleEmitter};
 
 #[derive(Default)]
 pub struct ParticleSystem {
@@ -11,7 +11,7 @@ pub struct ParticleSystem {
 impl ParticleSystem {
     pub fn update(&mut self, dt: f64) {
         for emitter in self.get_emitters_mut() {
-            emitter.update();
+            emitter.update(dt);
         }
 
         let new_particles = self
@@ -34,7 +34,26 @@ impl ParticleSystem {
     }
 
     pub fn draw(&self) {
-        for particle in self.get_particles().iter() {
+        self.draw_back();
+        self.draw_front();
+    }
+
+    pub fn draw_front(&self) {
+        for particle in self
+            .get_particles()
+            .iter()
+            .filter(|particle| particle.get_layer() == ParticleLayer::Front)
+        {
+            particle.draw();
+        }
+    }
+
+    pub fn draw_back(&self) {
+        for particle in self
+            .get_particles()
+            .iter()
+            .filter(|particle| particle.get_layer() == ParticleLayer::Back)
+        {
             particle.draw();
         }
     }

@@ -2,3 +2,6 @@
 /images
 /videos
 *.wav
+youtube_client_secrets.json
+youtube_token.json
+.env

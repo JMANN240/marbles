@@ -3,12 +3,19 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use macroquad::{
-    audio::Sound,
-    prelude::*,
-};
+use ::rand::random_range;
+use macroquad::{audio::Sound, prelude::*};
 
-use crate::{drawer::Drawer, particle::system::ParticleSystem, wall::Wall};
+use crate::{
+    drawer::Drawer,
+    particle::{
+        ParticleLayer, ShrinkingParticle,
+        emitter::{BaseParticleEmitter, ParticleEmitter},
+        system::ParticleSystem,
+    },
+    util::lerp_color,
+    wall::Wall,
+};
 
 pub struct Ball {
     name: String,
@@ -21,7 +28,7 @@ pub struct Ball {
 }
 
 impl Ball {
-    pub async fn new(
+    pub fn new(
         name: String,
         name_color: Color,
         physics_ball: PhysicsBall,
@@ -90,13 +97,64 @@ impl Ball {
         &mut self.particles
     }
 
+    pub fn handle_collision(&mut self, new_velocity: DVec2) {
+        let dv = new_velocity.distance(self.get_velocity());
+
+        if self.get_name() == "Deep Blue" && dv >= 150.0 {
+            // TODO: Fix this to not be hard coded.
+            let velocity = self.get_velocity();
+
+            let emitter = BaseParticleEmitter::new(
+                self.get_position(),
+                DVec2::ZERO,
+                self.get_radius(),
+                |position, _velocity, _spread| {
+                    Box::new(ShrinkingParticle::new(
+                        position,
+                        random_range(0.125..=0.375)
+                            * velocity.length()
+                            * DVec2::from_angle(
+                                velocity.to_angle() + random_range((-PI / 2.0)..(PI / 2.0)),
+                            ),
+                        random_range(2.0..=6.0),
+                        lerp_color(
+                            Color {
+                                r: 0.0,
+                                g: 0.5,
+                                b: 1.0,
+                                a: 1.0,
+                            },
+                            Color {
+                                r: 0.25,
+                                g: 0.0,
+                                b: 1.0,
+                                a: 1.0,
+                            },
+                            random_range(0.0..=1.0),
+                        ),
+                        random_range(0.25..=0.75),
+                        ParticleLayer::random(),
+                    ))
+                },
+            );
+
+            for _ in 0..20 {
+                self.particles.spawn(emitter.generate_particle());
+            }
+        }
+    }
+
     pub fn update(&mut self, dt: f64) {
         self.set_position(self.get_position() + self.get_velocity() * dt);
 
         let position = self.get_position();
 
+        let velocity = self.get_velocity();
+
         for emitter in self.get_particles_mut().get_emitters_mut() {
             emitter.set_position(position);
+
+            emitter.set_particle_velocity(-velocity);
         }
 
         self.get_particles_mut().update(dt);
@@ -104,9 +162,9 @@ impl Ball {
     }
 
     pub fn draw(&self) {
+        self.get_particles().draw_back();
         self.drawer.draw(self);
-
-        self.get_particles().draw();
+        self.get_particles().draw_front();
     }
 
     pub fn get_mass(&self) -> f64 {

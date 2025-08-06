@@ -7,26 +7,27 @@ use crate::{
 
 use super::Drawer;
 
-pub struct BaseDrawer {
+pub struct OutlineDrawer {
     color: Color,
 }
 
-impl BaseDrawer {
+impl OutlineDrawer {
     pub fn new(color: Color) -> Self {
         Self { color }
     }
 }
 
-impl Drawer for BaseDrawer {
+impl Drawer for OutlineDrawer {
     fn init(&mut self, _ball: &PhysicsBall) {}
 
     fn update(&mut self, _ball: &PhysicsBall) {}
 
     fn draw(&self, ball: &Ball) {
-        draw_circle(
+        draw_circle_lines(
             ball.get_position().x as f32,
             ball.get_position().y as f32,
-            ball.get_radius() as f32,
+            ball.get_radius() as f32 - 1.0,
+            2.0,
             self.color,
         );
 

@@ -4,25 +4,33 @@ use macroquad::prelude::*;
 use super::Particle;
 
 pub trait ParticleEmitter {
-    fn update(&mut self);
+    fn update(&mut self, dt: f64);
     fn set_position(&mut self, position: DVec2);
+    fn set_particle_velocity(&mut self, particle_velocity: DVec2);
     fn should_generate_particle(&self) -> bool;
     fn generate_particle(&self) -> Box<dyn Particle>;
 }
 
 pub struct BaseParticleEmitter<F> {
     position: DVec2,
+    particle_velocity: DVec2,
     spread: f64,
     particle_generator: F,
 }
 
 impl<F> BaseParticleEmitter<F>
 where
-    F: Fn(DVec2, f64) -> Box<dyn Particle>,
+    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
 {
-    pub fn new(position: DVec2, spread: f64, particle_generator: F) -> Self {
+    pub fn new(
+        position: DVec2,
+        particle_velocity: DVec2,
+        spread: f64,
+        particle_generator: F,
+    ) -> Self {
         Self {
             position,
+            particle_velocity,
             spread,
             particle_generator,
         }
@@ -31,12 +39,16 @@ where
 
 impl<F> ParticleEmitter for BaseParticleEmitter<F>
 where
-    F: Fn(DVec2, f64) -> Box<dyn Particle>,
+    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
 {
-    fn update(&mut self) {}
+    fn update(&mut self, _dt: f64) {}
 
     fn set_position(&mut self, position: DVec2) {
         self.position = position;
+    }
+
+    fn set_particle_velocity(&mut self, particle_velocity: DVec2) {
+        self.particle_velocity = particle_velocity;
     }
 
     fn should_generate_particle(&self) -> bool {
@@ -50,12 +62,14 @@ where
                 random_range(-self.spread..=self.spread),
             );
 
-        (self.particle_generator)(position, self.spread)
+        (self.particle_generator)(position, self.particle_velocity, self.spread)
     }
 }
 
 pub struct FrequencyParticleEmitter<F> {
+    time: f64,
     position: DVec2,
+    particle_velocity: DVec2,
     spread: f64,
     frequency: f64,
     last_generated_time: Option<f64>,
@@ -65,11 +79,19 @@ pub struct FrequencyParticleEmitter<F> {
 
 impl<F> FrequencyParticleEmitter<F>
 where
-    F: Fn(DVec2, f64) -> Box<dyn Particle>,
+    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
 {
-    pub fn new(position: DVec2, spread: f64, frequency: f64, particle_generator: F) -> Self {
+    pub fn new(
+        position: DVec2,
+        particle_velocity: DVec2,
+        spread: f64,
+        frequency: f64,
+        particle_generator: F,
+    ) -> Self {
         Self {
+            time: 0.0,
             position,
+            particle_velocity,
             spread,
             frequency,
             last_generated_time: None,
@@ -85,24 +107,28 @@ where
 
 impl<F> ParticleEmitter for FrequencyParticleEmitter<F>
 where
-    F: Fn(DVec2, f64) -> Box<dyn Particle>,
+    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
 {
-    fn update(&mut self) {
-        let time = get_time();
+    fn update(&mut self, dt: f64) {
+        self.time += dt;
 
         if self.should_generate_particle {
             self.should_generate_particle = false;
         } else if self
             .last_generated_time
-            .is_none_or(|last_generated_time| time > last_generated_time + self.get_period())
+            .is_none_or(|last_generated_time| self.time > last_generated_time + self.get_period())
         {
             self.should_generate_particle = true;
-            self.last_generated_time = Some(time);
+            self.last_generated_time = Some(self.time);
         }
     }
 
     fn set_position(&mut self, position: DVec2) {
         self.position = position;
+    }
+
+    fn set_particle_velocity(&mut self, particle_velocity: DVec2) {
+        self.particle_velocity = particle_velocity;
     }
 
     fn should_generate_particle(&self) -> bool {
@@ -116,6 +142,6 @@ where
                 random_range(-self.spread..=self.spread),
             );
 
-        (self.particle_generator)(position, self.spread)
+        (self.particle_generator)(position, self.particle_velocity, self.spread)
     }
 }

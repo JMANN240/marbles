@@ -10,7 +10,7 @@ use crate::{
     ball::Ball,
     collision::Collision,
     particle::{
-        ConfettiParticle, ShrinkingParticle,
+        ConfettiParticle, ParticleLayer, ShrinkingParticle,
         emitter::{BaseParticleEmitter, ParticleEmitter},
         system::ParticleSystem,
     },
@@ -25,24 +25,15 @@ pub struct Scene {
     walls: Vec<Box<dyn Wall>>,
     winners: Vec<usize>,
     particles: ParticleSystem,
-    timescale: f64,
-    physics_steps: usize,
 }
 
 impl Scene {
-    pub fn new(
-        balls: Vec<Ball>,
-        walls: Vec<Box<dyn Wall>>,
-        timescale: f64,
-        physics_steps: usize,
-    ) -> Self {
+    pub fn new(balls: Vec<Ball>, walls: Vec<Box<dyn Wall>>) -> Self {
         Self {
             balls,
             walls,
             winners: Vec::new(),
             particles: ParticleSystem::default(),
-            timescale,
-            physics_steps,
         }
     }
 
@@ -54,20 +45,12 @@ impl Scene {
         &self.winners
     }
 
-    pub fn get_timescale(&self) -> f64 {
-        self.timescale
-    }
-
-    pub fn get_physics_steps(&self) -> usize {
-        self.physics_steps
-    }
-
-    pub fn update(&mut self) -> Vec<Collision> {
-        let dt = get_frame_time() as f64 * self.get_timescale() / self.get_physics_steps() as f64;
+    pub fn update(&mut self, timescale: f64, physics_steps: usize) -> Vec<Collision> {
+        let dt = get_frame_time() as f64 * timescale / physics_steps as f64;
 
         let mut collisions = Vec::new();
 
-        for _ in 0..self.get_physics_steps() {
+        for _ in 0..physics_steps {
             collisions.append(&mut self.step_physics(dt));
         }
 
@@ -76,6 +59,10 @@ impl Scene {
 
     pub fn step_physics(&mut self, dt: f64) -> Vec<Collision> {
         let mut collisions = Vec::new();
+
+        for wall in self.walls.iter_mut() {
+            wall.update(dt);
+        }
 
         let new_attributes: Vec<(DVec2, DVec2)> = self
             .balls
@@ -105,9 +92,11 @@ impl Scene {
                             if v_dot >= 100.0 {
                                 self.particles.spawn(Box::new(ShrinkingParticle::new(
                                     intersection_point,
+                                    DVec2::ZERO,
                                     v_dot.sqrt() / 2.0,
                                     WHITE,
                                     0.2,
+                                    ParticleLayer::Front,
                                 )));
                             }
 
@@ -116,8 +105,9 @@ impl Scene {
 
                                 let emitter = BaseParticleEmitter::new(
                                     ball.get_position(),
+                                    DVec2::ZERO,
                                     ball.get_radius(),
-                                    |position, _spread| {
+                                    |position, _velocity, _spread| {
                                         Box::new(ConfettiParticle::new(
                                             position,
                                             DVec2::from_angle(random_range(
@@ -125,6 +115,7 @@ impl Scene {
                                             )) * random_range(100.0..=1000.0),
                                             random_range(4.0..=8.0),
                                             2.0,
+                                            ParticleLayer::random(),
                                         ))
                                     },
                                 );
@@ -169,9 +160,11 @@ impl Scene {
                         if v_dot >= 100.0 {
                             self.particles.spawn(Box::new(ShrinkingParticle::new(
                                 ball.get_position().midpoint(other_ball.get_position()),
+                                DVec2::ZERO,
                                 v_dot.sqrt() / 2.0,
                                 WHITE,
                                 0.2,
+                                ParticleLayer::Front,
                             )));
                         }
 
@@ -219,6 +212,11 @@ impl Scene {
 
         for (ball, (new_position, new_velocity)) in self.balls.iter_mut().zip(new_attributes) {
             ball.set_position(new_position);
+
+            let dv = new_velocity.distance(ball.get_velocity());
+            if dv >= 100.0 {
+                ball.handle_collision(new_velocity);
+            }
             ball.set_velocity(new_velocity);
 
             ball.update(dt);
@@ -253,6 +251,11 @@ impl Scene {
                 font_size + font_size * index as f32,
                 font_size,
                 winner.get_name_color(),
+                if winner.get_name_color() != BLACK {
+                    BLACK
+                } else {
+                    WHITE
+                },
             );
         }
     }

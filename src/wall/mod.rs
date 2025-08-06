@@ -6,6 +6,7 @@ pub mod circle_wall;
 pub mod straight_wall;
 
 pub trait Wall {
+    fn update(&mut self, dt: f64);
     fn draw(&self);
     fn get_intersection_point(&self, ball: &Ball) -> Option<DVec2>;
     fn is_goal(&self) -> bool;

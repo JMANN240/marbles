@@ -72,6 +72,11 @@ impl Drawer for TailDrawer {
             ball.get_position().y as f32 - 2.0 * ball.get_radius() as f32,
             font_size,
             ball.get_name_color(),
+            if ball.get_name_color() != BLACK {
+                BLACK
+            } else {
+                WHITE
+            },
         );
     }
 }

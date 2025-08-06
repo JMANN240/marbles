@@ -1,24 +1,30 @@
-use std::{collections::HashMap, path::Path};
+use std::{cmp::Ordering, collections::HashMap, env, path::Path};
 
-use ::rand::{rng, seq::IndexedRandom};
+use ::rand::{random_range, rng, seq::IndexedRandom};
 use chrono::Local;
 use clap::Parser;
 use collision::{Collision, render_collisions};
+use dotenvy::dotenv;
 use macroquad::prelude::*;
-use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6};
+use scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7};
 use serde::Deserialize;
 use toml::from_str;
+use tracing_subscriber::FmtSubscriber;
 use util::draw_text_outline;
 
+use crate::{cloudinary::Cloudinary, instagram::InstagramPoster, youtube::YouTubePoster};
+
 mod ball;
+mod cloudinary;
 mod collision;
 mod drawer;
+mod instagram;
 mod particle;
 mod scene;
 mod scenes;
 mod util;
 mod wall;
+mod youtube;
 
 const SCALE: f32 = 0.5;
 
@@ -42,7 +48,7 @@ fn _window_conf_square() -> Conf {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct BallConfig {
     name: String,
     r: f32,
@@ -64,6 +70,15 @@ pub struct Cli {
     #[arg(short, long)]
     render: bool,
 
+    #[arg(long, default_value_t = 1)]
+    renders: usize,
+
+    #[arg(short, long)]
+    instagram: bool,
+
+    #[arg(short, long)]
+    youtube: bool,
+
     #[arg(short, long)]
     endless: bool,
 
@@ -78,6 +93,9 @@ pub struct Cli {
 
     #[arg(long, default_value_t = 100)]
     physics_steps: usize,
+
+    #[arg(long, default_value_t = 0)]
+    race_offset: usize,
 }
 
 const ENGAGEMENTS: [&str; 4] = [
@@ -89,45 +107,24 @@ const ENGAGEMENTS: [&str; 4] = [
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    dotenv().unwrap();
+    tracing::subscriber::set_global_default(FmtSubscriber::default()).unwrap();
     let mut rng = rng();
     let cli = Cli::parse();
 
-    let mut render_time = 0.0;
+    let mut render_number = 0;
     let mut time_offset = 0.0;
 
     let zoom = 1.125;
 
-    let camera = Camera2D {
-        zoom: vec2(2.0 / (1080.0 * SCALE * zoom), 2.0 / (1920.0 * SCALE * zoom)),
-        offset: vec2(-1.0 / zoom, 1.0 / zoom),
-        ..Camera2D::default()
-    };
-
-    set_camera(&camera);
+    let goal = dvec2(
+        screen_width() as f64 / 2.0,
+        400.0 + screen_width() as f64 / 2.0 - 9.0,
+    );
 
     loop {
-        let config_string = std::fs::read_to_string("config.toml").unwrap();
-        let config = from_str::<Config>(&config_string).unwrap();
-
-        let mut scene = if config.scene == 1 {
-            scene_1(config.balls, cli.timescale, cli.physics_steps).await
-        } else if config.scene == 2 {
-            scene_2(config.balls, cli.timescale, cli.physics_steps).await
-        } else if config.scene == 3 {
-            scene_3(config.balls, cli.timescale, cli.physics_steps).await
-        } else if config.scene == 4 {
-            scene_4(config.balls, cli.timescale, cli.physics_steps).await
-        } else if config.scene == 5 {
-            scene_5(config.balls, cli.timescale, cli.physics_steps).await
-        } else {
-            scene_6(config.balls, cli.timescale, cli.physics_steps).await
-        };
-
-        let mut frame_number = 0;
-        let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
-        let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
-        let mut maybe_all_won_time = None;
-
+        render_number += 1;
+        let mut render_time = 0.0;
 
         if cli.render {
             let images_path = Path::new("images");
@@ -140,11 +137,69 @@ async fn main() {
             std::fs::create_dir(images_path).unwrap();
         }
 
+        let config_string = std::fs::read_to_string("config.toml").unwrap();
+        let config = from_str::<Config>(&config_string).unwrap();
+
+        let mut scenes = vec![
+            scene_1(config.balls.clone()).await,
+            scene_2(config.balls.clone()).await,
+            scene_3(config.balls.clone()).await,
+            scene_4(config.balls.clone()).await,
+            scene_5(config.balls.clone()).await,
+            scene_6(config.balls.clone()).await,
+            scene_7().await,
+        ];
+
+        let scene = scenes.get_mut(config.scene - 1).unwrap();
+        let mut frame_number = 0;
+        let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
+        let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
+        let mut maybe_all_won_time = None;
+
         loop {
-            let scene_time = if cli.render { render_time } else { get_time() } - time_offset;
+            let scene_time = if cli.render {
+                render_time
+            } else {
+                get_time() - time_offset
+            };
+
+            let closest_ball_to_goal = scene
+                .get_balls()
+                .iter()
+                .min_by(|l, r| {
+                    let left_distance = goal.distance(l.get_position());
+                    let right_distance = goal.distance(r.get_position());
+
+                    if left_distance < right_distance {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    }
+                })
+                .unwrap();
+
+            let smallest_distance_to_goal = closest_ball_to_goal.get_position().distance(goal);
+
+            let bullet_time: f64 = 0.0; // 1.0 - (smallest_distance_to_goal / 200.0).min(1.0);
+
+            let camera = Camera2D {
+                zoom: vec2(
+                    (2.0 + bullet_time.powi(2) as f32 * 8.0) / (1080.0 * SCALE * zoom),
+                    (2.0 + bullet_time.powi(2) as f32 * 8.0) / (1920.0 * SCALE * zoom),
+                ),
+                offset: vec2(0.0, 0.0 - goal.y as f32 / screen_height() / 2.0),
+                target: goal.as_vec2(),
+                rotation: random_range((-1.0 * bullet_time)..=(1.0 * bullet_time)) as f32,
+                ..Camera2D::default()
+            };
+
+            set_camera(&camera);
 
             if scene_time >= cli.countdown_seconds as f64 {
-                let update_collisions = scene.update();
+                let update_collisions = scene.update(
+                    cli.timescale.min(0.1 + 1.0 - bullet_time),
+                    cli.physics_steps,
+                );
                 collisions.insert(frame_number, update_collisions);
             }
 
@@ -158,6 +213,7 @@ async fn main() {
                     screen_height() / 2.0,
                     256.0,
                     WHITE,
+                    BLACK,
                 );
 
                 if (scene_time * 2.0 + 1.5).floor() % 2.0 == 0.0 {
@@ -167,6 +223,7 @@ async fn main() {
                         screen_height() / 2.0 + 100.0,
                         64.0,
                         WHITE,
+                        BLACK,
                     );
                 }
             } else if scene_time.floor() < (cli.countdown_seconds + 1) as f64 {
@@ -177,6 +234,7 @@ async fn main() {
                     screen_height() / 2.0,
                     256.0,
                     WHITE,
+                    BLACK,
                 );
             }
 
@@ -198,6 +256,7 @@ async fn main() {
                         screen_height() / 2.0,
                         256.0,
                         WHITE,
+                        BLACK,
                     );
                 }
 
@@ -252,12 +311,63 @@ async fn main() {
 
             if status.success() {
                 info!("Video saved as {}!", video_filename);
+
+                if cli.instagram {
+                    let cloudinary = Cloudinary::new(
+                        env::var("CLOUDINARY_CLOUD_NAME")
+                            .expect("Missing CLOUDINARY_CLOUD_NAME environment variable!"),
+                        env::var("CLOUDINARY_API_KEY")
+                            .expect("Missing CLOUDINARY_API_KEY environment variable!"),
+                        env::var("CLOUDINARY_API_SECRET")
+                            .expect("Missing CLOUDINARY_API_SECRET environment variable!"),
+                    );
+
+                    let cloudinary_response = cloudinary.post(&video_filename).await.unwrap();
+
+                    let instagram = InstagramPoster::new(
+                        env::var("INSTAGRAM_SCOPED_ACCOUNT_ID")
+                            .expect("Missing INSTAGRAM_SCOPED_ACCOUNT_ID environment variable!"),
+                        env::var("INSTAGRAM_USER_ACCESS_TOKEN")
+                            .expect("Missing INSTAGRAM_USER_ACCESS_TOKEN environment variable!"),
+                    );
+
+                    instagram.post(
+                        "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
+                        &cloudinary_response.secure_url,
+                        (cloudinary_response.duration * 0.4 * 1000.0).floor(),
+                    ).await.unwrap();
+
+                    cloudinary.delete(&cloudinary_response.public_id).unwrap();
+                }
+
+                if cli.youtube {
+                    let status = std::process::Command::new("python3")
+                        .args([
+                            "youtube_uploader.py",
+                            "--path",
+                            &video_filename,
+                            "--title",
+                            &format!("Marble Race {}, {} #satisfying #marblerace", render_number + cli.race_offset, Local::now().format("%B %-d, %Y").to_string()),
+                            "--description",
+                            "Want to learn how to make and monetize your own simulations? Let me know down in the comments.",
+                            "--tags",
+                            "marble racing,marble race,simulation,satisfying",
+                        ])
+                        .status()
+                        .expect("Failed to upload to YouTube");
+
+                    if status.success() {
+                        info!("Video uploaded to YouTube!");
+                    } else {
+                        info!("YouTube upload failed!");
+                    }
+                }
             } else {
                 info!("Rendering failed!");
             }
         }
 
-        if cli.endless {
+        if cli.endless || render_number < cli.renders {
             time_offset = get_time();
         } else {
             break;

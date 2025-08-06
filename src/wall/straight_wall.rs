@@ -4,44 +4,15 @@ use crate::ball::Ball;
 
 use super::Wall;
 
-pub struct StraightWall {
+#[derive(Debug, Clone, Copy)]
+pub struct Line {
     start: DVec2,
     end: DVec2,
-    is_goal: bool,
 }
 
-impl StraightWall {
-    pub fn new(start: DVec2, end: DVec2, is_goal: bool) -> Self {
-        Self {
-            start,
-            end,
-            is_goal,
-        }
-    }
-
-    pub fn vertical(x: f64, is_goal: bool) -> Self {
-        Self::new(dvec2(x, -10000.0), dvec2(x, 10000.0), is_goal)
-    }
-
-    pub fn horizontal(y: f64, is_goal: bool) -> Self {
-        Self::new(dvec2(-10000.0, y), dvec2(10000.0, y), is_goal)
-    }
-
-    pub fn screen() -> Vec<Self> {
-        vec![
-            Self::new(dvec2(0.0, 0.0), dvec2(screen_width() as f64, 0.0), false),
-            Self::new(
-                dvec2(screen_width() as f64, 0.0),
-                dvec2(screen_width() as f64, screen_height() as f64),
-                false,
-            ),
-            Self::new(
-                dvec2(screen_width() as f64, screen_height() as f64),
-                dvec2(0.0, screen_height() as f64),
-                true,
-            ),
-            Self::new(dvec2(0.0, screen_height() as f64), dvec2(0.0, 0.0), false),
-        ]
+impl Line {
+    pub fn new(start: DVec2, end: DVec2) -> Self {
+        Self { start, end }
     }
 
     pub fn get_start(&self) -> DVec2 {
@@ -51,25 +22,92 @@ impl StraightWall {
     pub fn get_end(&self) -> DVec2 {
         self.end
     }
+
+    fn get_vector(&self) -> DVec2 {
+        self.get_end() - self.get_start()
+    }
+
+    pub fn get_t(&self, point: DVec2) -> f64 {
+        (point - self.get_start())
+            .project_onto(self.get_vector())
+            .length()
+            / self.get_vector().length()
+    }
+
+    pub fn get_point(&self, t: f64) -> DVec2 {
+        self.get_start() + self.get_vector() * t
+    }
+}
+
+pub struct StraightWall {
+    line: Line,
+    is_goal: bool,
+}
+
+impl StraightWall {
+    pub fn new(line: Line, is_goal: bool) -> Self {
+        Self { line, is_goal }
+    }
+
+    pub fn vertical(x: f64, is_goal: bool) -> Self {
+        Self::new(Line::new(dvec2(x, -10000.0), dvec2(x, 10000.0)), is_goal)
+    }
+
+    pub fn horizontal(y: f64, is_goal: bool) -> Self {
+        Self::new(Line::new(dvec2(-10000.0, y), dvec2(10000.0, y)), is_goal)
+    }
+
+    pub fn screen(with_goal: bool) -> Vec<Self> {
+        vec![
+            Self::new(
+                Line::new(dvec2(0.0, 0.0), dvec2(screen_width() as f64, 0.0)),
+                false,
+            ),
+            Self::new(
+                Line::new(
+                    dvec2(screen_width() as f64, 0.0),
+                    dvec2(screen_width() as f64, screen_height() as f64),
+                ),
+                false,
+            ),
+            Self::new(
+                Line::new(
+                    dvec2(screen_width() as f64, screen_height() as f64),
+                    dvec2(0.0, screen_height() as f64),
+                ),
+                with_goal,
+            ),
+            Self::new(
+                Line::new(dvec2(0.0, screen_height() as f64), dvec2(0.0, 0.0)),
+                false,
+            ),
+        ]
+    }
+
+    pub fn get_line(&self) -> Line {
+        self.line
+    }
 }
 
 impl Wall for StraightWall {
+    fn update(&mut self, _dt: f64) {}
+
     fn draw(&self) {
         draw_line(
-            self.start.x as f32,
-            self.start.y as f32,
-            self.end.x as f32,
-            self.end.y as f32,
+            self.get_line().get_start().x as f32,
+            self.get_line().get_start().y as f32,
+            self.get_line().get_end().x as f32,
+            self.get_line().get_end().y as f32,
             2.0,
             WHITE,
         );
     }
 
     fn get_intersection_point(&self, ball: &Ball) -> Option<DVec2> {
-        let x1 = self.get_start().x;
-        let y1 = self.get_start().y;
-        let x2 = self.get_end().x;
-        let y2 = self.get_end().y;
+        let x1 = self.get_line().get_start().x;
+        let y1 = self.get_line().get_start().y;
+        let x2 = self.get_line().get_end().x;
+        let y2 = self.get_line().get_end().y;
 
         let dx = x2 - x1;
         let dy = y2 - y1;

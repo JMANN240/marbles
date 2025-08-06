@@ -1,6 +1,8 @@
 use crate::ball::{Ball, PhysicsBall};
 
 pub mod base_drawer;
+pub mod glow_drawer;
+pub mod outline_drawer;
 pub mod tail_drawer;
 
 pub trait Drawer {
