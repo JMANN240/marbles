@@ -1,7 +1,7 @@
-use std::{cmp::Ordering, collections::HashMap, env, path::Path};
+use std::{cmp::Ordering, collections::HashMap, env, fs, path::Path};
 
 use ::rand::{random_range, rng, seq::IndexedRandom};
-use chrono::Local;
+use chrono::{Local, TimeZone};
 use clap::Parser;
 use collision::{Collision, render_collisions};
 use dotenvy::dotenv;
@@ -12,7 +12,7 @@ use toml::from_str;
 use tracing_subscriber::FmtSubscriber;
 use util::draw_text_outline;
 
-use crate::{cloudinary::Cloudinary, instagram::InstagramPoster, youtube::YouTubePoster};
+use crate::{cloudinary::Cloudinary, instagram::InstagramPoster};
 
 mod ball;
 mod cloudinary;
@@ -178,7 +178,7 @@ async fn main() {
                 })
                 .unwrap();
 
-            let smallest_distance_to_goal = closest_ball_to_goal.get_position().distance(goal);
+            let _smallest_distance_to_goal = closest_ball_to_goal.get_position().distance(goal);
 
             let bullet_time: f64 = 0.0; // 1.0 - (smallest_distance_to_goal / 200.0).min(1.0);
 
@@ -312,6 +312,29 @@ async fn main() {
             if status.success() {
                 info!("Video saved as {}!", video_filename);
 
+                let today = Local::now().date_naive();
+
+                let count = fs::read_dir("videos")
+                    .unwrap()
+                    .filter_map(|entry| {
+                        let entry = entry.ok()?;
+                        let metadata = entry.metadata().ok()?;
+                        let created = metadata.created().ok()?;
+                        let created_date = created
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .ok()
+                            .map(|d| Local.timestamp_opt(d.as_secs() as i64, 0).single())
+                            .flatten()?
+                            .date_naive();
+
+                        if created_date == today {
+                            Some(())
+                        } else {
+                            None
+                        }
+                    })
+                    .count();
+
                 if cli.instagram {
                     let cloudinary = Cloudinary::new(
                         env::var("CLOUDINARY_CLOUD_NAME")
@@ -347,7 +370,7 @@ async fn main() {
                             "--path",
                             &video_filename,
                             "--title",
-                            &format!("Marble Race {}, {} #satisfying #marblerace", render_number + cli.race_offset, Local::now().format("%B %-d, %Y").to_string()),
+                            &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y").to_string()),
                             "--description",
                             "Want to learn how to make and monetize your own simulations? Let me know down in the comments.",
                             "--tags",

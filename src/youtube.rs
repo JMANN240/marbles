@@ -1,4 +1,4 @@
-use std::{error::Error, thread, time::Duration};
+use std::error::Error;
 
 use reqwest::blocking::{multipart, Client};
 use serde::{Deserialize, Serialize};
