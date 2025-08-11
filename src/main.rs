@@ -12,19 +12,17 @@ use toml::from_str;
 use tracing_subscriber::FmtSubscriber;
 use util::draw_text_outline;
 
-use crate::{cloudinary::Cloudinary, instagram::InstagramPoster};
+use crate::posting::{cloudinary::Cloudinary, instagram::InstagramPoster};
 
 mod ball;
-mod cloudinary;
 mod collision;
 mod drawer;
-mod instagram;
 mod particle;
+mod posting;
 mod scene;
 mod scenes;
 mod util;
 mod wall;
-mod youtube;
 
 const SCALE: f32 = 0.5;
 
