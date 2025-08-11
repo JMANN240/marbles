@@ -7,7 +7,7 @@ use crate::{
         base_drawer::BaseDrawer, glow_drawer::GlowDrawer, outline_drawer::OutlineDrawer,
         tail_drawer::TailDrawer,
     },
-    particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::FrequencyParticleEmitter},
+    particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter},
     scene::Scene,
     util::space_evenly,
     wall::{
@@ -23,6 +23,7 @@ use macroquad::{
     math::{DVec2, dvec2},
     window::{screen_height, screen_width},
 };
+use particula_rs::ParticleSystem;
 use rand::{Rng, random_range, seq::SliceRandom};
 
 pub async fn build_balls(
@@ -84,30 +85,28 @@ pub async fn build_balls(
 
         if ball_config.name == "Fireball" {
             ball.get_particles_mut()
-                .add_emitter(Box::new(FrequencyParticleEmitter::new(
+                .add_emitter(Box::new(BallParticleEmitter::new(
                     position,
-                    DVec2::ZERO,
-                    10.0,
                     120.0,
-                    |position, _velocity, _spread| {
+                    Box::new(|position| {
                         Box::new(FireParticle::new(
-                            position,
+                            position
+                                + DVec2::from_angle(random_range(0.0..(2.0 * PI)))
+                                    * random_range(0.0..=8.0),
                             4.0,
                             0.5,
                             ParticleLayer::random(),
                         ))
-                    },
+                    }),
                 )));
         }
 
         if ball_config.name == "White Light" {
             ball.get_particles_mut()
-                .add_emitter(Box::new(FrequencyParticleEmitter::new(
+                .add_emitter(Box::new(BallParticleEmitter::new(
                     position,
-                    DVec2::ZERO,
-                    0.0,
                     32.0,
-                    |position, _velocity, _spread| {
+                    Box::new(|position| {
                         Box::new(ShrinkingParticle::new(
                             position
                                 + DVec2::from_angle(random_range(0.0..(2.0 * PI)))
@@ -118,20 +117,18 @@ pub async fn build_balls(
                             0.125,
                             ParticleLayer::random(),
                         ))
-                    },
+                    }),
                 )));
         }
 
         if ball_config.name == "Black Hole" {
-            let radius = ball.get_radius();
+            let _radius = ball.get_radius();
 
             ball.get_particles_mut()
-                .add_emitter(Box::new(FrequencyParticleEmitter::new(
+                .add_emitter(Box::new(BallParticleEmitter::new(
                     position,
-                    DVec2::ZERO,
-                    0.0,
                     16.0,
-                    |position, _velocity, _spread| {
+                    Box::new(|position| {
                         Box::new(ShrinkingParticle::new(
                             position
                                 + DVec2::from_angle(random_range(0.0..(2.0 * PI)))
@@ -148,7 +145,7 @@ pub async fn build_balls(
                             random_range(0.25..0.75),
                             ParticleLayer::Back,
                         ))
-                    },
+                    }),
                 )));
         }
 
@@ -391,7 +388,12 @@ pub async fn scene_6(balls: Vec<BallConfig>) -> Scene {
     );
 
     Scene::new(
-        build_balls(&balls, &mut positions, &vec![dvec2(100.0, 0.0); balls.len()]).await,
+        build_balls(
+            &balls,
+            &mut positions,
+            &vec![dvec2(100.0, 0.0); balls.len()],
+        )
+        .await,
         walls,
     )
 }

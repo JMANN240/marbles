@@ -5,16 +5,10 @@ use std::{
 
 use ::rand::random_range;
 use macroquad::{audio::Sound, prelude::*};
+use particula_rs::ParticleSystem;
 
 use crate::{
-    drawer::Drawer,
-    particle::{
-        ParticleLayer, ShrinkingParticle,
-        emitter::{BaseParticleEmitter, ParticleEmitter},
-        system::ParticleSystem,
-    },
-    util::lerp_color,
-    wall::Wall,
+    drawer::Drawer, particle::{system::BallParticleSystem, ParticleLayer, ShrinkingParticle}, util::lerp_color, wall::Wall
 };
 
 pub struct Ball {
@@ -24,7 +18,7 @@ pub struct Ball {
     drawer: Box<dyn Drawer>,
     sound_path: PathBuf,
     sound: Sound,
-    particles: ParticleSystem,
+    particles: BallParticleSystem,
 }
 
 impl Ball {
@@ -45,7 +39,7 @@ impl Ball {
             drawer,
             sound_path,
             sound,
-            particles: ParticleSystem::default(),
+            particles: BallParticleSystem::default(),
         }
     }
 
@@ -89,11 +83,11 @@ impl Ball {
         &self.sound
     }
 
-    pub fn get_particles(&self) -> &ParticleSystem {
+    pub fn get_particles(&self) -> &BallParticleSystem {
         &self.particles
     }
 
-    pub fn get_particles_mut(&mut self) -> &mut ParticleSystem {
+    pub fn get_particles_mut(&mut self) -> &mut BallParticleSystem {
         &mut self.particles
     }
 
@@ -104,42 +98,34 @@ impl Ball {
             // TODO: Fix this to not be hard coded.
             let velocity = self.get_velocity();
 
-            let emitter = BaseParticleEmitter::new(
-                self.get_position(),
-                DVec2::ZERO,
-                self.get_radius(),
-                |position, _velocity, _spread| {
-                    Box::new(ShrinkingParticle::new(
-                        position,
-                        random_range(0.125..=0.375)
-                            * velocity.length()
-                            * DVec2::from_angle(
-                                velocity.to_angle() + random_range((-PI / 2.0)..(PI / 2.0)),
-                            ),
-                        random_range(2.0..=6.0),
-                        lerp_color(
-                            Color {
-                                r: 0.0,
-                                g: 0.5,
-                                b: 1.0,
-                                a: 1.0,
-                            },
-                            Color {
-                                r: 0.25,
-                                g: 0.0,
-                                b: 1.0,
-                                a: 1.0,
-                            },
-                            random_range(0.0..=1.0),
-                        ),
-                        random_range(0.25..=0.75),
-                        ParticleLayer::random(),
-                    ))
-                },
-            );
-
             for _ in 0..20 {
-                self.particles.spawn(emitter.generate_particle());
+                self.particles.add_particle(Box::new(ShrinkingParticle::new(
+                    self.get_position()
+                        + self.get_radius() * DVec2::from_angle(random_range(0.0..(2.0 * PI))),
+                    random_range(0.125..=0.375)
+                        * velocity.length()
+                        * DVec2::from_angle(
+                            velocity.to_angle() + random_range((-PI / 2.0)..(PI / 2.0)),
+                        ),
+                    random_range(2.0..=6.0),
+                    lerp_color(
+                        Color {
+                            r: 0.0,
+                            g: 0.5,
+                            b: 1.0,
+                            a: 1.0,
+                        },
+                        Color {
+                            r: 0.25,
+                            g: 0.0,
+                            b: 1.0,
+                            a: 1.0,
+                        },
+                        random_range(0.0..=1.0),
+                    ),
+                    random_range(0.25..=0.75),
+                    ParticleLayer::random(),
+                )));
             }
         }
     }
@@ -149,12 +135,8 @@ impl Ball {
 
         let position = self.get_position();
 
-        let velocity = self.get_velocity();
-
-        for emitter in self.get_particles_mut().get_emitters_mut() {
+        for emitter in self.get_particles_mut().iter_emitters_mut() {
             emitter.set_position(position);
-
-            emitter.set_particle_velocity(-velocity);
         }
 
         self.get_particles_mut().update(dt);

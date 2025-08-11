@@ -1,5 +1,6 @@
 use std::f64::consts::PI;
 
+use particula_rs::{BaseParticleSystem, ParticleSystem};
 use ::rand::random_range;
 use macroquad::{
     audio::{PlaySoundParams, play_sound},
@@ -9,11 +10,7 @@ use macroquad::{
 use crate::{
     ball::Ball,
     collision::Collision,
-    particle::{
-        ConfettiParticle, ParticleLayer, ShrinkingParticle,
-        emitter::{BaseParticleEmitter, ParticleEmitter},
-        system::ParticleSystem,
-    },
+    particle::{ConfettiParticle, ParticleLayer, ShrinkingParticle},
     util::draw_text_outline,
     wall::Wall,
 };
@@ -24,7 +21,7 @@ pub struct Scene {
     balls: Vec<Ball>,
     walls: Vec<Box<dyn Wall>>,
     winners: Vec<usize>,
-    particles: ParticleSystem,
+    particles: BaseParticleSystem<DVec2>,
 }
 
 impl Scene {
@@ -33,7 +30,7 @@ impl Scene {
             balls,
             walls,
             winners: Vec::new(),
-            particles: ParticleSystem::default(),
+            particles: BaseParticleSystem::default(),
         }
     }
 
@@ -90,7 +87,7 @@ impl Scene {
                                 .dot(intersection_vector.normalize())
                                 .abs();
                             if v_dot >= 100.0 {
-                                self.particles.spawn(Box::new(ShrinkingParticle::new(
+                                self.particles.add_particle(Box::new(ShrinkingParticle::new(
                                     intersection_point,
                                     DVec2::ZERO,
                                     v_dot.sqrt() / 2.0,
@@ -103,25 +100,17 @@ impl Scene {
                             if wall.is_goal() && !self.winners.contains(&index) {
                                 self.winners.push(index);
 
-                                let emitter = BaseParticleEmitter::new(
-                                    ball.get_position(),
-                                    DVec2::ZERO,
-                                    ball.get_radius(),
-                                    |position, _velocity, _spread| {
-                                        Box::new(ConfettiParticle::new(
-                                            position,
-                                            DVec2::from_angle(random_range(
-                                                (1.25 * PI)..(1.75 * PI),
-                                            )) * random_range(100.0..=1000.0),
-                                            random_range(4.0..=8.0),
-                                            2.0,
-                                            ParticleLayer::random(),
-                                        ))
-                                    },
-                                );
-
                                 for _ in 0..100 {
-                                    self.particles.spawn(emitter.generate_particle());
+                                    self.particles.add_particle(Box::new(ConfettiParticle::new(
+                                        ball.get_position()
+                                            + ball.get_radius()
+                                                * DVec2::from_angle(random_range(0.0..(2.0 * PI))),
+                                        DVec2::from_angle(random_range((1.25 * PI)..(1.75 * PI)))
+                                            * random_range(100.0..=1000.0),
+                                        random_range(4.0..=8.0),
+                                        2.0,
+                                        ParticleLayer::random(),
+                                    )));
                                 }
                             }
                         }
@@ -158,7 +147,7 @@ impl Scene {
                             .dot(intersection_vector.normalize())
                             .abs();
                         if v_dot >= 100.0 {
-                            self.particles.spawn(Box::new(ShrinkingParticle::new(
+                            self.particles.add_particle(Box::new(ShrinkingParticle::new(
                                 ball.get_position().midpoint(other_ball.get_position()),
                                 DVec2::ZERO,
                                 v_dot.sqrt() / 2.0,

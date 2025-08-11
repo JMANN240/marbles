@@ -1,48 +1,18 @@
-use macroquad::prelude::*;
+use particula_rs::{ParticleEmitter, ParticleSystem};
 
-use super::{Particle, ParticleLayer, emitter::ParticleEmitter};
+use crate::particle::{emitter::BallParticleEmitter, LayeredParticle, ParticleLayer};
 
 #[derive(Default)]
-pub struct ParticleSystem {
-    particles: Vec<Box<dyn Particle>>,
-    emitters: Vec<Box<dyn ParticleEmitter>>,
+pub struct BallParticleSystem {
+    particles: Vec<Box<dyn LayeredParticle>>,
+    emitters: Vec<Box<BallParticleEmitter>>,
 }
 
-impl ParticleSystem {
-    pub fn update(&mut self, dt: f64) {
-        for emitter in self.get_emitters_mut() {
-            emitter.update(dt);
-        }
-
-        let new_particles = self
-            .get_emitters()
-            .iter()
-            .filter(|emitter| emitter.should_generate_particle())
-            .map(|emitter| emitter.generate_particle())
-            .collect::<Vec<Box<dyn Particle>>>();
-
-        for new_particle in new_particles {
-            self.spawn(new_particle);
-        }
-
-        for particle in self.particles.iter_mut() {
-            particle.update(dt);
-        }
-
-        self.particles
-            .retain(|particle| !particle.should_be_removed());
-    }
-
-    pub fn draw(&self) {
-        self.draw_back();
-        self.draw_front();
-    }
-
+impl BallParticleSystem {
     pub fn draw_front(&self) {
         for particle in self
-            .get_particles()
-            .iter()
-            .filter(|particle| particle.get_layer() == ParticleLayer::Front)
+            .iter_particles()
+            .filter(|particle| particle.get_particle_layer() == ParticleLayer::Front)
         {
             particle.draw();
         }
@@ -50,31 +20,55 @@ impl ParticleSystem {
 
     pub fn draw_back(&self) {
         for particle in self
-            .get_particles()
-            .iter()
-            .filter(|particle| particle.get_layer() == ParticleLayer::Back)
+            .iter_particles()
+            .filter(|particle| particle.get_particle_layer() == ParticleLayer::Back)
         {
             particle.draw();
         }
     }
+}
 
-    pub fn spawn(&mut self, particle: Box<dyn Particle>) {
+impl ParticleSystem for BallParticleSystem {
+    type ParticleType = dyn LayeredParticle;
+    type EmitterType = BallParticleEmitter;
+
+    fn iter_particles(
+        &self,
+    ) -> impl Iterator<Item = &Box<Self::ParticleType>> {
+        self.particles.iter()
+    }
+
+    fn iter_particles_mut(
+        &mut self,
+    ) -> impl Iterator<Item = &mut Box<Self::ParticleType>> {
+        self.particles.iter_mut()
+    }
+
+    fn iter_emitters(
+        &self,
+    ) -> impl Iterator<Item = &Box<Self::EmitterType>> {
+        self.emitters.iter()
+    }
+
+    fn iter_emitters_mut(
+        &mut self,
+    ) -> impl Iterator<Item = &mut Box<Self::EmitterType>> {
+        self.emitters.iter_mut()
+    }
+
+    fn add_particle(&mut self, particle: Box<Self::ParticleType>) {
         self.particles.push(particle);
     }
 
-    pub fn get_particles(&self) -> &Vec<Box<dyn Particle>> {
-        &self.particles
-    }
-
-    pub fn get_emitters(&self) -> &Vec<Box<dyn ParticleEmitter>> {
-        &self.emitters
-    }
-
-    pub fn get_emitters_mut(&mut self) -> &mut Vec<Box<dyn ParticleEmitter>> {
-        &mut self.emitters
-    }
-
-    pub fn add_emitter(&mut self, emitter: Box<dyn ParticleEmitter>) {
+    fn add_emitter(&mut self, emitter: Box<Self::EmitterType>) {
         self.emitters.push(emitter);
+    }
+
+    fn clean_particles(&mut self) {
+        self.particles.retain(|particle| particle.is_alive());
+    }
+
+    fn clean_emitters(&mut self) {
+        self.emitters.retain(|emitter| emitter.is_alive());
     }
 }

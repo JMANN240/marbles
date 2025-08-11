@@ -1,147 +1,47 @@
-use ::rand::random_range;
 use macroquad::prelude::*;
+use particula_rs::ParticleEmitter;
 
-use super::Particle;
+use crate::particle::LayeredParticle;
 
-pub trait ParticleEmitter {
-    fn update(&mut self, dt: f64);
-    fn set_position(&mut self, position: DVec2);
-    fn set_particle_velocity(&mut self, particle_velocity: DVec2);
-    fn should_generate_particle(&self) -> bool;
-    fn generate_particle(&self) -> Box<dyn Particle>;
-}
+type ParticleFunction = dyn Fn(DVec2) -> Box<dyn LayeredParticle>;
 
-pub struct BaseParticleEmitter<F> {
+pub struct BallParticleEmitter {
     position: DVec2,
-    particle_velocity: DVec2,
-    spread: f64,
-    particle_generator: F,
-}
-
-impl<F> BaseParticleEmitter<F>
-where
-    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
-{
-    pub fn new(
-        position: DVec2,
-        particle_velocity: DVec2,
-        spread: f64,
-        particle_generator: F,
-    ) -> Self {
-        Self {
-            position,
-            particle_velocity,
-            spread,
-            particle_generator,
-        }
-    }
-}
-
-impl<F> ParticleEmitter for BaseParticleEmitter<F>
-where
-    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
-{
-    fn update(&mut self, _dt: f64) {}
-
-    fn set_position(&mut self, position: DVec2) {
-        self.position = position;
-    }
-
-    fn set_particle_velocity(&mut self, particle_velocity: DVec2) {
-        self.particle_velocity = particle_velocity;
-    }
-
-    fn should_generate_particle(&self) -> bool {
-        true
-    }
-
-    fn generate_particle(&self) -> Box<dyn Particle> {
-        let position = self.position
-            + dvec2(
-                random_range(-self.spread..=self.spread),
-                random_range(-self.spread..=self.spread),
-            );
-
-        (self.particle_generator)(position, self.particle_velocity, self.spread)
-    }
-}
-
-pub struct FrequencyParticleEmitter<F> {
     time: f64,
-    position: DVec2,
-    particle_velocity: DVec2,
-    spread: f64,
+    last_emitted_time: Option<f64>,
     frequency: f64,
-    last_generated_time: Option<f64>,
-    should_generate_particle: bool,
-    particle_generator: F,
+    particle_function: Box<ParticleFunction>
 }
 
-impl<F> FrequencyParticleEmitter<F>
-where
-    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
-{
-    pub fn new(
-        position: DVec2,
-        particle_velocity: DVec2,
-        spread: f64,
-        frequency: f64,
-        particle_generator: F,
-    ) -> Self {
-        Self {
-            time: 0.0,
-            position,
-            particle_velocity,
-            spread,
-            frequency,
-            last_generated_time: None,
-            should_generate_particle: false,
-            particle_generator,
-        }
+impl BallParticleEmitter {
+    pub fn new(position: DVec2, frequency: f64, particle_function: Box<ParticleFunction>) -> Self {
+        Self { position, time: 0.0, last_emitted_time: None, frequency, particle_function }
     }
 
     pub fn get_period(&self) -> f64 {
         1.0 / self.frequency
     }
+
+    pub fn set_position(&mut self, position: DVec2) {
+        self.position = position;
+    }
 }
 
-impl<F> ParticleEmitter for FrequencyParticleEmitter<F>
-where
-    F: Fn(DVec2, DVec2, f64) -> Box<dyn Particle>,
-{
-    fn update(&mut self, dt: f64) {
-        self.time += dt;
+impl ParticleEmitter for BallParticleEmitter {
+    type ParticleType = dyn LayeredParticle;
 
-        if self.should_generate_particle {
-            self.should_generate_particle = false;
-        } else if self
-            .last_generated_time
-            .is_none_or(|last_generated_time| self.time > last_generated_time + self.get_period())
-        {
-            self.should_generate_particle = true;
-            self.last_generated_time = Some(self.time);
+    fn update(&mut self, dt: f64) -> Vec<Box<Self::ParticleType>> {
+        self.time += dt;
+        
+        if self.last_emitted_time.is_none_or(|last_emitted_time| self.time - last_emitted_time > self.get_period()) {
+            self.last_emitted_time = Some(self.time);
+            vec![(self.particle_function)(self.position)]
+        } else {
+            vec![]
         }
     }
 
-    fn set_position(&mut self, position: DVec2) {
-        self.position = position;
-    }
-
-    fn set_particle_velocity(&mut self, particle_velocity: DVec2) {
-        self.particle_velocity = particle_velocity;
-    }
-
-    fn should_generate_particle(&self) -> bool {
-        self.should_generate_particle
-    }
-
-    fn generate_particle(&self) -> Box<dyn Particle> {
-        let position = self.position
-            + dvec2(
-                random_range(-self.spread..=self.spread),
-                random_range(-self.spread..=self.spread),
-            );
-
-        (self.particle_generator)(position, self.particle_velocity, self.spread)
+    fn is_alive(&self) -> bool {
+        true
     }
 }

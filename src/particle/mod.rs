@@ -1,3 +1,4 @@
+use particula_rs::{Aging, MaxAging, Particle};
 use ::rand::{random_bool, random_range};
 use macroquad::{color::hsl_to_rgb, prelude::*};
 
@@ -20,92 +21,8 @@ impl ParticleLayer {
     }
 }
 
-pub trait Particle {
-    fn update(&mut self, dt: f64);
-    fn draw(&self);
-    fn get_layer(&self) -> ParticleLayer;
-
-    fn should_be_removed(&self) -> bool;
-}
-
-pub trait AgingParticle: Particle {
-    fn get_age(&self) -> f64;
-    fn set_age(&mut self, age: f64);
-}
-
-pub trait MaxAgingParticle: AgingParticle {
-    fn get_max_age(&self) -> f64;
-
-    fn get_age_percent(&self) -> f64 {
-        self.get_age() / self.get_max_age()
-    }
-}
-
-pub struct BaseParticle {
-    position: DVec2,
-    radius: f64,
-    color: Color,
-    age: f64,
-    max_age: f64,
-    layer: ParticleLayer,
-}
-
-impl BaseParticle {
-    pub fn _new(
-        position: DVec2,
-        radius: f64,
-        color: Color,
-        max_age: f64,
-        layer: ParticleLayer,
-    ) -> Self {
-        Self {
-            position,
-            radius,
-            color,
-            age: 0.0,
-            max_age,
-            layer,
-        }
-    }
-}
-
-impl Particle for BaseParticle {
-    fn update(&mut self, dt: f64) {
-        self.set_age(self.get_age() + dt);
-    }
-
-    fn draw(&self) {
-        draw_circle(
-            self.position.x as f32,
-            self.position.y as f32,
-            self.radius as f32,
-            self.color,
-        );
-    }
-
-    fn get_layer(&self) -> ParticleLayer {
-        self.layer
-    }
-
-    fn should_be_removed(&self) -> bool {
-        self.get_age() >= self.get_max_age()
-    }
-}
-
-impl AgingParticle for BaseParticle {
-    fn get_age(&self) -> f64 {
-        self.age
-    }
-
-    fn set_age(&mut self, age: f64) {
-        self.age = age;
-    }
-}
-
-impl MaxAgingParticle for BaseParticle {
-    fn get_max_age(&self) -> f64 {
-        self.max_age
-    }
+pub trait LayeredParticle: Particle<Position = DVec2> {
+    fn get_particle_layer(&self) -> ParticleLayer;
 }
 
 pub struct ShrinkingParticle {
@@ -139,7 +56,19 @@ impl ShrinkingParticle {
     }
 }
 
+impl LayeredParticle for ShrinkingParticle {
+    fn get_particle_layer(&self) -> ParticleLayer {
+        self.layer
+    }
+}
+
 impl Particle for ShrinkingParticle {
+    type Position = DVec2;
+
+    fn get_position(&self) -> DVec2 {
+        self.position
+    }
+
     fn update(&mut self, dt: f64) {
         self.position += self.velocity * dt;
         self.age += dt;
@@ -154,16 +83,12 @@ impl Particle for ShrinkingParticle {
         );
     }
 
-    fn get_layer(&self) -> ParticleLayer {
-        self.layer
-    }
-
-    fn should_be_removed(&self) -> bool {
-        self.age >= self.max_age
+    fn is_alive(&self) -> bool {
+        MaxAging::is_alive(self)
     }
 }
 
-impl AgingParticle for ShrinkingParticle {
+impl Aging for ShrinkingParticle {
     fn get_age(&self) -> f64 {
         self.age
     }
@@ -173,7 +98,7 @@ impl AgingParticle for ShrinkingParticle {
     }
 }
 
-impl MaxAgingParticle for ShrinkingParticle {
+impl MaxAging for ShrinkingParticle {
     fn get_max_age(&self) -> f64 {
         self.max_age
     }
@@ -200,6 +125,12 @@ impl FireParticle {
 }
 
 impl Particle for FireParticle {
+    type Position = DVec2;
+
+    fn get_position(&self) -> DVec2 {
+        self.position
+    }
+
     fn update(&mut self, dt: f64) {
         self.set_age(self.get_age() + dt);
         self.position -= DVec2::Y * 50.0 * dt;
@@ -224,16 +155,18 @@ impl Particle for FireParticle {
         );
     }
 
-    fn get_layer(&self) -> ParticleLayer {
-        self.layer
-    }
-
-    fn should_be_removed(&self) -> bool {
-        self.age >= self.max_age
+    fn is_alive(&self) -> bool {
+        MaxAging::is_alive(self)
     }
 }
 
-impl AgingParticle for FireParticle {
+impl LayeredParticle for FireParticle {
+    fn get_particle_layer(&self) -> ParticleLayer {
+        self.layer
+    }
+}
+
+impl Aging for FireParticle {
     fn get_age(&self) -> f64 {
         self.age
     }
@@ -243,7 +176,7 @@ impl AgingParticle for FireParticle {
     }
 }
 
-impl MaxAgingParticle for FireParticle {
+impl MaxAging for FireParticle {
     fn get_max_age(&self) -> f64 {
         self.max_age
     }
@@ -282,6 +215,12 @@ impl ConfettiParticle {
 }
 
 impl Particle for ConfettiParticle {
+    type Position = DVec2;
+
+    fn get_position(&self) -> DVec2 {
+        self.position
+    }
+
     fn update(&mut self, dt: f64) {
         self.set_age(self.get_age() + dt);
         self.position += self.velocity * dt;
@@ -303,16 +242,18 @@ impl Particle for ConfettiParticle {
         );
     }
 
-    fn get_layer(&self) -> ParticleLayer {
-        self.layer
-    }
-
-    fn should_be_removed(&self) -> bool {
-        self.age >= self.max_age
+    fn is_alive(&self) -> bool {
+        MaxAging::is_alive(self)
     }
 }
 
-impl AgingParticle for ConfettiParticle {
+impl LayeredParticle for ConfettiParticle {
+    fn get_particle_layer(&self) -> ParticleLayer {
+        self.layer
+    }
+}
+
+impl Aging for ConfettiParticle {
     fn get_age(&self) -> f64 {
         self.age
     }
@@ -322,7 +263,7 @@ impl AgingParticle for ConfettiParticle {
     }
 }
 
-impl MaxAgingParticle for ConfettiParticle {
+impl MaxAging for ConfettiParticle {
     fn get_max_age(&self) -> f64 {
         self.max_age
     }
