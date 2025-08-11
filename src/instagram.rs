@@ -43,7 +43,7 @@ impl InstagramPoster {
         let media_response = self.create_media(caption, video_url, thumb_offset)?;
 
         info!("Sleeping...");
-        thread::sleep(Duration::from_secs(10));
+        thread::sleep(Duration::from_secs(60));
 
         loop {
             match self.get_container_status(&media_response.id) {
@@ -59,7 +59,7 @@ impl InstagramPoster {
             }
 
             info!("Sleeping...");
-            thread::sleep(Duration::from_secs(10));
+            thread::sleep(Duration::from_secs(60));
         }
     }
 
