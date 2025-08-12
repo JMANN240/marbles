@@ -972,6 +972,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "lib"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "clap",
+ "dotenvy",
+ "hex",
+ "hound",
+ "itertools",
+ "macroquad",
+ "particula-rs",
+ "rand",
+ "rayon",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha1",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.175"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1026,7 +1049,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "marbles"
+name = "marbles-headless"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -1035,6 +1058,30 @@ dependencies = [
  "hex",
  "hound",
  "itertools",
+ "lib",
+ "particula-rs",
+ "rand",
+ "rayon",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha1",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "marbles-macroquad"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "clap",
+ "dotenvy",
+ "hex",
+ "hound",
+ "itertools",
+ "lib",
  "macroquad",
  "particula-rs",
  "rand",
