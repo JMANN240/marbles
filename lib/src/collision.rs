@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    path::PathBuf,
+    path::{Path, PathBuf}, time::Duration,
 };
 
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
@@ -17,9 +17,10 @@ impl Collision {
     }
 }
 
-pub fn render_collisions(
+pub fn render_collisions<P: AsRef<Path>>(
+    output_path: P,
     collisions: &HashMap<usize, Vec<Collision>>,
-    total_duration_secs: f32,
+    duration: Duration,
     sample_rate: u32,
 ) {
     let sound_paths = collisions
@@ -45,7 +46,7 @@ pub fn render_collisions(
         })
         .collect::<HashMap<PathBuf, Vec<f32>>>();
 
-    let total_samples = (2.0 * total_duration_secs * sample_rate as f32).ceil() as usize;
+    let total_samples = (2.0 * duration.as_secs_f64() * sample_rate as f64).ceil() as usize;
     let mut mix = vec![0.0f32; total_samples];
 
     for (frame, collisions) in collisions {
@@ -72,7 +73,7 @@ pub fn render_collisions(
         sample_format: SampleFormat::Int,
     };
 
-    let mut writer = WavWriter::create("output.wav", spec).unwrap();
+    let mut writer = WavWriter::create(output_path, spec).unwrap();
     for sample in mix {
         writer
             .write_sample((sample * i16::MAX as f32) as i16)

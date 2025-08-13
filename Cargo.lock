@@ -1418,6 +1418,7 @@ dependencies = [
  "chrono",
  "clap",
  "dotenvy",
+ "glam 0.30.5",
  "hex",
  "hound",
  "itertools 0.14.0",

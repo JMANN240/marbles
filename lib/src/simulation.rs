@@ -18,6 +18,7 @@ pub struct Simulation {
     viewport_width: f64,
     viewport_height: f64,
     scene: Scene,
+    maybe_all_won_time: Option<f64>,
     countdown_seconds: f64,
     reset_seconds: f64,
     engagement: String,
@@ -37,6 +38,7 @@ impl Simulation {
             viewport_width,
             viewport_height,
             scene,
+            maybe_all_won_time: None,
             countdown_seconds,
             reset_seconds,
             engagement,
@@ -57,6 +59,10 @@ impl Simulation {
 
     pub fn get_scene(&self) -> &Scene {
         &self.scene
+    }
+
+    pub fn get_maybe_all_won_time(&self) -> Option<f64> {
+        self.maybe_all_won_time
     }
 
     pub fn get_countdown_seconds(&self) -> f64 {
@@ -84,6 +90,10 @@ impl Simulation {
             SimulationPhase::Countdown => vec![],
             SimulationPhase::Running => self.scene.update(dt, timescale, physics_steps),
         };
+
+        if self.scene.all_won() && self.maybe_all_won_time.is_none() {
+            self.maybe_all_won_time = Some(self.time);
+        }
 
         self.time += dt;
 

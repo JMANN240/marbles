@@ -1,17 +1,17 @@
+use std::time::Duration;
 use std::{collections::HashMap, fs, path::Path};
 
+use palette::Srgba;
 use ::rand::{rng, seq::IndexedRandom};
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::collision::{Collision, render_collisions};
-use lib::rendering::Render;
+use lib::rendering::{HorizontalTextAnchor, Render, Renderer, TextAnchor2D, VerticalTextAnchor};
 use lib::rendering::macroquad::MacroquadRenderer;
-use lib::scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7};
 use lib::simulation::Simulation;
 use lib::util::{
-    get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path,
-    render_video, upload_to_instagram, upload_to_youtube,
+    get_formatted_frame_name, get_frame_template, get_scene, prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube
 };
 use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
@@ -21,10 +21,6 @@ use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
 
 use lib::posting::{cloudinary::Cloudinary, instagram::InstagramPoster};
-
-use crate::util::draw_text_outline;
-
-mod util;
 
 const SCALE: f32 = 0.5;
 
@@ -58,7 +54,7 @@ pub struct Cli {
     #[arg(long, default_value_t = 3)]
     countdown_seconds: usize,
 
-    #[arg(long, default_value_t = 10)]
+    #[arg(long, default_value_t = 5)]
     reset_seconds: usize,
 
     #[arg(long, default_value_t = 1.0)]
@@ -82,7 +78,7 @@ async fn main() {
 
     let mut renderer = MacroquadRenderer::new("roboto.ttf").await;
 
-    let mut render_number = 0;
+    let mut maybe_render_number = if cli.render { Some(0) } else { None };
 
     let zoom = 1.125;
 
@@ -92,10 +88,14 @@ async fn main() {
     sounds.insert("piano_g6.wav", load_sound("piano_g6.wav").await.unwrap());
     sounds.insert("piano_c7.wav", load_sound("piano_c7.wav").await.unwrap());
 
-    loop {
-        render_number += 1;
+    let images_path = Path::new("images/macroquad/");
+    let videos_path = Path::new("videos/macroquad/");
 
-        let images_path = Path::new("images/macroquad/");
+    while cli.endless || maybe_render_number.is_none_or(|render_number| render_number < cli.renders) {
+        if let Some(render_number) = &mut maybe_render_number {
+            *render_number += 1;
+        }
+
         if cli.render {
             prepare_images_path(images_path).unwrap();
         }
@@ -103,41 +103,7 @@ async fn main() {
         let config_string = std::fs::read_to_string("config.toml").unwrap();
         let config = from_str::<Config>(&config_string).unwrap();
 
-        let mut scenes = vec![
-            scene_1(
-                config.get_balls().clone(),
-                screen_width() as f64,
-                screen_height() as f64,
-            ),
-            scene_2(
-                config.get_balls().clone(),
-                screen_width() as f64,
-                screen_height() as f64,
-            ),
-            scene_3(
-                config.get_balls().clone(),
-                screen_width() as f64,
-                screen_height() as f64,
-            ),
-            scene_4(
-                config.get_balls().clone(),
-                screen_width() as f64,
-                screen_height() as f64,
-            ),
-            scene_5(
-                config.get_balls().clone(),
-                screen_width() as f64,
-                screen_height() as f64,
-            ),
-            scene_6(
-                config.get_balls().clone(),
-                screen_width() as f64,
-                screen_height() as f64,
-            ),
-            scene_7(screen_width() as f64, screen_height() as f64),
-        ];
-
-        let scene = scenes.remove(config.get_scene() - 1);
+        let scene = get_scene(config.get_scene(), &config, screen_width() as f64, screen_height() as f64);
         let mut frame_number = 0;
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
@@ -194,13 +160,18 @@ async fn main() {
                         cli.reset_seconds as f64 - (simulation.get_time() - all_won_time).floor()
                     );
 
-                    draw_text_outline(
+                    renderer.render_text(
                         &text,
-                        screen_width() / 2.0 - measure_text(&text, None, 196, 1.0).width / 2.0,
-                        screen_height() / 2.0,
+                        ::glam::dvec2(
+                            screen_width() as f64 / 2.0,
+                            screen_height() as f64 / 2.0,
+                        ),
+                        TextAnchor2D {
+                            horizontal: HorizontalTextAnchor::Center,
+                            vertical: VerticalTextAnchor::Center
+                        },
                         196.0,
-                        WHITE,
-                        BLACK,
+                        Srgba::new(1.0, 1.0, 1.0, 1.0)
                     );
                 }
 
@@ -222,10 +193,9 @@ async fn main() {
         }
 
         if cli.render {
-            let videos_path = Path::new("videos/macroquad/");
             prepare_videos_path(videos_path).unwrap();
 
-            render_collisions(&collisions, 300.0, 44100);
+            render_collisions("output.wav", &collisions, Duration::from_secs_f64(300.0), 44100);
 
             let video_name = Local::now()
                 .format("video_%Y-%m-%d_%H-%M-%S.mp4")
@@ -300,9 +270,32 @@ async fn main() {
                 info!("Rendering failed!");
             }
         }
+    }
+}
 
-        if !cli.endless && render_number >= cli.renders {
-            break;
+pub fn draw_text_outline(
+    text: &str,
+    x: f32,
+    y: f32,
+    font_size: f32,
+    text_color: Color,
+    outline_color: Color,
+) {
+    let pixel_size = (font_size / 16.0).ceil();
+
+    for i in -1..=1 {
+        for j in -1..=1 {
+            if i != 0 || j != 0 {
+                draw_text(
+                    text,
+                    x + i as f32 * pixel_size,
+                    y + j as f32 * pixel_size,
+                    font_size,
+                    outline_color,
+                );
+            }
         }
     }
+
+    draw_text(text, x, y, font_size, text_color);
 }

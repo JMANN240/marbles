@@ -2,6 +2,7 @@ use std::{
     collections::HashMap,
     path::Path,
     sync::{Arc, Mutex},
+    time::Duration,
 };
 
 use chrono::{Local, TimeZone};
@@ -12,11 +13,10 @@ use lib::{
     collision::{Collision, render_collisions},
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::{Render, image::ImageRenderer},
-    scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7},
     simulation::Simulation,
     util::{
-        get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path,
-        render_video, upload_to_instagram, upload_to_youtube,
+        get_formatted_frame_name, get_frame_template, get_scene, prepare_images_path,
+        prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube,
     },
 };
 use rand::{rng, seq::IndexedRandom};
@@ -39,7 +39,7 @@ pub struct Cli {
     #[arg(long, default_value_t = 3)]
     countdown_seconds: usize,
 
-    #[arg(long, default_value_t = 10)]
+    #[arg(long, default_value_t = 5)]
     reset_seconds: usize,
 
     #[arg(long, default_value_t = 1.0)]
@@ -66,34 +66,22 @@ fn main() {
     let mut rng = rng();
     let cli = Cli::parse();
 
+    let images_path = Path::new("images/headless/");
+    let videos_path = Path::new("videos/headless/");
+
     const WIDTH: u32 = 1080 / 2;
     const HEIGHT: u32 = 1920 / 2;
 
-    let mut render_number = 0;
+    let config_string = std::fs::read_to_string("config.toml").unwrap();
+    let config = from_str::<Config>(&config_string).unwrap();
 
-    while render_number < cli.renders {
-        render_number += 1;
-
-        let images_path = Path::new("images/headless/");
+    for _ in 0..cli.renders {
         prepare_images_path(images_path).unwrap();
+        prepare_videos_path(videos_path).unwrap();
 
-        let config_string = std::fs::read_to_string("config.toml").unwrap();
-        let config = from_str::<Config>(&config_string).unwrap();
-
-        let mut scenes = vec![
-            scene_1(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
-            scene_2(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
-            scene_3(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
-            scene_4(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
-            scene_5(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
-            scene_6(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
-            scene_7(WIDTH as f64, HEIGHT as f64),
-        ];
-
-        let scene = scenes.remove(config.get_scene() - 1);
+        let scene = get_scene(config.get_scene(), &config, WIDTH as f64, HEIGHT as f64);
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
-        let mut maybe_all_won_time = None;
 
         let mut simulation = Simulation::new(
             scene,
@@ -113,15 +101,11 @@ fn main() {
             collisions.insert(simulation_states.len(), update_collisions);
             simulation_states.push(simulation.clone());
 
-            if simulation.get_scene().get_winners().len()
-                == simulation.get_scene().get_balls().len()
-                && maybe_all_won_time.is_none()
-            {
-                maybe_all_won_time = Some(simulation.get_time());
-            }
-
-            if let Some(all_won_time) = maybe_all_won_time
-                && simulation.get_time() >= all_won_time + cli.reset_seconds as f64
+            if simulation
+                .get_maybe_all_won_time()
+                .is_some_and(|all_won_time| {
+                    simulation.get_time() >= all_won_time + cli.reset_seconds as f64
+                })
             {
                 break;
             }
@@ -135,24 +119,28 @@ fn main() {
             .enumerate()
             .for_each(|(frame_number, simulation)| {
                 let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875, 2);
+
                 simulation.render(&mut renderer);
+
                 let image = renderer.get_image();
                 let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
+
                 image.save(images_path.join(image_name)).unwrap();
-                let mut frames_rendered_lock = frames_rendered.lock().unwrap();
-                *frames_rendered_lock += 1;
+
+                let mut frames_rendered = frames_rendered.lock().unwrap();
+                *frames_rendered += 1;
                 debug!(
                     "Rendered {}/{} frames",
-                    *frames_rendered_lock, number_of_frames
+                    *frames_rendered, number_of_frames
                 );
             });
 
-        render_collisions(&collisions, 300.0, 44100);
-
-        let videos_path = Path::new("videos/headless/");
-        prepare_videos_path(videos_path).unwrap();
-
-        render_collisions(&collisions, 300.0, 44100);
+        render_collisions(
+            "output.wav",
+            &collisions,
+            Duration::from_secs_f64(300.0),
+            44100,
+        );
 
         let video_name = Local::now()
             .format("video_%Y-%m-%d_%H-%M-%S.mp4")

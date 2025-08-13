@@ -39,9 +39,13 @@ impl Config {
     }
 }
 
-pub const ENGAGEMENTS: [&str; 4] = [
+pub const ENGAGEMENTS: [&str; 8] = [
     "Pick one!",
     "Choose a winner!",
     "Who will win?",
     "Choose one!",
+    "Take a guess!",
+    "Guess the winner!",
+    "Ok, now THIS is epic!",
+    "You'll never guess!",
 ];

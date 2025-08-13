@@ -8,10 +8,10 @@ use macroquad::color::Color;
 use palette::Srgba;
 use tracing::info;
 
-use crate::posting::{
+use crate::{posting::{
     cloudinary::Cloudinary,
     instagram::{InstagramPoster, MediaPublishResponse},
-};
+}, scene::Scene, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7}, Config};
 
 #[cfg(feature = "macroquad")]
 pub fn srgba_to_color(srgba: Srgba) -> Color {
@@ -149,4 +149,18 @@ pub fn get_formatted_frame_name(padding: usize, frame_number: usize) -> String {
 
 pub fn get_frame_template(padding: usize) -> String {
     format_frame_name(&format!("%0{padding}d"))
+}
+
+pub fn get_scene(scene_number: usize, config: &Config, width: f64, height: f64) -> Scene {
+    let scenes = [
+        scene_1(config.get_balls().clone(), width, height),
+        scene_2(config.get_balls().clone(), width, height),
+        scene_3(config.get_balls().clone(), width, height),
+        scene_4(config.get_balls().clone(), width, height),
+        scene_5(config.get_balls().clone(), width, height),
+        scene_6(config.get_balls().clone(), width, height),
+        scene_7(width, height),
+    ];
+
+    scenes[scene_number - 1].clone()
 }

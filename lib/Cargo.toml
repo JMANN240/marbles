@@ -9,7 +9,7 @@ chrono = "0.4.41"
 clap = { version = "4.5.41", features = ["derive"] }
 dotenvy = "0.15.7"
 dyn-clone = "1.0.20"
-glam = "0.30.5"
+glam = { workspace = true }
 hex = "0.4.3"
 hound = "3.5.1"
 image = { workspace = true, optional = true }

@@ -56,6 +56,10 @@ impl Scene {
         &self.winners
     }
 
+    pub fn all_won(&self) -> bool {
+        self.get_balls().len() == self.get_winners().len()
+    }
+
     pub fn get_particles(&self) -> &SceneParticleSystem {
         &self.particles
     }
