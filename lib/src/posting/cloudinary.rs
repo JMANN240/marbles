@@ -64,7 +64,10 @@ impl Cloudinary {
         hex::encode(hasher.finalize())
     }
 
-    pub fn post<P: AsRef<Path>>(&self, path: P) -> Result<CloudinaryUploadResponse, Box<dyn Error>> {
+    pub fn post<P: AsRef<Path>>(
+        &self,
+        path: P,
+    ) -> Result<CloudinaryUploadResponse, Box<dyn Error>> {
         let timestamp = chrono::Utc::now().timestamp();
 
         let mut params = HashMap::new();

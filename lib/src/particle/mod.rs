@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 
-use dyn_clone::DynClone;
 use ::rand::{random_bool, random_range};
+use dyn_clone::DynClone;
 use glam::DVec2;
 use palette::{FromColor, Hsla, Srgba};
 use particula_rs::{Aging, MaxAging, Particle};
@@ -13,7 +13,10 @@ pub mod system;
 
 pub trait RenderParticle<C>: Render + Particle<Coordinate = C> + Send + Sync + DynClone {}
 
-impl<C, T> RenderParticle<C> for T where T: Render + Particle<Coordinate = C> + Send + Sync + DynClone {}
+impl<C, T> RenderParticle<C> for T where
+    T: Render + Particle<Coordinate = C> + Send + Sync + DynClone
+{
+}
 
 dyn_clone::clone_trait_object!(<C> RenderParticle<C>);
 

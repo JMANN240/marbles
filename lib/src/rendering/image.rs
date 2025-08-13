@@ -1,12 +1,17 @@
 use std::f64::consts::PI;
 
 use ab_glyph::FontRef;
-use glam::{dvec2, DVec2};
-use image::{imageops::{overlay, resize, FilterType}, Rgba, RgbaImage};
+use glam::{DVec2, dvec2};
+use image::{
+    Rgba, RgbaImage,
+    imageops::{FilterType, overlay, resize},
+};
 use imageproc::{
     drawing::{
-        draw_filled_circle_mut, draw_filled_rect_mut, draw_polygon_mut, draw_text_mut, text_size
-    }, point::Point, rect::Rect
+        draw_filled_circle_mut, draw_filled_rect_mut, draw_polygon_mut, draw_text_mut, text_size,
+    },
+    point::Point,
+    rect::Rect,
 };
 use palette::Srgba;
 
@@ -70,11 +75,18 @@ impl ImageRenderer {
     }
 
     fn transparent(&self) -> RgbaImage {
-        RgbaImage::new(self.get_supersampled_width(), self.get_supersampled_height())
+        RgbaImage::new(
+            self.get_supersampled_width(),
+            self.get_supersampled_height(),
+        )
     }
 
     fn black(&self) -> RgbaImage {
-        RgbaImage::from_par_fn(self.get_supersampled_width(), self.get_supersampled_height(), |_, _| Rgba([0, 0, 0, 255]))
+        RgbaImage::from_par_fn(
+            self.get_supersampled_width(),
+            self.get_supersampled_height(),
+            |_, _| Rgba([0, 0, 0, 255]),
+        )
     }
 }
 
@@ -82,7 +94,7 @@ impl Renderer for ImageRenderer {
     fn render_line(&mut self, line: &Line, thickness: f64, color: Srgba) {
         let thickness = thickness * self.scale * self.supersampling as f64;
 
-        let offset= (thickness / 2.0).round();
+        let offset = (thickness / 2.0).round();
 
         let normal = DVec2::from_angle((line.get_end() - line.get_start()).to_angle() + PI / 2.0);
 
@@ -101,12 +113,7 @@ impl Renderer for ImageRenderer {
             Point::new(p4.x.round() as i32, p4.y.round() as i32),
         ];
 
-
-        draw_polygon_mut(
-            &mut self.image,
-            &points,
-            srgba_to_rgba8(color),
-        );
+        draw_polygon_mut(&mut self.image, &points, srgba_to_rgba8(color));
     }
 
     fn render_circle(&mut self, position: ::glam::DVec2, radius: f64, color: Srgba) {
@@ -204,16 +211,16 @@ impl Renderer for ImageRenderer {
             VerticalTextAnchor::Top => position.y,
         };
 
-
-
         for i in -1..=1 {
             for j in -1..=1 {
                 if i != 0 || j != 0 {
                     draw_text_mut(
                         &mut self.image,
                         Rgba([0, 0, 0, 1]),
-                        x as i32 - (i as f64 * self.scale * self.supersampling as f64).round() as i32,
-                        y as i32 - (j as f64 * self.scale * self.supersampling as f64).round() as i32,
+                        x as i32
+                            - (i as f64 * self.scale * self.supersampling as f64).round() as i32,
+                        y as i32
+                            - (j as f64 * self.scale * self.supersampling as f64).round() as i32,
                         size as f32,
                         &font,
                         text,

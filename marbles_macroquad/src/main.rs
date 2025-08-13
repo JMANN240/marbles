@@ -9,7 +9,10 @@ use lib::rendering::Render;
 use lib::rendering::macroquad::MacroquadRenderer;
 use lib::scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7};
 use lib::simulation::Simulation;
-use lib::util::{get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube};
+use lib::util::{
+    get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path,
+    render_video, upload_to_instagram, upload_to_youtube,
+};
 use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
 use macroquad::prelude::*;
@@ -149,15 +152,15 @@ async fn main() {
             engagement.to_string(),
         );
 
+        let camera = Camera2D {
+            zoom: vec2(2.0 / (1080.0 * SCALE * zoom), 2.0 / (1920.0 * SCALE * zoom)),
+            target: vec2(screen_width() / 2.0, screen_height() / 2.0),
+            ..Camera2D::default()
+        };
+
+        set_camera(&camera);
+
         loop {
-            let camera = Camera2D {
-                zoom: vec2(2.0 / (1080.0 * SCALE * zoom), 2.0 / (1920.0 * SCALE * zoom)),
-                target: vec2(screen_width() / 2.0, screen_height() / 2.0),
-                ..Camera2D::default()
-            };
-
-            set_camera(&camera);
-
             let update_collisions =
                 simulation.update(get_frame_time() as f64, cli.timescale, cli.physics_steps);
 
@@ -231,8 +234,12 @@ async fn main() {
             let video_path = videos_path.join(video_name);
 
             info!("Rendering video...");
-            let status = render_video(&video_path, images_path.join(get_frame_template(FRAME_PADDING)), "output.wav")
-                .expect("Failed to execute ffmpeg");
+            let status = render_video(
+                &video_path,
+                images_path.join(get_frame_template(FRAME_PADDING)),
+                "output.wav",
+            )
+            .expect("Failed to execute ffmpeg");
 
             if status.success() {
                 info!("Video saved as {:?}!", video_path);

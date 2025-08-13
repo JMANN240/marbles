@@ -102,22 +102,32 @@ impl Renderer for MacroquadRenderer {
         for i in -1..=1 {
             for j in -1..=1 {
                 if i != 0 || j != 0 {
-                    draw_text_ex(text, x as f32 - i as f32, y as f32 - j as f32, TextParams {
-                        font: Some(&self.font),
-                        font_size: size as u16,
-                        color: BLACK,
-                        ..TextParams::default()
-                    });
+                    draw_text_ex(
+                        text,
+                        x as f32 - i as f32,
+                        y as f32 - j as f32,
+                        TextParams {
+                            font: Some(&self.font),
+                            font_size: size as u16,
+                            color: BLACK,
+                            ..TextParams::default()
+                        },
+                    );
                 }
             }
         }
 
-        draw_text_ex(text, x as f32, y as f32, TextParams {
-            font: Some(&self.font),
-            font_size: size as u16,
-            color: srgba_to_color(color),
-            ..TextParams::default()
-        });
+        draw_text_ex(
+            text,
+            x as f32,
+            y as f32,
+            TextParams {
+                font: Some(&self.font),
+                font_size: size as u16,
+                color: srgba_to_color(color),
+                ..TextParams::default()
+            },
+        );
     }
 
     fn render_rectangle(

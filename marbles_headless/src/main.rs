@@ -8,9 +8,16 @@ use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::{
-    collision::{render_collisions, Collision}, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::{image::ImageRenderer, Render}, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7}, simulation::Simulation, util::{
-        get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube
-    }, Config, ENGAGEMENTS
+    Config, ENGAGEMENTS,
+    collision::{Collision, render_collisions},
+    posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
+    rendering::{Render, image::ImageRenderer},
+    scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7},
+    simulation::Simulation,
+    util::{
+        get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path,
+        render_video, upload_to_instagram, upload_to_youtube,
+    },
 };
 use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;

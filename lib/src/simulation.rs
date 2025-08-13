@@ -96,10 +96,7 @@ impl Render for Simulation {
         self.get_scene().render(renderer);
 
         if self.get_time().floor() < self.get_countdown_seconds() {
-            let text = format!(
-                "{}",
-                self.get_countdown_seconds() - self.get_time().floor()
-            );
+            let text = format!("{}", self.get_countdown_seconds() - self.get_time().floor());
             renderer.render_text(
                 &text,
                 dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),

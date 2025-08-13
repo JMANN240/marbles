@@ -1,7 +1,7 @@
 use std::f64::consts::PI;
 
-use dyn_clone::DynClone;
 use ::rand::random_range;
+use dyn_clone::DynClone;
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
@@ -16,14 +16,15 @@ use crate::{
 
 const MIN_OVERLAP: f64 = 0.01;
 
-pub trait SceneParticleEmitter: ParticleEmitter<ParticleType = Box<dyn RenderParticle<DVec2>>> + Send + Sync + DynClone {}
+pub trait SceneParticleEmitter:
+    ParticleEmitter<ParticleType = Box<dyn RenderParticle<DVec2>>> + Send + Sync + DynClone
+{
+}
 
 dyn_clone::clone_trait_object!(SceneParticleEmitter);
 
-pub type SceneParticleSystem = VecParticleSystem<
-    Box<dyn RenderParticle<DVec2>>,
-    Box<dyn SceneParticleEmitter>,
->;
+pub type SceneParticleSystem =
+    VecParticleSystem<Box<dyn RenderParticle<DVec2>>, Box<dyn SceneParticleEmitter>>;
 
 #[derive(Clone)]
 pub struct Scene {
