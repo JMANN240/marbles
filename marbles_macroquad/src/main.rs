@@ -9,11 +9,12 @@ use lib::rendering::Render;
 use lib::rendering::macroquad::MacroquadRenderer;
 use lib::scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7};
 use lib::simulation::Simulation;
-use lib::util::{render_video, upload_to_youtube};
+use lib::util::{get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube};
 use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
 use macroquad::prelude::*;
 use toml::from_str;
+use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
 
 use lib::posting::{cloudinary::Cloudinary, instagram::InstagramPoster};
@@ -67,6 +68,8 @@ pub struct Cli {
     race_offset: usize,
 }
 
+const FRAME_PADDING: usize = 6;
+
 #[macroquad::main(window_conf)]
 async fn main() {
     dotenv().unwrap();
@@ -77,7 +80,6 @@ async fn main() {
     let mut renderer = MacroquadRenderer::new("roboto.ttf").await;
 
     let mut render_number = 0;
-    let mut time_offset = 0.0;
 
     let zoom = 1.125;
 
@@ -89,17 +91,10 @@ async fn main() {
 
     loop {
         render_number += 1;
-        let mut render_time = 0.0;
 
+        let images_path = Path::new("images/macroquad/");
         if cli.render {
-            let images_path = Path::new("images");
-
-            if images_path.exists() {
-                info!("Clearing previous frames!");
-                std::fs::remove_dir_all(images_path).unwrap();
-            }
-
-            std::fs::create_dir(images_path).unwrap();
+            prepare_images_path(images_path).unwrap();
         }
 
         let config_string = std::fs::read_to_string("config.toml").unwrap();
@@ -215,31 +210,36 @@ async fn main() {
 
             if cli.render {
                 let screen_data = get_screen_data();
-                screen_data.export_png(&format!("images/frame_{:06}.png", frame_number));
+                let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
+                screen_data.export_png(images_path.join(image_name).to_str().unwrap());
                 frame_number += 1;
-                render_time += 1.0 / 60.0;
             }
 
             next_frame().await;
         }
 
         if cli.render {
+            let videos_path = Path::new("videos/macroquad/");
+            prepare_videos_path(videos_path).unwrap();
+
             render_collisions(&collisions, 300.0, 44100);
 
-            let video_filename = Local::now()
-                .format("videos/video_%Y-%m-%d_%H-%M-%S.mp4")
+            let video_name = Local::now()
+                .format("video_%Y-%m-%d_%H-%M-%S.mp4")
                 .to_string();
 
+            let video_path = videos_path.join(video_name);
+
             info!("Rendering video...");
-            let status = render_video(&video_filename, "images/frame_%06d.png", "output.wav")
+            let status = render_video(&video_path, images_path.join(get_frame_template(FRAME_PADDING)), "output.wav")
                 .expect("Failed to execute ffmpeg");
 
             if status.success() {
-                info!("Video saved as {}!", video_filename);
+                info!("Video saved as {:?}!", video_path);
 
                 let today = Local::now().date_naive();
 
-                let count = fs::read_dir("videos")
+                let count = fs::read_dir(videos_path)
                     .unwrap()
                     .filter_map(|entry| {
                         let entry = entry.ok()?;
@@ -248,8 +248,7 @@ async fn main() {
                         let created_date = created
                             .duration_since(std::time::UNIX_EPOCH)
                             .ok()
-                            .map(|d| Local.timestamp_opt(d.as_secs() as i64, 0).single())
-                            .flatten()?
+                            .and_then(|d| Local.timestamp_opt(d.as_secs() as i64, 0).single())?
                             .date_naive();
 
                         if created_date == today {
@@ -262,26 +261,25 @@ async fn main() {
 
                 if cli.instagram {
                     let cloudinary = Cloudinary::from_env();
-
-                    let cloudinary_response = cloudinary.post(&video_filename).unwrap();
-
                     let instagram = InstagramPoster::from_env();
 
-                    instagram.post(
+                    match upload_to_instagram(
+                        cloudinary,
+                        instagram,
+                        &video_path,
                         "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
-                        &cloudinary_response.secure_url,
-                        (cloudinary_response.duration * 0.4 * 1000.0).floor(),
-                    ).unwrap();
-
-                    cloudinary.delete(&cloudinary_response.public_id).unwrap();
+                    ) {
+                        Ok(media_publish_response) => info!(?media_publish_response),
+                        Err(error) => error!(error),
+                    }
                 }
 
                 if cli.youtube {
                     let status = upload_to_youtube(
-                        &video_filename,
-                        &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y").to_string()),
+                        &video_path,
+                        &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y")),
                         "Want to learn how to make and monetize your own simulations? Let me know down in the comments.",
-                        "marble racing,marble race,simulation,satisfying",
+                        ["marble racing","marble race","simulation","satisfying"],
                     )
                         .expect("Failed to upload to YouTube");
 
@@ -296,9 +294,7 @@ async fn main() {
             }
         }
 
-        if cli.endless || render_number < cli.renders {
-            time_offset = get_time();
-        } else {
+        if !cli.endless && render_number >= cli.renders {
             break;
         }
     }

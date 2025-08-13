@@ -118,10 +118,6 @@ impl Wall for CircleWall {
     fn is_goal(&self) -> bool {
         self.is_goal
     }
-
-    fn clone_box(&self) -> Box<dyn Wall + Send> {
-        Box::new(self.clone())
-    }
 }
 
 impl Render for CircleWall {

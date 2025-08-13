@@ -1,3 +1,4 @@
+use dyn_clone::DynClone;
 use glam::DVec2;
 
 use crate::{ball::PhysicsBall, rendering::Render};
@@ -5,16 +6,10 @@ use crate::{ball::PhysicsBall, rendering::Render};
 pub mod circle_wall;
 pub mod straight_wall;
 
-pub trait Wall: Render + Send + Sync {
+pub trait Wall: Render + Send + Sync + DynClone {
     fn update(&mut self, dt: f64);
     fn get_intersection_point(&self, ball: &PhysicsBall) -> Option<DVec2>;
     fn is_goal(&self) -> bool;
-
-    fn clone_box(&self) -> Box<dyn Wall + Send>;
 }
 
-impl Clone for Box<dyn Wall> {
-    fn clone(&self) -> Self {
-        self.clone_box()
-    }
-}
+dyn_clone::clone_trait_object!(Wall);

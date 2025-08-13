@@ -14,6 +14,7 @@ pub struct ContainerStatusResponse {
     status_code: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct MediaPublishResponse {
     id: String,
@@ -46,7 +47,7 @@ impl InstagramPoster {
     pub fn post(
         &self,
         caption: &str,
-        video_url: &str,
+        video_url: &str, // TODO: proper URL
         thumb_offset: f64,
     ) -> Result<MediaPublishResponse, Box<dyn Error>> {
         let media_response = self.create_media(caption, video_url, thumb_offset)?;
@@ -75,7 +76,7 @@ impl InstagramPoster {
     pub fn create_media(
         &self,
         caption: &str,
-        video_url: &str,
+        video_url: &str, // TODO: proper URL
         thumb_offset: f64,
     ) -> Result<MediaResponse, Box<dyn Error>> {
         info!("Creating Instagram Media...");

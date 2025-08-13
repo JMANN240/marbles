@@ -1,5 +1,6 @@
 use std::f64::consts::PI;
 
+use dyn_clone::DynClone;
 use ::rand::{random_bool, random_range};
 use glam::DVec2;
 use palette::{FromColor, Hsla, Srgba};
@@ -10,15 +11,11 @@ use crate::rendering::{Render, Renderer};
 pub mod emitter;
 pub mod system;
 
-pub trait RenderParticle<C>: Render + Particle<Coordinate = C> + Send + Sync {
-    fn clone_box(&self) -> Box<dyn RenderParticle<C>>;
-}
+pub trait RenderParticle<C>: Render + Particle<Coordinate = C> + Send + Sync + DynClone {}
 
-impl<C, T> RenderParticle<C> for T where T: Render + Particle<Coordinate = C> + Clone + Send + Sync + 'static {
-    fn clone_box(&self) -> Box<dyn RenderParticle<C>> {
-        Box::new(self.clone())
-    }
-}
+impl<C, T> RenderParticle<C> for T where T: Render + Particle<Coordinate = C> + Send + Sync + DynClone {}
+
+dyn_clone::clone_trait_object!(<C> RenderParticle<C>);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ParticleLayer {
@@ -36,16 +33,12 @@ impl ParticleLayer {
     }
 }
 
-pub trait LayeredParticle: Particle<Coordinate = DVec2> + Render + Send + Sync {
+pub trait LayeredParticle: Particle<Coordinate = DVec2> + Render + Send + Sync + DynClone {
     fn get_particle_layer(&self) -> ParticleLayer;
     fn clone_box(&self) -> Box<dyn LayeredParticle>;
 }
 
-impl Clone for Box<dyn LayeredParticle> {
-    fn clone(&self) -> Self {
-        self.clone_box()
-    }
-}
+dyn_clone::clone_trait_object!(LayeredParticle);
 
 #[derive(Clone)]
 pub struct ShrinkingParticle {

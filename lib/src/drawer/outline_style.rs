@@ -45,8 +45,4 @@ impl BallStyle for OutlineStyle {
             ball.get_name_color(),
         );
     }
-
-    fn clone_box(&self) -> Box<dyn BallStyle + Send> {
-        Box::new(self.clone())
-    }
 }

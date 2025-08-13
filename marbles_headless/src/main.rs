@@ -1,14 +1,21 @@
-use std::{collections::HashMap, path::Path, sync::{Arc, Mutex}};
+use std::{
+    collections::HashMap,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
-use image::imageops::{resize, FilterType};
-use lib::{collision::{render_collisions, Collision}, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::{image::ImageRenderer, Render}, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7}, simulation::Simulation, util::{render_video, upload_to_youtube}, Config, ENGAGEMENTS};
+use lib::{
+    collision::{render_collisions, Collision}, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::{image::ImageRenderer, Render}, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7}, simulation::Simulation, util::{
+        get_formatted_frame_name, get_frame_template, prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube
+    }, Config, ENGAGEMENTS
+};
 use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;
 use toml::from_str;
-use tracing::{debug, info, Level};
+use tracing::{Level, debug, error, info};
 use tracing_subscriber::FmtSubscriber;
 
 #[derive(Parser)]
@@ -38,9 +45,17 @@ pub struct Cli {
     race_offset: usize,
 }
 
+const FRAME_PADDING: usize = 6;
+
 fn main() {
     dotenv().unwrap();
-    tracing::subscriber::set_global_default(FmtSubscriber::builder().pretty().with_max_level(Level::DEBUG).finish()).unwrap();
+    tracing::subscriber::set_global_default(
+        FmtSubscriber::builder()
+            .pretty()
+            .with_max_level(Level::DEBUG)
+            .finish(),
+    )
+    .unwrap();
     let mut rng = rng();
     let cli = Cli::parse();
 
@@ -52,49 +67,19 @@ fn main() {
     while render_number < cli.renders {
         render_number += 1;
 
-        let images_path = Path::new("images");
-
-        if images_path.exists() {
-            info!("Clearing previous frames!");
-            std::fs::remove_dir_all(images_path).unwrap();
-        }
-
-        std::fs::create_dir(images_path).unwrap();
+        let images_path = Path::new("images/headless/");
+        prepare_images_path(images_path).unwrap();
 
         let config_string = std::fs::read_to_string("config.toml").unwrap();
         let config = from_str::<Config>(&config_string).unwrap();
 
         let mut scenes = vec![
-            scene_1(
-                config.get_balls().clone(),
-                WIDTH as f64,
-                HEIGHT as f64,
-            ),
-            scene_2(
-                config.get_balls().clone(),
-                WIDTH as f64,
-                HEIGHT as f64,
-            ),
-            scene_3(
-                config.get_balls().clone(),
-                WIDTH as f64,
-                HEIGHT as f64,
-            ),
-            scene_4(
-                config.get_balls().clone(),
-                WIDTH as f64,
-                HEIGHT as f64,
-            ),
-            scene_5(
-                config.get_balls().clone(),
-                WIDTH as f64,
-                HEIGHT as f64,
-            ),
-            scene_6(
-                config.get_balls().clone(),
-                WIDTH as f64,
-                HEIGHT as f64,
-            ),
+            scene_1(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
+            scene_2(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
+            scene_3(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
+            scene_4(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
+            scene_5(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
+            scene_6(config.get_balls().clone(), WIDTH as f64, HEIGHT as f64),
             scene_7(WIDTH as f64, HEIGHT as f64),
         ];
 
@@ -115,7 +100,7 @@ fn main() {
         let mut simulation_states = Vec::new();
 
         loop {
-            debug!(simulation_time=simulation.get_time());
+            debug!(simulation_time = simulation.get_time());
             let update_collisions = simulation.update(1.0 / 60.0, cli.timescale, cli.physics_steps);
 
             collisions.insert(simulation_states.len(), update_collisions);
@@ -138,32 +123,50 @@ fn main() {
         let number_of_frames = simulation_states.len();
         let frames_rendered: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
-        simulation_states.par_iter().enumerate().for_each(|(frame_number, simulation)| {
-            let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875);
-            simulation.render(&mut renderer);
-            let image = renderer.get_image();
-            image.save(&format!("images/frame_{:06}.png", frame_number)).unwrap();
-            let mut frames_rendered_lock = frames_rendered.lock().unwrap();
-            *frames_rendered_lock += 1;
-            debug!("Rendered {}/{} frames", *frames_rendered_lock, number_of_frames);
-        });
+        simulation_states
+            .par_iter()
+            .enumerate()
+            .for_each(|(frame_number, simulation)| {
+                let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875, 2);
+                simulation.render(&mut renderer);
+                let image = renderer.get_image();
+                let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
+                image.save(images_path.join(image_name)).unwrap();
+                let mut frames_rendered_lock = frames_rendered.lock().unwrap();
+                *frames_rendered_lock += 1;
+                debug!(
+                    "Rendered {}/{} frames",
+                    *frames_rendered_lock, number_of_frames
+                );
+            });
 
         render_collisions(&collisions, 300.0, 44100);
 
-        let video_filename = Local::now()
-            .format("videos/video_%Y-%m-%d_%H-%M-%S.mp4")
+        let videos_path = Path::new("videos/headless/");
+        prepare_videos_path(videos_path).unwrap();
+
+        render_collisions(&collisions, 300.0, 44100);
+
+        let video_name = Local::now()
+            .format("video_%Y-%m-%d_%H-%M-%S.mp4")
             .to_string();
 
+        let video_path = videos_path.join(video_name);
+
         info!("Rendering video...");
-        let status = render_video(&video_filename, "images/frame_%06d.png", "output.wav")
-            .expect("Failed to execute ffmpeg");
+        let status = render_video(
+            &video_path,
+            images_path.join(get_frame_template(FRAME_PADDING)),
+            "output.wav",
+        )
+        .expect("Failed to execute ffmpeg");
 
         if status.success() {
-            info!("Video saved as {}!", video_filename);
+            info!("Video saved as {:?}!", video_path);
 
             let today = Local::now().date_naive();
 
-            let count = std::fs::read_dir("videos")
+            let count = std::fs::read_dir(videos_path)
                 .unwrap()
                 .filter_map(|entry| {
                     let entry = entry.ok()?;
@@ -172,8 +175,7 @@ fn main() {
                     let created_date = created
                         .duration_since(std::time::UNIX_EPOCH)
                         .ok()
-                        .map(|d| Local.timestamp_opt(d.as_secs() as i64, 0).single())
-                        .flatten()?
+                        .and_then(|d| Local.timestamp_opt(d.as_secs() as i64, 0).single())?
                         .date_naive();
 
                     if created_date == today {
@@ -186,26 +188,25 @@ fn main() {
 
             if cli.instagram {
                 let cloudinary = Cloudinary::from_env();
-
-                let cloudinary_response = cloudinary.post(&video_filename).unwrap();
-
                 let instagram = InstagramPoster::from_env();
 
-                instagram.post(
+                match upload_to_instagram(
+                    cloudinary,
+                    instagram,
+                    &video_path,
                     "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
-                    &cloudinary_response.secure_url,
-                    (cloudinary_response.duration * 0.4 * 1000.0).floor(),
-                ).unwrap();
-
-                cloudinary.delete(&cloudinary_response.public_id).unwrap();
+                ) {
+                    Ok(media_publish_response) => info!(?media_publish_response),
+                    Err(error) => error!(error),
+                }
             }
 
             if cli.youtube {
                 let status = upload_to_youtube(
-                    &video_filename,
-                    &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y").to_string()),
+                    &video_path,
+                    &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y")),
                     "Want to learn how to make and monetize your own simulations? Let me know down in the comments.",
-                    "marble racing,marble race,simulation,satisfying",
+                    ["marble racing","marble race","simulation","satisfying"],
                 )
                     .expect("Failed to upload to YouTube");
 

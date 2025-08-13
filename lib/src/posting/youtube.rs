@@ -35,6 +35,7 @@ pub enum PrivacyStatus {
     Unlisted,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct VideoResponse {
     id: String,

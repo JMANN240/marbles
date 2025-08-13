@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, error::Error};
+use std::{collections::HashMap, env, error::Error, path::Path};
 
 use itertools::Itertools;
 use reqwest::blocking::{Client, multipart};
@@ -64,7 +64,7 @@ impl Cloudinary {
         hex::encode(hasher.finalize())
     }
 
-    pub fn post(&self, path: &str) -> Result<CloudinaryUploadResponse, Box<dyn Error>> {
+    pub fn post<P: AsRef<Path>>(&self, path: P) -> Result<CloudinaryUploadResponse, Box<dyn Error>> {
         let timestamp = chrono::Utc::now().timestamp();
 
         let mut params = HashMap::new();

@@ -1,16 +1,4 @@
-use lib::{
-    ball::Ball,
-    drawer::{
-        BallStyle, base_style::BaseStyle, glow_style::GlowStyle, outline_style::OutlineStyle,
-        tail_style::TailStyle,
-    },
-    particle::{ConfettiParticle, FireParticle, ShrinkingParticle},
-    util::{lerp_color, srgba_to_color},
-    wall::{Wall, circle_wall::CircleWall, straight_wall::StraightWall},
-};
 use macroquad::prelude::*;
-use palette::Srgba;
-use particula_rs::{MaxAging, Particle};
 
 pub fn draw_text_outline(
     text: &str,

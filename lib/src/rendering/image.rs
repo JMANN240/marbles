@@ -2,11 +2,11 @@ use std::f64::consts::PI;
 
 use ab_glyph::FontRef;
 use glam::{dvec2, DVec2};
-use image::{Rgba, RgbaImage, imageops::overlay};
+use image::{imageops::{overlay, resize, FilterType}, Rgba, RgbaImage};
 use imageproc::{
     drawing::{
-        draw_antialiased_line_segment_mut, draw_antialiased_polygon_mut, draw_filled_circle_mut, draw_filled_rect_mut, draw_hollow_circle_mut, draw_line_segment_mut, draw_text_mut, text_size
-    }, pixelops::interpolate, point::Point, rect::Rect
+        draw_filled_circle_mut, draw_filled_rect_mut, draw_polygon_mut, draw_text_mut, text_size
+    }, point::Point, rect::Rect
 };
 use palette::Srgba;
 
@@ -21,26 +21,36 @@ pub struct ImageRenderer {
     height: u32,
     image: RgbaImage,
     scale: f64,
+    supersampling: u32,
 }
 
 impl ImageRenderer {
-    pub fn new(width: u32, height: u32, scale: f64) -> Self {
+    pub fn new(width: u32, height: u32, scale: f64, supersampling: u32) -> Self {
         Self {
             width,
             height,
-            image: RgbaImage::new(width, height),
+            image: RgbaImage::new(width * supersampling, height * supersampling),
             scale,
+            supersampling,
         }
     }
 
+    fn get_supersampled_width(&self) -> u32 {
+        self.width * self.supersampling
+    }
+
+    fn get_supersampled_height(&self) -> u32 {
+        self.height * self.supersampling
+    }
+
     fn map_x(&self, x: f64) -> f64 {
-        let half_width = self.width as f64 / 2.0;
-        (x - half_width) * self.scale + half_width
+        let half_width = self.get_supersampled_width() as f64 / 2.0;
+        (x * self.supersampling as f64 - half_width) * self.scale + half_width
     }
 
     fn map_y(&self, y: f64) -> f64 {
-        let half_height = self.height as f64 / 2.0;
-        (y - half_height) * self.scale + half_height
+        let half_height = self.get_supersampled_height() as f64 / 2.0;
+        (y * self.supersampling as f64 - half_height) * self.scale + half_height
     }
 
     fn map_dvec2(&self, v: DVec2) -> DVec2 {
@@ -56,21 +66,23 @@ impl ImageRenderer {
 
         overlay(&mut image, &self.image, 0, 0);
 
-        image
+        resize(&image, self.width, self.height, FilterType::Lanczos3)
     }
 
     fn transparent(&self) -> RgbaImage {
-        RgbaImage::new(self.width, self.height)
+        RgbaImage::new(self.get_supersampled_width(), self.get_supersampled_height())
     }
 
     fn black(&self) -> RgbaImage {
-        RgbaImage::from_par_fn(self.width, self.height, |_, _| Rgba([0, 0, 0, 255]))
+        RgbaImage::from_par_fn(self.get_supersampled_width(), self.get_supersampled_height(), |_, _| Rgba([0, 0, 0, 255]))
     }
 }
 
 impl Renderer for ImageRenderer {
     fn render_line(&mut self, line: &Line, thickness: f64, color: Srgba) {
-        let offset= (thickness / 2.0).floor();
+        let thickness = thickness * self.scale * self.supersampling as f64;
+
+        let offset= (thickness / 2.0).round();
 
         let normal = DVec2::from_angle((line.get_end() - line.get_start()).to_angle() + PI / 2.0);
 
@@ -82,37 +94,30 @@ impl Renderer for ImageRenderer {
         let p3 = mapped_end - normal * offset;
         let p4 = mapped_end + normal * offset;
 
-        let mut points = Vec::new();
+        let points = vec![
+            Point::new(p1.x.round() as i32, p1.y.round() as i32),
+            Point::new(p2.x.round() as i32, p2.y.round() as i32),
+            Point::new(p3.x.round() as i32, p3.y.round() as i32),
+            Point::new(p4.x.round() as i32, p4.y.round() as i32),
+        ];
 
-        points.push(Point::new(p1.x as i32, p1.y as i32));
-        points.push(Point::new(p2.x as i32, p2.y as i32));
-        points.push(Point::new(p3.x as i32, p3.y as i32));
-        points.push(Point::new(p4.x as i32, p4.y as i32));
 
-        draw_antialiased_polygon_mut(
+        draw_polygon_mut(
             &mut self.image,
             &points,
             srgba_to_rgba8(color),
-            interpolate,
         );
     }
 
     fn render_circle(&mut self, position: ::glam::DVec2, radius: f64, color: Srgba) {
-        let position = self.map_dvec2(position);
-        let radius = radius * self.scale;
+        let position = self.map_dvec2(position).round().as_ivec2();
+        let radius = (radius * self.scale * self.supersampling as f64).round() as u32;
 
-        let mut circle_image = RgbaImage::new(((radius + 1.0) * 2.0) as u32 + 1, ((radius + 1.0) * 2.0) as u32 + 1);
-
-        draw_filled_circle_mut(
-            &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
-            radius as i32 + 1,
-            srgba_to_rgba8(Srgba::new(color.red, color.green, color.blue, color.alpha / 2.0)),
-        );
+        let mut circle_image = RgbaImage::new(2 * radius + 1, 2 * radius + 1);
 
         draw_filled_circle_mut(
             &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
+            (radius as i32, radius as i32),
             radius as i32,
             srgba_to_rgba8(color),
         );
@@ -120,8 +125,8 @@ impl Renderer for ImageRenderer {
         overlay(
             &mut self.image,
             &circle_image,
-            (position.x - radius) as i64,
-            (position.y - radius) as i64,
+            (position.x - radius as i32) as i64,
+            (position.y - radius as i32) as i64,
         );
     }
 
@@ -132,51 +137,31 @@ impl Renderer for ImageRenderer {
         thickness: f64,
         color: Srgba,
     ) {
-        let position = self.map_dvec2(position);
-        let radius = radius * self.scale;
+        let position = self.map_dvec2(position).round().as_ivec2();
+        let radius = (radius * self.scale * self.supersampling as f64).round() as u32;
+        let thickness = (thickness * self.scale * self.supersampling as f64).round() as u32;
 
-        let mut circle_image = RgbaImage::new(((radius + 1.0) * 2.0) as u32 + 1, ((radius + 1.0) * 2.0) as u32 + 1);
-
-        draw_filled_circle_mut(
-            &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
-            radius as i32 + 1,
-            srgba_to_rgba8(Srgba::new(color.red, color.green, color.blue, color.alpha / 2.0)),
-        );
+        let mut circle_image = RgbaImage::new(2 * radius + 1, 2 * radius + 1);
 
         draw_filled_circle_mut(
             &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
+            (radius as i32, radius as i32),
             radius as i32,
             srgba_to_rgba8(color),
         );
 
         draw_filled_circle_mut(
             &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
-            (radius - thickness) as i32,
-            Rgba([0, 0, 0, 0]),
-        );
-
-        draw_filled_circle_mut(
-            &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
-            (radius - thickness) as i32,
-            srgba_to_rgba8(Srgba::new(color.red, color.green, color.blue, color.alpha / 2.0)),
-        );
-
-        draw_filled_circle_mut(
-            &mut circle_image,
-            (radius as i32 + 1, radius as i32 + 1),
-            (radius - thickness) as i32 - 1,
+            (radius as i32, radius as i32),
+            radius as i32 - thickness as i32,
             Rgba([0, 0, 0, 0]),
         );
 
         overlay(
             &mut self.image,
             &circle_image,
-            (position.x - radius) as i64,
-            (position.y - radius) as i64,
+            (position.x - radius as i32) as i64,
+            (position.y - radius as i32) as i64,
         );
     }
 
@@ -201,7 +186,7 @@ impl Renderer for ImageRenderer {
         color: Srgba,
     ) {
         let position = self.map_dvec2(position);
-        let size = size * self.scale;
+        let size = size * self.scale * self.supersampling as f64;
 
         let font = FontRef::try_from_slice(include_bytes!("../../../roboto.ttf")).unwrap();
 
@@ -227,8 +212,8 @@ impl Renderer for ImageRenderer {
                     draw_text_mut(
                         &mut self.image,
                         Rgba([0, 0, 0, 1]),
-                        x as i32 - i,
-                        y as i32 - j,
+                        x as i32 - (i as f64 * self.scale * self.supersampling as f64).round() as i32,
+                        y as i32 - (j as f64 * self.scale * self.supersampling as f64).round() as i32,
                         size as f32,
                         &font,
                         text,
@@ -258,8 +243,8 @@ impl Renderer for ImageRenderer {
         color: Srgba,
     ) {
         let position = self.map_dvec2(position);
-        let width = width * self.scale;
-        let height = height * self.scale;
+        let width = width * self.scale * self.supersampling as f64;
+        let height = height * self.scale * self.supersampling as f64;
 
         // TODO: Handle rotation
         draw_filled_rect_mut(

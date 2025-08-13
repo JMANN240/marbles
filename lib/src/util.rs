@@ -1,4 +1,4 @@
-use std::process::ExitStatus;
+use std::{error::Error, path::Path, process::ExitStatus};
 
 use glam::DVec2;
 #[cfg(feature = "image")]
@@ -6,6 +6,12 @@ use image::Rgba;
 #[cfg(feature = "macroquad")]
 use macroquad::color::Color;
 use palette::Srgba;
+use tracing::info;
+
+use crate::posting::{
+    cloudinary::Cloudinary,
+    instagram::{InstagramPoster, MediaPublishResponse},
+};
 
 #[cfg(feature = "macroquad")]
 pub fn srgba_to_color(srgba: Srgba) -> Color {
@@ -45,19 +51,19 @@ pub fn space_evenly(n: usize, start: DVec2, end: DVec2) -> Vec<DVec2> {
         .collect()
 }
 
-pub fn render_video(
-    video_filename: &str,
-    frame_template: &str,
-    audio_path: &str,
+pub fn render_video<V: AsRef<Path>, T: AsRef<Path>, A: AsRef<Path>>(
+    video_path: V,
+    frame_template: T,
+    audio_path: A,
 ) -> std::io::Result<ExitStatus> {
     std::process::Command::new("ffmpeg")
         .args([
             "-framerate",
             "60",
             "-i",
-            frame_template,
+            frame_template.as_ref().to_str().unwrap(),
             "-i",
-            audio_path,
+            audio_path.as_ref().to_str().unwrap(),
             "-c:v",
             "libx264",
             "-crf",
@@ -69,28 +75,78 @@ pub fn render_video(
             "-c:a",
             "aac",
             "-shortest",
-            video_filename,
+            video_path.as_ref().to_str().unwrap(),
         ])
         .status()
 }
 
-pub fn upload_to_youtube(
-    video_filename: &str,
+pub fn upload_to_youtube<'a, V: AsRef<Path>, T: AsRef<[&'a str]>>(
+    video_path: V,
     title: &str,
     description: &str,
-    tags: &str,
+    tags: T,
 ) -> std::io::Result<ExitStatus> {
     std::process::Command::new("python3")
         .args([
             "youtube_uploader.py",
             "--path",
-            video_filename,
+            video_path.as_ref().to_str().unwrap(),
             "--title",
             title,
             "--description",
             description,
             "--tags",
-            tags,
+            &tags.as_ref().join(","),
         ])
         .status()
+}
+
+pub fn upload_to_instagram<V: AsRef<Path>>(
+    cloudinary: Cloudinary,
+    instagram: InstagramPoster,
+    video_path: V,
+    caption: &str,
+) -> Result<MediaPublishResponse, Box<dyn Error>> {
+    let cloudinary_response = cloudinary.post(video_path)?;
+
+    let media_publish_response = instagram.post(
+        caption,
+        &cloudinary_response.secure_url,
+        (cloudinary_response.duration * 0.25 * 1000.0).floor(),
+    )?;
+
+    cloudinary.delete(&cloudinary_response.public_id)?;
+
+    Ok(media_publish_response)
+}
+
+pub fn prepare_images_path<P: AsRef<Path>>(images_path: P) -> std::io::Result<()> {
+    if images_path.as_ref().exists() {
+        info!("Clearing previous frames!");
+        std::fs::remove_dir_all(&images_path)?;
+    }
+
+    std::fs::create_dir(images_path)?;
+
+    Ok(())
+}
+
+pub fn prepare_videos_path<P: AsRef<Path>>(videos_path: P) -> std::io::Result<()> {
+    if !videos_path.as_ref().exists() {
+        std::fs::create_dir(videos_path)?;
+    }
+
+    Ok(())
+}
+
+fn format_frame_name(content: &str) -> String {
+    format!("frame_{content}.png")
+}
+
+pub fn get_formatted_frame_name(padding: usize, frame_number: usize) -> String {
+    format_frame_name(&format!("{frame_number:0padding$}"))
+}
+
+pub fn get_frame_template(padding: usize) -> String {
+    format_frame_name(&format!("%0{padding}d"))
 }
