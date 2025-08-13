@@ -1,27 +1,47 @@
 use std::f64::consts::PI;
 
-use particula_rs::{BaseParticleSystem, ParticleSystem};
 use ::rand::random_range;
-use macroquad::{
-    audio::{PlaySoundParams, play_sound},
-    prelude::*,
-};
+use glam::{DVec2, dvec2};
+use palette::Srgba;
+use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
 
 use crate::{
     ball::Ball,
     collision::Collision,
-    particle::{ConfettiParticle, ParticleLayer, ShrinkingParticle},
-    util::draw_text_outline,
+    particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle},
+    rendering::{Render, Renderer},
     wall::Wall,
 };
 
 const MIN_OVERLAP: f64 = 0.01;
 
+pub trait SceneParticleEmitter: ParticleEmitter<ParticleType = Box<dyn RenderParticle<DVec2>>> + Send + Sync {
+    fn clone_box(&self) -> Box<dyn SceneParticleEmitter>;
+}
+
+pub type SceneParticleSystem = VecParticleSystem<
+    Box<dyn RenderParticle<DVec2>>,
+    Box<dyn SceneParticleEmitter>,
+>;
+
+impl Clone for Box<dyn RenderParticle<DVec2>> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
+impl Clone for Box<dyn SceneParticleEmitter> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
+#[derive(Clone)]
 pub struct Scene {
     balls: Vec<Ball>,
     walls: Vec<Box<dyn Wall>>,
     winners: Vec<usize>,
-    particles: BaseParticleSystem<DVec2>,
+    particles: SceneParticleSystem,
 }
 
 impl Scene {
@@ -30,25 +50,33 @@ impl Scene {
             balls,
             walls,
             winners: Vec::new(),
-            particles: BaseParticleSystem::default(),
+            particles: VecParticleSystem::default(),
         }
     }
 
-    pub fn get_balls(&self) -> &[Ball] {
+    pub fn get_balls(&self) -> &Vec<Ball> {
         &self.balls
     }
 
-    pub fn get_winners(&self) -> &[usize] {
+    pub fn get_walls(&self) -> &Vec<Box<dyn Wall>> {
+        &self.walls
+    }
+
+    pub fn get_winners(&self) -> &Vec<usize> {
         &self.winners
     }
 
-    pub fn update(&mut self, timescale: f64, physics_steps: usize) -> Vec<Collision> {
-        let dt = get_frame_time() as f64 * timescale / physics_steps as f64;
+    pub fn get_particles(&self) -> &SceneParticleSystem {
+        &self.particles
+    }
+
+    pub fn update(&mut self, dt: f64, timescale: f64, physics_steps: usize) -> Vec<Collision> {
+        let step_dt = dt * timescale / physics_steps as f64;
 
         let mut collisions = Vec::new();
 
         for _ in 0..physics_steps {
-            collisions.append(&mut self.step_physics(dt));
+            collisions.append(&mut self.step_physics(step_dt));
         }
 
         collisions
@@ -91,7 +119,7 @@ impl Scene {
                                     intersection_point,
                                     DVec2::ZERO,
                                     v_dot.sqrt() / 2.0,
-                                    WHITE,
+                                    Srgba::new(1.0, 1.0, 1.0, 1.0),
                                     0.2,
                                     ParticleLayer::Front,
                                 )));
@@ -151,7 +179,7 @@ impl Scene {
                                 ball.get_position().midpoint(other_ball.get_position()),
                                 DVec2::ZERO,
                                 v_dot.sqrt() / 2.0,
-                                WHITE,
+                                Srgba::new(1.0, 1.0, 1.0, 1.0),
                                 0.2,
                                 ParticleLayer::Front,
                             )));
@@ -185,14 +213,6 @@ impl Scene {
                     let volume = ((dv - 100.0) / 2000.0).min(1.0) as f32;
 
                     collisions.push(Collision::new(ball.get_sound_path().to_path_buf(), volume));
-
-                    play_sound(
-                        ball.get_sound(),
-                        PlaySoundParams {
-                            looped: false,
-                            volume,
-                        },
-                    );
                 }
 
                 (new_position, new_velocity)
@@ -215,37 +235,20 @@ impl Scene {
 
         collisions
     }
+}
 
-    pub fn draw(&self) {
-        clear_background(BLACK);
-
-        for wall in self.walls.iter() {
-            wall.draw();
+impl Render for Scene {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        for wall in self.get_walls().iter() {
+            wall.render(renderer);
         }
 
-        for ball in self.balls.iter() {
-            ball.draw();
+        for ball in self.get_balls().iter() {
+            ball.render(renderer);
         }
 
-        self.particles.draw();
-
-        for (index, winner_index) in self.winners.iter().enumerate() {
-            let winner = self.balls.get(*winner_index).unwrap();
-            let text = format!("{}. {}", index + 1, winner.get_name());
-            let font_size = 64.0;
-
-            draw_text_outline(
-                &text,
-                screen_width() / 2.0 - measure_text(&text, None, font_size as u16, 1.0).width / 2.0,
-                font_size + font_size * index as f32,
-                font_size,
-                winner.get_name_color(),
-                if winner.get_name_color() != BLACK {
-                    BLACK
-                } else {
-                    WHITE
-                },
-            );
+        for particle in self.get_particles().iter_particles() {
+            particle.render(renderer);
         }
     }
 }

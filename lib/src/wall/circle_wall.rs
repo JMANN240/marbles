@@ -1,11 +1,16 @@
 use std::f64::consts::PI;
 
-use macroquad::prelude::*;
+use glam::{DVec2, dvec2};
+use palette::Srgba;
 
-use crate::ball::Ball;
+use crate::{
+    ball::PhysicsBall,
+    rendering::{Render, Renderer},
+};
 
 use super::Wall;
 
+#[derive(Clone)]
 pub struct CircleWall {
     position: DVec2,
     radius: f64,
@@ -53,20 +58,7 @@ impl CircleWall {
 impl Wall for CircleWall {
     fn update(&mut self, _dt: f64) {}
 
-    fn draw(&self) {
-        draw_arc(
-            self.get_position().x as f32,
-            self.get_position().y as f32,
-            64,
-            self.get_radius() as f32,
-            self.get_start() as f32,
-            2.0,
-            (self.get_end() - self.get_start()) as f32,
-            WHITE,
-        );
-    }
-
-    fn get_intersection_point(&self, ball: &Ball) -> Option<DVec2> {
+    fn get_intersection_point(&self, ball: &PhysicsBall) -> Option<DVec2> {
         let wx = self.get_position().x;
         let wy = self.get_position().y;
         let wr = self.get_radius();
@@ -125,5 +117,22 @@ impl Wall for CircleWall {
 
     fn is_goal(&self) -> bool {
         self.is_goal
+    }
+
+    fn clone_box(&self) -> Box<dyn Wall + Send> {
+        Box::new(self.clone())
+    }
+}
+
+impl Render for CircleWall {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        renderer.render_arc(
+            self.get_position(),
+            self.get_radius(),
+            self.get_start(),
+            self.get_end() - self.get_start(),
+            2.0,
+            Srgba::new(1.0, 1.0, 1.0, 1.0),
+        );
     }
 }

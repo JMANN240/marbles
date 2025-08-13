@@ -4,41 +4,44 @@ use std::{
 };
 
 use ::rand::random_range;
-use macroquad::{audio::Sound, prelude::*};
+use glam::DVec2;
+use palette::Srgba;
 use particula_rs::ParticleSystem;
 
 use crate::{
-    drawer::Drawer, particle::{system::BallParticleSystem, ParticleLayer, ShrinkingParticle}, util::lerp_color, wall::Wall
+    drawer::BallStyle,
+    particle::{ParticleLayer, ShrinkingParticle, system::BallParticleSystem},
+    rendering::Renderer,
+    util::lerp_color,
+    wall::Wall,
 };
 
+#[derive(Clone)]
 pub struct Ball {
     name: String,
-    name_color: Color,
+    name_color: Srgba,
     physics_ball: PhysicsBall,
-    drawer: Box<dyn Drawer>,
+    style: Box<dyn BallStyle>,
     sound_path: PathBuf,
-    sound: Sound,
     particles: BallParticleSystem,
 }
 
 impl Ball {
     pub fn new(
         name: String,
-        name_color: Color,
+        name_color: Srgba,
         physics_ball: PhysicsBall,
-        mut drawer: Box<dyn Drawer>,
+        mut style: Box<dyn BallStyle>,
         sound_path: PathBuf,
-        sound: Sound,
     ) -> Self {
-        drawer.init(&physics_ball);
+        style.init(&physics_ball);
 
         Self {
             name,
             name_color,
             physics_ball,
-            drawer,
+            style,
             sound_path,
-            sound,
             particles: BallParticleSystem::default(),
         }
     }
@@ -47,8 +50,22 @@ impl Ball {
         &self.name
     }
 
-    pub fn get_name_color(&self) -> Color {
+    pub fn get_name_color(&self) -> Srgba {
         self.name_color
+    }
+
+    pub fn get_physics_ball(&self) -> &PhysicsBall {
+        &self.physics_ball
+    }
+
+    pub fn get_style(&self) -> &dyn BallStyle {
+        self.style.as_ref()
+    }
+
+    pub fn render(&self, renderer: &mut dyn Renderer) {
+        self.get_particles().render_back(renderer);
+        self.get_style().render(self, renderer);
+        self.get_particles().render_front(renderer);
     }
 
     pub fn get_position(&self) -> DVec2 {
@@ -79,10 +96,6 @@ impl Ball {
         &self.sound_path
     }
 
-    pub fn get_sound(&self) -> &Sound {
-        &self.sound
-    }
-
     pub fn get_particles(&self) -> &BallParticleSystem {
         &self.particles
     }
@@ -109,18 +122,8 @@ impl Ball {
                         ),
                     random_range(2.0..=6.0),
                     lerp_color(
-                        Color {
-                            r: 0.0,
-                            g: 0.5,
-                            b: 1.0,
-                            a: 1.0,
-                        },
-                        Color {
-                            r: 0.25,
-                            g: 0.0,
-                            b: 1.0,
-                            a: 1.0,
-                        },
+                        Srgba::new(0.0, 0.5, 1.0, 1.0),
+                        Srgba::new(0.25, 0.0, 1.0, 1.0),
                         random_range(0.0..=1.0),
                     ),
                     random_range(0.25..=0.75),
@@ -140,13 +143,7 @@ impl Ball {
         }
 
         self.get_particles_mut().update(dt);
-        self.drawer.update(&self.physics_ball);
-    }
-
-    pub fn draw(&self) {
-        self.get_particles().draw_back();
-        self.drawer.draw(self);
-        self.get_particles().draw_front();
+        self.style.update(&self.physics_ball);
     }
 
     pub fn get_mass(&self) -> f64 {
@@ -154,10 +151,11 @@ impl Ball {
     }
 
     pub fn get_intersection_point(&self, wall: &dyn Wall) -> Option<DVec2> {
-        wall.get_intersection_point(self)
+        wall.get_intersection_point(self.get_physics_ball())
     }
 }
 
+#[derive(Clone)]
 pub struct PhysicsBall {
     position: DVec2,
     velocity: DVec2,

@@ -7,8 +7,8 @@ use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
 
 #[derive(Debug)]
 pub struct Collision {
-    sound_path: PathBuf,
-    volume: f32,
+    pub sound_path: PathBuf,
+    pub volume: f32,
 }
 
 impl Collision {

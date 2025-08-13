@@ -1,4 +1,4 @@
-use std::{error::Error, thread, time::Duration};
+use std::{env, error::Error, thread, time::Duration};
 
 use reqwest::blocking::Client;
 use serde::Deserialize;
@@ -34,7 +34,16 @@ impl InstagramPoster {
         }
     }
 
-    pub async fn post(
+    pub fn from_env() -> Self {
+        InstagramPoster::new(
+            env::var("INSTAGRAM_SCOPED_ACCOUNT_ID")
+                .expect("Missing INSTAGRAM_SCOPED_ACCOUNT_ID environment variable!"),
+            env::var("INSTAGRAM_USER_ACCESS_TOKEN")
+                .expect("Missing INSTAGRAM_USER_ACCESS_TOKEN environment variable!"),
+        )
+    }
+
+    pub fn post(
         &self,
         caption: &str,
         video_url: &str,
@@ -51,7 +60,7 @@ impl InstagramPoster {
                     if container_status_response.status_code == "FINISHED" {
                         return self.publish_media(&media_response.id);
                     }
-                },
+                }
                 Err(e) => {
                     info!(?e, "Checking Container Status Failed!");
                     return Err(e);
@@ -63,10 +72,16 @@ impl InstagramPoster {
         }
     }
 
-    pub fn create_media(&self, caption: &str, video_url: &str, thumb_offset: f64) -> Result<MediaResponse, Box<dyn Error>> {
+    pub fn create_media(
+        &self,
+        caption: &str,
+        video_url: &str,
+        thumb_offset: f64,
+    ) -> Result<MediaResponse, Box<dyn Error>> {
         info!("Creating Instagram Media...");
 
-        let media_response = self.client
+        let media_response = self
+            .client
             .post(format!(
                 "https://graph.instagram.com/v23.0/{}/media",
                 &self.app_scoped_user_id
@@ -87,14 +102,15 @@ impl InstagramPoster {
         Ok(serde_json::from_str(&media_response)?)
     }
 
-    pub fn get_container_status(&self, container_id: &str) -> Result<ContainerStatusResponse, Box<dyn Error>> {
+    pub fn get_container_status(
+        &self,
+        container_id: &str,
+    ) -> Result<ContainerStatusResponse, Box<dyn Error>> {
         info!("Checking Container Status...");
 
-        let container_status_response = self.client
-            .get(format!(
-                "https://graph.instagram.com/v23.0/{}",
-                container_id
-            ))
+        let container_status_response = self
+            .client
+            .get(format!("https://graph.instagram.com/v23.0/{container_id}"))
             .query(&[
                 ("fields", "status_code,status"),
                 ("access_token", &self.user_access_token),

@@ -1,7 +1,6 @@
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, env, error::Error};
 
 use itertools::Itertools;
-use macroquad::file;
 use reqwest::blocking::{Client, multipart};
 use serde::Deserialize;
 use sha1::{Digest, Sha1};
@@ -36,6 +35,17 @@ impl Cloudinary {
         }
     }
 
+    pub fn from_env() -> Self {
+        Cloudinary::new(
+            env::var("CLOUDINARY_CLOUD_NAME")
+                .expect("Missing CLOUDINARY_CLOUD_NAME environment variable!"),
+            env::var("CLOUDINARY_API_KEY")
+                .expect("Missing CLOUDINARY_API_KEY environment variable!"),
+            env::var("CLOUDINARY_API_SECRET")
+                .expect("Missing CLOUDINARY_API_SECRET environment variable!"),
+        )
+    }
+
     pub fn generate_signature(&self, params: HashMap<&str, String>) -> String {
         let mut sorted_keys: Vec<&str> = params.keys().cloned().collect();
 
@@ -54,7 +64,7 @@ impl Cloudinary {
         hex::encode(hasher.finalize())
     }
 
-    pub async fn post(&self, path: &str) -> Result<CloudinaryUploadResponse, Box<dyn Error>> {
+    pub fn post(&self, path: &str) -> Result<CloudinaryUploadResponse, Box<dyn Error>> {
         let timestamp = chrono::Utc::now().timestamp();
 
         let mut params = HashMap::new();
@@ -62,7 +72,7 @@ impl Cloudinary {
 
         let signature = self.generate_signature(params);
 
-        let buffer = file::load_file(path).await?;
+        let buffer = std::fs::read(path).unwrap();
         let part = multipart::Part::bytes(buffer).file_name("file");
 
         let form = multipart::Form::new()

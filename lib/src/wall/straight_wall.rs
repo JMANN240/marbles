@@ -1,6 +1,9 @@
-use macroquad::prelude::*;
-
-use crate::ball::Ball;
+use crate::{
+    ball::PhysicsBall,
+    rendering::{Render, Renderer},
+};
+use glam::{DVec2, dvec2};
+use palette::Srgba;
 
 use super::Wall;
 
@@ -39,6 +42,7 @@ impl Line {
     }
 }
 
+#[derive(Clone)]
 pub struct StraightWall {
     line: Line,
     is_goal: bool,
@@ -57,30 +61,18 @@ impl StraightWall {
         Self::new(Line::new(dvec2(-10000.0, y), dvec2(10000.0, y)), is_goal)
     }
 
-    pub fn screen(with_goal: bool) -> Vec<Self> {
+    pub fn rect(x: f64, y: f64, width: f64, height: f64, with_goal: bool) -> Vec<Self> {
         vec![
+            Self::new(Line::new(dvec2(x, y), dvec2(x + width, y)), false),
             Self::new(
-                Line::new(dvec2(0.0, 0.0), dvec2(screen_width() as f64, 0.0)),
+                Line::new(dvec2(x + width, y), dvec2(x + width, y + height)),
                 false,
             ),
             Self::new(
-                Line::new(
-                    dvec2(screen_width() as f64, 0.0),
-                    dvec2(screen_width() as f64, screen_height() as f64),
-                ),
-                false,
-            ),
-            Self::new(
-                Line::new(
-                    dvec2(screen_width() as f64, screen_height() as f64),
-                    dvec2(0.0, screen_height() as f64),
-                ),
+                Line::new(dvec2(x + width, y + height), dvec2(x, y + height)),
                 with_goal,
             ),
-            Self::new(
-                Line::new(dvec2(0.0, screen_height() as f64), dvec2(0.0, 0.0)),
-                false,
-            ),
+            Self::new(Line::new(dvec2(x, y + height), dvec2(x, y)), false),
         ]
     }
 
@@ -92,18 +84,7 @@ impl StraightWall {
 impl Wall for StraightWall {
     fn update(&mut self, _dt: f64) {}
 
-    fn draw(&self) {
-        draw_line(
-            self.get_line().get_start().x as f32,
-            self.get_line().get_start().y as f32,
-            self.get_line().get_end().x as f32,
-            self.get_line().get_end().y as f32,
-            2.0,
-            WHITE,
-        );
-    }
-
-    fn get_intersection_point(&self, ball: &Ball) -> Option<DVec2> {
+    fn get_intersection_point(&self, ball: &PhysicsBall) -> Option<DVec2> {
         let x1 = self.get_line().get_start().x;
         let y1 = self.get_line().get_start().y;
         let x2 = self.get_line().get_end().x;
@@ -151,5 +132,15 @@ impl Wall for StraightWall {
 
     fn is_goal(&self) -> bool {
         self.is_goal
+    }
+
+    fn clone_box(&self) -> Box<dyn Wall + Send> {
+        Box::new(self.clone())
+    }
+}
+
+impl Render for StraightWall {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        renderer.render_line(&self.get_line(), 2.0, Srgba::new(1.0, 1.0, 1.0, 1.0));
     }
 }

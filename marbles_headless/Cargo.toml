@@ -9,8 +9,9 @@ clap = { version = "4.5.41", features = ["derive"] }
 dotenvy = "0.15.7"
 hex = "0.4.3"
 hound = "3.5.1"
+image = { workspace = true }
 itertools = "0.14.0"
-lib = { path = "../lib" }
+lib = { path = "../lib", features = ["image"], default-features = false }
 particula-rs = { git = "https://github.com/JMANN240/particula-rs" }
 rand = "0.9.1"
 rayon = "1.10.0"

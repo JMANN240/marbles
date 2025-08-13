@@ -1,9 +1,24 @@
-use particula_rs::{Aging, MaxAging, Particle};
+use std::f64::consts::PI;
+
 use ::rand::{random_bool, random_range};
-use macroquad::{color::hsl_to_rgb, prelude::*};
+use glam::DVec2;
+use palette::{FromColor, Hsla, Srgba};
+use particula_rs::{Aging, MaxAging, Particle};
+
+use crate::rendering::{Render, Renderer};
 
 pub mod emitter;
 pub mod system;
+
+pub trait RenderParticle<C>: Render + Particle<Coordinate = C> + Send + Sync {
+    fn clone_box(&self) -> Box<dyn RenderParticle<C>>;
+}
+
+impl<C, T> RenderParticle<C> for T where T: Render + Particle<Coordinate = C> + Clone + Send + Sync + 'static {
+    fn clone_box(&self) -> Box<dyn RenderParticle<C>> {
+        Box::new(self.clone())
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ParticleLayer {
@@ -21,15 +36,23 @@ impl ParticleLayer {
     }
 }
 
-pub trait LayeredParticle: Particle<Position = DVec2> {
+pub trait LayeredParticle: Particle<Coordinate = DVec2> + Render + Send + Sync {
     fn get_particle_layer(&self) -> ParticleLayer;
+    fn clone_box(&self) -> Box<dyn LayeredParticle>;
 }
 
+impl Clone for Box<dyn LayeredParticle> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
+#[derive(Clone)]
 pub struct ShrinkingParticle {
     position: DVec2,
     velocity: DVec2,
     radius: f64,
-    color: Color,
+    color: Srgba,
     age: f64,
     max_age: f64,
     layer: ParticleLayer,
@@ -40,7 +63,7 @@ impl ShrinkingParticle {
         position: DVec2,
         velocity: DVec2,
         radius: f64,
-        color: Color,
+        color: Srgba,
         max_age: f64,
         layer: ParticleLayer,
     ) -> Self {
@@ -54,16 +77,28 @@ impl ShrinkingParticle {
             layer,
         }
     }
+
+    pub fn get_radius(&self) -> f64 {
+        self.radius
+    }
+
+    pub fn get_color(&self) -> Srgba {
+        self.color
+    }
 }
 
 impl LayeredParticle for ShrinkingParticle {
     fn get_particle_layer(&self) -> ParticleLayer {
         self.layer
     }
+
+    fn clone_box(&self) -> Box<dyn LayeredParticle> {
+        Box::new(self.clone())
+    }
 }
 
 impl Particle for ShrinkingParticle {
-    type Position = DVec2;
+    type Coordinate = DVec2;
 
     fn get_position(&self) -> DVec2 {
         self.position
@@ -74,17 +109,18 @@ impl Particle for ShrinkingParticle {
         self.age += dt;
     }
 
-    fn draw(&self) {
-        draw_circle(
-            self.position.x as f32,
-            self.position.y as f32,
-            (self.radius * (1.0 - self.get_age_percent())) as f32,
-            self.color,
-        );
-    }
-
     fn is_alive(&self) -> bool {
         MaxAging::is_alive(self)
+    }
+}
+
+impl Render for ShrinkingParticle {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        renderer.render_circle(
+            self.get_position(),
+            self.get_radius() * (1.0 - self.get_age_percent()),
+            self.get_color(),
+        );
     }
 }
 
@@ -104,6 +140,7 @@ impl MaxAging for ShrinkingParticle {
     }
 }
 
+#[derive(Clone)]
 pub struct FireParticle {
     position: DVec2,
     radius: f64,
@@ -122,10 +159,14 @@ impl FireParticle {
             layer,
         }
     }
+
+    pub fn get_radius(&self) -> f64 {
+        self.radius
+    }
 }
 
 impl Particle for FireParticle {
-    type Position = DVec2;
+    type Coordinate = DVec2;
 
     fn get_position(&self) -> DVec2 {
         self.position
@@ -136,33 +177,35 @@ impl Particle for FireParticle {
         self.position -= DVec2::Y * 50.0 * dt;
     }
 
-    fn draw(&self) {
-        let color = Color {
-            r: YELLOW.r * (1.0 - self.get_age_percent()) as f32
-                + RED.r * self.get_age_percent() as f32,
-            g: YELLOW.g * (1.0 - self.get_age_percent()) as f32
-                + RED.g * self.get_age_percent() as f32,
-            b: YELLOW.b * (1.0 - self.get_age_percent()) as f32
-                + RED.b * self.get_age_percent() as f32,
-            a: 1.0,
-        };
-
-        draw_circle(
-            self.position.x as f32,
-            self.position.y as f32,
-            (self.radius * (1.0 - self.get_age_percent())) as f32,
-            color,
-        );
-    }
-
     fn is_alive(&self) -> bool {
         MaxAging::is_alive(self)
+    }
+}
+
+impl Render for FireParticle {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        let color = Srgba::new(
+            1.0 * (1.0 - self.get_age_percent()) as f32 + 1.0 * self.get_age_percent() as f32,
+            1.0 * (1.0 - self.get_age_percent()) as f32 + 0.0 * self.get_age_percent() as f32,
+            0.0 * (1.0 - self.get_age_percent()) as f32 + 0.0 * self.get_age_percent() as f32,
+            1.0,
+        );
+
+        renderer.render_circle(
+            self.get_position(),
+            self.get_radius() * (1.0 - self.get_age_percent()),
+            color,
+        );
     }
 }
 
 impl LayeredParticle for FireParticle {
     fn get_particle_layer(&self) -> ParticleLayer {
         self.layer
+    }
+
+    fn clone_box(&self) -> Box<dyn LayeredParticle> {
+        Box::new(self.clone())
     }
 }
 
@@ -182,11 +225,13 @@ impl MaxAging for FireParticle {
     }
 }
 
+#[derive(Clone)]
 pub struct ConfettiParticle {
     position: DVec2,
     velocity: DVec2,
     radius: f64,
-    color: Color,
+    color: Srgba,
+    rotation: f64,
     rotation_speed: f64,
     age: f64,
     max_age: f64,
@@ -205,17 +250,34 @@ impl ConfettiParticle {
             position,
             velocity,
             radius,
-            color: hsl_to_rgb(random_range(0.0..1.0), 1.0, 0.5),
+            color: Srgba::from_color(Hsla::new(random_range(0.0..360.0), 1.0, 0.5, 1.0)),
+            rotation: random_range(0.0..=(PI / 2.0)),
             rotation_speed: random_range(1.0..=8.0),
             age: 0.0,
             max_age,
             layer,
         }
     }
+
+    pub fn get_rotation(&self) -> f64 {
+        self.rotation
+    }
+
+    pub fn get_rotation_speed(&self) -> f64 {
+        self.rotation_speed
+    }
+
+    pub fn get_radius(&self) -> f64 {
+        self.radius
+    }
+
+    pub fn get_color(&self) -> Srgba {
+        self.color
+    }
 }
 
 impl Particle for ConfettiParticle {
-    type Position = DVec2;
+    type Coordinate = DVec2;
 
     fn get_position(&self) -> DVec2 {
         self.position
@@ -226,20 +288,7 @@ impl Particle for ConfettiParticle {
         self.position += self.velocity * dt;
         self.velocity += -0.01 * self.velocity * self.velocity.length() * dt;
         self.velocity += DVec2::Y * 100.0 * dt;
-    }
-
-    fn draw(&self) {
-        draw_rectangle_ex(
-            self.position.x as f32,
-            self.position.y as f32,
-            self.radius as f32 * (1.0 - self.get_age_percent()) as f32,
-            self.radius as f32 * (1.0 - self.get_age_percent()) as f32,
-            DrawRectangleParams {
-                offset: vec2(0.5, 0.5),
-                rotation: get_time() as f32 * self.rotation_speed as f32,
-                color: self.color,
-            },
-        );
+        self.rotation += self.rotation_speed * dt;
     }
 
     fn is_alive(&self) -> bool {
@@ -247,9 +296,26 @@ impl Particle for ConfettiParticle {
     }
 }
 
+impl Render for ConfettiParticle {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        renderer.render_rectangle(
+            self.get_position(),
+            self.get_radius() * (1.0 - self.get_age_percent()),
+            self.get_radius() * (1.0 - self.get_age_percent()),
+            ::glam::dvec2(0.5, 0.5),
+            self.rotation,
+            self.color,
+        );
+    }
+}
+
 impl LayeredParticle for ConfettiParticle {
     fn get_particle_layer(&self) -> ParticleLayer {
         self.layer
+    }
+
+    fn clone_box(&self) -> Box<dyn LayeredParticle> {
+        Box::new(self.clone())
     }
 }
 

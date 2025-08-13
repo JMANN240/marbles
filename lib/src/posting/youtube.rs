@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use reqwest::blocking::{multipart, Client};
+use reqwest::blocking::{Client, multipart};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
@@ -53,31 +53,43 @@ impl YouTubePoster {
         }
     }
 
-    pub fn upload(&self, path: &str, title: String, description: String, tags: Vec<String>) -> Result<VideoResponse, Box<dyn Error>> {
+    pub fn upload(
+        &self,
+        path: &str,
+        title: String,
+        description: String,
+        tags: Vec<String>,
+    ) -> Result<VideoResponse, Box<dyn Error>> {
         info!("Posting to YouTube...");
 
         let form = multipart::Form::new()
             .part(
                 "application/json",
                 multipart::Part::text(
-                    serde_json::to_string(
-                        &UploadBody {
-                            snippet: UploadBodySnippet { title, description, tags, category_id: "24".to_string() },
-                            status: UploadBodyStatus { privacy_status: PrivacyStatus::Public, self_declared_made_for_kids: false }
-                        }
-                    ).unwrap()
-                )
+                    serde_json::to_string(&UploadBody {
+                        snippet: UploadBodySnippet {
+                            title,
+                            description,
+                            tags,
+                            category_id: "24".to_string(),
+                        },
+                        status: UploadBodyStatus {
+                            privacy_status: PrivacyStatus::Public,
+                            self_declared_made_for_kids: false,
+                        },
+                    })
+                    .unwrap(),
+                ),
             )
             .part("video/mp4", multipart::Part::file(path).unwrap());
 
         info!(?form, "Request Body");
 
-        let video_response = self.client
+        let video_response = self
+            .client
             .post("https://www.googleapis.com/youtube/v3/videos")
             .header("Authorization", format!("Bearer {}", self.token))
-            .query(&[
-                ("part", "snippet,status"),
-            ])
+            .query(&[("part", "snippet,status")])
             .multipart(form)
             .send()?
             .text()?;

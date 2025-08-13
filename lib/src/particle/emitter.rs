@@ -1,21 +1,30 @@
-use macroquad::prelude::*;
+use std::sync::Arc;
+
+use glam::DVec2;
 use particula_rs::ParticleEmitter;
 
 use crate::particle::LayeredParticle;
 
-type ParticleFunction = dyn Fn(DVec2) -> Box<dyn LayeredParticle>;
+type ParticleFunction = dyn Fn(DVec2) -> Box<dyn LayeredParticle> + Send + Sync;
 
+#[derive(Clone)]
 pub struct BallParticleEmitter {
     position: DVec2,
     time: f64,
     last_emitted_time: Option<f64>,
     frequency: f64,
-    particle_function: Box<ParticleFunction>
+    particle_function: Arc<ParticleFunction>,
 }
 
 impl BallParticleEmitter {
-    pub fn new(position: DVec2, frequency: f64, particle_function: Box<ParticleFunction>) -> Self {
-        Self { position, time: 0.0, last_emitted_time: None, frequency, particle_function }
+    pub fn new(position: DVec2, frequency: f64, particle_function: Arc<ParticleFunction>) -> Self {
+        Self {
+            position,
+            time: 0.0,
+            last_emitted_time: None,
+            frequency,
+            particle_function,
+        }
     }
 
     pub fn get_period(&self) -> f64 {
@@ -28,12 +37,15 @@ impl BallParticleEmitter {
 }
 
 impl ParticleEmitter for BallParticleEmitter {
-    type ParticleType = dyn LayeredParticle;
+    type ParticleType = Box<dyn LayeredParticle>;
 
-    fn update(&mut self, dt: f64) -> Vec<Box<Self::ParticleType>> {
+    fn update(&mut self, dt: f64) -> Vec<Self::ParticleType> {
         self.time += dt;
-        
-        if self.last_emitted_time.is_none_or(|last_emitted_time| self.time - last_emitted_time > self.get_period()) {
+
+        if self
+            .last_emitted_time
+            .is_none_or(|last_emitted_time| self.time - last_emitted_time > self.get_period())
+        {
             self.last_emitted_time = Some(self.time);
             vec![(self.particle_function)(self.position)]
         } else {
