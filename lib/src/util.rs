@@ -6,6 +6,7 @@ use image::Rgba;
 #[cfg(feature = "macroquad")]
 use macroquad::color::Color;
 use palette::Srgba;
+use serde::Deserialize;
 use tracing::info;
 
 use crate::{posting::{
@@ -163,4 +164,15 @@ pub fn get_scene(scene_number: usize, config: &Config, width: f64, height: f64) 
     ];
 
     scenes[scene_number - 1].clone()
+}
+
+#[derive(Deserialize)]
+pub struct Message {
+    pub message: String,
+    pub user: String,
+}
+
+#[derive(Deserialize)]
+pub struct MaybeMessage {
+    pub message: Option<Message>,
 }

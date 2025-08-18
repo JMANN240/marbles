@@ -1,10 +1,10 @@
-use glam::dvec2;
+use glam::{DVec2, dvec2};
 use palette::Srgba;
 
 use crate::{
     collision::Collision,
     rendering::{HorizontalTextAnchor, Render, TextAnchor2D, VerticalTextAnchor},
-    scene::Scene,
+    scene::Scene, wall::straight_wall::Line,
 };
 
 pub enum SimulationPhase {
@@ -22,6 +22,10 @@ pub struct Simulation {
     countdown_seconds: f64,
     reset_seconds: f64,
     engagement: String,
+    special_message: String,
+    special_message_user: String,
+    special_message_x: f64,
+    special_message_target_x: f64,
 }
 
 impl Simulation {
@@ -32,6 +36,8 @@ impl Simulation {
         countdown_seconds: f64,
         reset_seconds: f64,
         engagement: String,
+        special_message: String,
+        special_message_user: String,
     ) -> Self {
         Self {
             time: 0.0,
@@ -42,6 +48,10 @@ impl Simulation {
             countdown_seconds,
             reset_seconds,
             engagement,
+            special_message,
+            special_message_user,
+            special_message_x: -viewport_width,
+            special_message_target_x: -viewport_width,
         }
     }
 
@@ -90,6 +100,15 @@ impl Simulation {
             SimulationPhase::Countdown => vec![],
             SimulationPhase::Running => self.scene.update(dt, timescale, physics_steps),
         };
+
+        if self.get_time() > self.get_countdown_seconds() + 12.0 {
+            self.special_message_target_x = -self.viewport_width;
+        } else if self.get_time() > self.get_countdown_seconds() + 2.0 {
+            self.special_message_target_x = 0.0;
+        }
+
+        self.special_message_x +=
+            (self.special_message_target_x - self.special_message_x) * 8.0 * dt;
 
         if self.scene.all_won() && self.maybe_all_won_time.is_none() {
             self.maybe_all_won_time = Some(self.time);
@@ -143,6 +162,66 @@ impl Render for Simulation {
                 },
                 196.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
+            );
+        }
+
+        if self.get_time() > self.get_countdown_seconds() + 2.0 && self.get_time() < self.get_countdown_seconds() + 22.0 {
+            renderer.render_rectangle(
+                dvec2(
+                    self.special_message_x - self.viewport_width,
+                    self.viewport_height * 0.8,
+                ),
+                self.viewport_width + self.viewport_width * 0.9,
+                self.viewport_height * 0.1,
+                DVec2::ZERO,
+                0.0,
+                Srgba::new(0.0, 0.0, 0.0, 1.0),
+            );
+    
+            renderer.render_rectangle_lines(
+                dvec2(
+                    self.special_message_x - self.viewport_width,
+                    self.viewport_height * 0.8,
+                ),
+                self.viewport_width + self.viewport_width * 0.9,
+                self.viewport_height * 0.1,
+                DVec2::ZERO,
+                0.0,
+                2.0,
+                Srgba::new(1.0, 1.0, 1.0, 1.0),
+            );
+    
+            renderer.render_text(
+                &self.special_message,
+                dvec2(
+                    self.special_message_x + self.viewport_width / 2.0,
+                    self.viewport_height * 0.825,
+                ),
+                TextAnchor2D { horizontal: HorizontalTextAnchor::Center, vertical: VerticalTextAnchor::Center },
+                24.0,
+                Srgba::new(1.0, 1.0, 1.0, 1.0),
+            );
+    
+            renderer.render_text(
+                "Submit your own message at https://quantummarbleracing.com",
+                dvec2(
+                    self.special_message_x,
+                    self.viewport_height * 0.9 - 8.0,
+                ),
+                TextAnchor2D { horizontal: HorizontalTextAnchor::Left, vertical: VerticalTextAnchor::Bottom },
+                16.0,
+                Srgba::new(0.5, 0.5, 0.5, 1.0),
+            );
+    
+            renderer.render_text(
+                &format!("-{}", self.special_message_user),
+                dvec2(
+                    self.special_message_x + self.viewport_width * 0.9 - 8.0,
+                    self.viewport_height * 0.85,
+                ),
+                TextAnchor2D { horizontal: HorizontalTextAnchor::Right, vertical: VerticalTextAnchor::Bottom },
+                16.0,
+                Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
         }
 

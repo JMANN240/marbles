@@ -1,26 +1,20 @@
 use std::{
-    collections::HashMap,
-    path::Path,
-    sync::{Arc, Mutex},
-    time::Duration,
+    collections::HashMap, env, path::Path, sync::{Arc, Mutex}, time::Duration
 };
 
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::{
-    Config, ENGAGEMENTS,
-    collision::{Collision, render_collisions},
-    posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
-    rendering::{Render, image::ImageRenderer},
-    simulation::Simulation,
-    util::{
+    collision::{render_collisions, Collision}, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::{image::ImageRenderer, Render}, simulation::Simulation, util::{
         get_formatted_frame_name, get_frame_template, get_scene, prepare_images_path,
-        prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube,
-    },
+        prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube, MaybeMessage, Message,
+    }, Config, ENGAGEMENTS
 };
 use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;
+use reqwest::blocking::Client;
+use serde::Deserialize;
 use toml::from_str;
 use tracing::{Level, debug, error, info};
 use tracing_subscriber::FmtSubscriber;
@@ -35,6 +29,9 @@ pub struct Cli {
 
     #[arg(short, long)]
     youtube: bool,
+
+    #[arg(short, long)]
+    consume_message: bool,
 
     #[arg(long, default_value_t = 3)]
     countdown_seconds: usize,
@@ -83,6 +80,30 @@ fn main() {
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
 
+        let mut query = HashMap::new();
+
+        if cli.consume_message {
+            query.insert("consumption_key", env::var("CONSUMPTION_KEY")
+                .expect("CONSUMPTION_KEY environment variable is not set"));
+        }
+
+        let client = Client::new();
+
+        let special_message_text =
+            client.get("https://quantummarbleracing.com/api/next_message")
+                .query(&query)
+                .send()
+                .unwrap()
+                .text()
+                .unwrap();
+
+        println!("{}", special_message_text);
+
+        let special_message = serde_json::from_str::<MaybeMessage>(&special_message_text)
+                .unwrap()
+                .message
+                .unwrap_or(Message { message: "Your custom message here!".to_string(), user: "QMR".to_string() });
+
         let mut simulation = Simulation::new(
             scene,
             1080.0 / 2.0,
@@ -90,6 +111,8 @@ fn main() {
             cli.countdown_seconds as f64,
             cli.reset_seconds as f64,
             engagement.to_string(),
+            special_message.message,
+            special_message.user,
         );
 
         let mut simulation_states = Vec::new();
@@ -129,10 +152,7 @@ fn main() {
 
                 let mut frames_rendered = frames_rendered.lock().unwrap();
                 *frames_rendered += 1;
-                debug!(
-                    "Rendered {}/{} frames",
-                    *frames_rendered, number_of_frames
-                );
+                debug!("Rendered {}/{} frames", *frames_rendered, number_of_frames);
             });
 
         render_collisions(

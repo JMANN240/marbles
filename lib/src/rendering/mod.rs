@@ -39,6 +39,16 @@ pub trait Renderer {
         rotation: f64,
         color: Srgba,
     );
+    fn render_rectangle_lines(
+        &mut self,
+        position: DVec2,
+        width: f64,
+        height: f64,
+        offset: DVec2,
+        rotation: f64,
+        thickness: f64,
+        color: Srgba,
+    );
 }
 
 pub trait Render {

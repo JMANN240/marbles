@@ -120,20 +120,11 @@ impl Renderer for ImageRenderer {
         let position = self.map_dvec2(position).round().as_ivec2();
         let radius = (radius * self.scale * self.supersampling as f64).round() as u32;
 
-        let mut circle_image = RgbaImage::new(2 * radius + 1, 2 * radius + 1);
-
         draw_filled_circle_mut(
-            &mut circle_image,
-            (radius as i32, radius as i32),
+            &mut self.image,
+            position.into(),
             radius as i32,
             srgba_to_rgba8(color),
-        );
-
-        overlay(
-            &mut self.image,
-            &circle_image,
-            (position.x - radius as i32) as i64,
-            (position.y - radius as i32) as i64,
         );
     }
 
@@ -259,6 +250,46 @@ impl Renderer for ImageRenderer {
             Rect::at(position.x as i32, position.y as i32)
                 .of_size((width as u32).max(1), (height as u32).max(1)),
             srgba_to_rgba8(color),
+        );
+    }
+
+    fn render_rectangle_lines(
+        &mut self,
+        position: ::glam::DVec2,
+        width: f64,
+        height: f64,
+        _offset: ::glam::DVec2,
+        _rotation: f64,
+        thickness: f64,
+        color: Srgba,
+    ) {
+        let position = self.map_dvec2(position);
+        let width = (width * self.scale * self.supersampling as f64).round();
+        let height = (height * self.scale * self.supersampling as f64).round();
+        let thickness = (thickness * self.scale * self.supersampling as f64).round() as u32;
+
+        let mut rectangle_image = RgbaImage::new(width as u32, height as u32);
+
+        // TODO: Handle rotation
+        draw_filled_rect_mut(
+            &mut rectangle_image,
+            Rect::at(0, 0)
+                .of_size((width as u32).max(1), (height as u32).max(1)),
+            srgba_to_rgba8(color),
+        );
+
+        draw_filled_rect_mut(
+            &mut rectangle_image,
+            Rect::at(thickness as i32, thickness as i32)
+                .of_size((width as u32 - 2 * thickness).max(1), (height as u32 - 2 * thickness).max(1)),
+            Rgba([0, 0, 0, 0]),
+        );
+
+        overlay(
+            &mut self.image,
+            &rectangle_image,
+            position.x as i64,
+            position.y as i64,
         );
     }
 }

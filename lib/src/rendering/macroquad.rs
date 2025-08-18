@@ -95,8 +95,8 @@ impl Renderer for MacroquadRenderer {
 
         let y = match anchor.vertical {
             VerticalTextAnchor::Bottom => position.y,
-            VerticalTextAnchor::Center => position.y + measurement.height as f64 / 2.0,
-            VerticalTextAnchor::Top => position.y + measurement.height as f64,
+            VerticalTextAnchor::Center => position.y + measurement.offset_y as f64 / 2.0,
+            VerticalTextAnchor::Top => position.y + measurement.offset_y as f64,
         };
 
         for i in -1..=1 {
@@ -144,6 +144,30 @@ impl Renderer for MacroquadRenderer {
             position.y as f32,
             width as f32,
             height as f32,
+            DrawRectangleParams {
+                offset: vec2(offset.x as f32, offset.y as f32),
+                rotation: rotation as f32,
+                color: srgba_to_color(color),
+            },
+        );
+    }
+
+    fn render_rectangle_lines(
+        &mut self,
+        position: ::glam::DVec2,
+        width: f64,
+        height: f64,
+        offset: ::glam::DVec2,
+        rotation: f64,
+        thickness: f64,
+        color: Srgba,
+    ) {
+        draw_rectangle_lines_ex(
+            position.x as f32,
+            position.y as f32,
+            width as f32,
+            height as f32,
+            thickness as f32,
             DrawRectangleParams {
                 offset: vec2(offset.x as f32, offset.y as f32),
                 rotation: rotation as f32,
