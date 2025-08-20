@@ -14,7 +14,6 @@ use lib::{
 use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
-use serde::Deserialize;
 use toml::from_str;
 use tracing::{Level, debug, error, info};
 use tracing_subscriber::FmtSubscriber;
@@ -76,7 +75,7 @@ fn main() {
         prepare_images_path(images_path).unwrap();
         prepare_videos_path(videos_path).unwrap();
 
-        let scene = get_scene(config.get_scene(), &config, WIDTH as f64, HEIGHT as f64);
+        let scene = get_scene(&mut rand::rng(), config.get_scene(), &config, WIDTH as f64, HEIGHT as f64);
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
 

@@ -6,6 +6,7 @@ use image::Rgba;
 #[cfg(feature = "macroquad")]
 use macroquad::color::Color;
 use palette::Srgba;
+use rand::Rng;
 use serde::Deserialize;
 use tracing::info;
 
@@ -152,14 +153,14 @@ pub fn get_frame_template(padding: usize) -> String {
     format_frame_name(&format!("%0{padding}d"))
 }
 
-pub fn get_scene(scene_number: usize, config: &Config, width: f64, height: f64) -> Scene {
+pub fn get_scene(rng: &mut impl Rng, scene_number: usize, config: &Config, width: f64, height: f64) -> Scene {
     let scenes = [
-        scene_1(config.get_balls().clone(), width, height),
-        scene_2(config.get_balls().clone(), width, height),
-        scene_3(config.get_balls().clone(), width, height),
-        scene_4(config.get_balls().clone(), width, height),
-        scene_5(config.get_balls().clone(), width, height),
-        scene_6(config.get_balls().clone(), width, height),
+        scene_1(rng, config.get_balls().clone(), width, height),
+        scene_2(rng, config.get_balls().clone(), width, height),
+        scene_3(rng, config.get_balls().clone(), width, height),
+        scene_4(rng, config.get_balls().clone(), width, height),
+        scene_5(rng, config.get_balls().clone(), width, height),
+        scene_6(rng, config.get_balls().clone(), width, height),
         scene_7(width, height),
     ];
 

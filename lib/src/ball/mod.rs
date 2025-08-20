@@ -88,8 +88,20 @@ impl Ball {
         self.physics_ball.get_radius()
     }
 
+    pub fn get_density(&self) -> f64 {
+        self.physics_ball.get_density()
+    }
+
+    pub fn set_density(&mut self, density: f64) {
+        self.physics_ball.set_density(density)
+    }
+
     pub fn get_elasticity(&self) -> f64 {
         self.physics_ball.get_elasticity()
+    }
+
+    pub fn set_elasticity(&mut self, elasticity: f64) {
+        self.physics_ball.set_elasticity(elasticity)
     }
 
     pub fn get_sound_path(&self) -> &Path {
@@ -195,8 +207,16 @@ impl PhysicsBall {
         self.density
     }
 
+    pub fn set_density(&mut self, density: f64) {
+        self.density = density;
+    }
+
     pub fn get_elasticity(&self) -> f64 {
         self.elasticity
+    }
+
+    pub fn set_elasticity(&mut self, elasticity: f64) {
+        self.elasticity = elasticity;
     }
 
     pub fn get_volume(&self) -> f64 {

@@ -7,11 +7,7 @@ use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
 
 use crate::{
-    ball::Ball,
-    collision::Collision,
-    particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle},
-    rendering::{Render, Renderer},
-    wall::Wall,
+    ball::Ball, collision::Collision, particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle}, powerup::Powerup, rendering::{Render, Renderer}, wall::Wall
 };
 
 const MIN_OVERLAP: f64 = 0.01;
@@ -29,15 +25,17 @@ pub type SceneParticleSystem =
 #[derive(Clone)]
 pub struct Scene {
     balls: Vec<Ball>,
+    powerups: Vec<Box<dyn Powerup>>,
     walls: Vec<Box<dyn Wall>>,
     winners: Vec<usize>,
     particles: SceneParticleSystem,
 }
 
 impl Scene {
-    pub fn new(balls: Vec<Ball>, walls: Vec<Box<dyn Wall>>) -> Self {
+    pub fn new(balls: Vec<Ball>, powerups: Vec<Box<dyn Powerup>>, walls: Vec<Box<dyn Wall>>) -> Self {
         Self {
             balls,
+            powerups,
             walls,
             winners: Vec::new(),
             particles: VecParticleSystem::default(),
@@ -50,6 +48,10 @@ impl Scene {
 
     pub fn get_walls(&self) -> &Vec<Box<dyn Wall>> {
         &self.walls
+    }
+
+    pub fn get_powerups(&self) -> &Vec<Box<dyn Powerup>> {
+        &self.powerups
     }
 
     pub fn get_winners(&self) -> &Vec<usize> {
@@ -81,6 +83,10 @@ impl Scene {
 
         for wall in self.walls.iter_mut() {
             wall.update(dt);
+        }
+
+        for powerup in self.powerups.iter_mut() {
+            powerup.update(dt);
         }
 
         let new_attributes: Vec<(DVec2, DVec2)> = self
@@ -223,6 +229,16 @@ impl Scene {
             ball.set_velocity(new_velocity);
 
             ball.update(dt);
+
+            self.powerups.retain(|powerup| {
+                let colliding_with_ball = powerup.is_colliding_with(ball);
+
+                if colliding_with_ball {
+                    powerup.on_collision(ball);
+                }
+
+                !colliding_with_ball
+            });
         }
 
         self.particles.update(dt);
@@ -239,6 +255,10 @@ impl Render for Scene {
 
         for ball in self.get_balls().iter() {
             ball.render(renderer);
+        }
+
+        for powerup in self.get_powerups().iter() {
+            powerup.render(renderer);
         }
 
         for particle in self.get_particles().iter_particles() {

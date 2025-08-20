@@ -70,6 +70,9 @@ pub struct Cli {
 
     #[arg(long, default_value_t = 0)]
     race_offset: usize,
+
+    #[arg(long, default_value_t = 60.0)]
+    monitor_fps: f64,
 }
 
 const FRAME_PADDING: usize = 6;
@@ -108,7 +111,7 @@ async fn main() {
         let config_string = std::fs::read_to_string("config.toml").unwrap();
         let config = from_str::<Config>(&config_string).unwrap();
 
-        let scene = get_scene(config.get_scene(), &config, screen_width() as f64, screen_height() as f64);
+        let scene = get_scene(&mut ::rand::rng(), config.get_scene(), &config, screen_width() as f64, screen_height() as f64);
         let mut frame_number = 0;
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
@@ -136,7 +139,7 @@ async fn main() {
         let special_message = serde_json::from_str::<MaybeMessage>(&special_message_text)
                 .unwrap()
                 .message
-                .unwrap_or(Message { message: "Your customm message here!".to_string(), user: "QMR".to_string() });
+                .unwrap_or(Message { message: "Your custom message here!".to_string(), user: "QMR".to_string() });
 
         let mut simulation = Simulation::new(
             scene,
@@ -159,7 +162,7 @@ async fn main() {
 
         loop {
             let update_collisions =
-                simulation.update(1.0 / 60.0, cli.timescale, cli.physics_steps);
+                simulation.update(1.0 / cli.monitor_fps, cli.timescale, cli.physics_steps);
 
             for collision in update_collisions.iter() {
                 play_sound(
