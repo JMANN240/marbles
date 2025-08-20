@@ -146,10 +146,6 @@ impl Ball {
         self.style.update(&self.physics_ball);
     }
 
-    pub fn get_mass(&self) -> f64 {
-        PI * self.get_radius() * self.get_radius()
-    }
-
     pub fn get_intersection_point(&self, wall: &dyn Wall) -> Option<DVec2> {
         wall.get_intersection_point(self.get_physics_ball())
     }
@@ -160,15 +156,17 @@ pub struct PhysicsBall {
     position: DVec2,
     velocity: DVec2,
     radius: f64,
+    density: f64,
     elasticity: f64,
 }
 
 impl PhysicsBall {
-    pub fn new(position: DVec2, velocity: DVec2, radius: f64, elasticity: f64) -> Self {
+    pub fn new(position: DVec2, velocity: DVec2, radius: f64, density: f64, elasticity: f64) -> Self {
         Self {
             position,
             velocity,
             radius,
+            density,
             elasticity,
         }
     }
@@ -193,7 +191,19 @@ impl PhysicsBall {
         self.radius
     }
 
+    pub fn get_density(&self) -> f64 {
+        self.density
+    }
+
     pub fn get_elasticity(&self) -> f64 {
         self.elasticity
+    }
+
+    pub fn get_volume(&self) -> f64 {
+        PI * self.get_radius().powi(2)
+    }
+
+    pub fn get_mass(&self) -> f64 {
+        self.get_volume() * self.get_density()
     }
 }

@@ -185,8 +185,8 @@ impl Scene {
                         );
                         position_offsets.push(intersection_vector.normalize() * overlap);
                         velocity_offsets.push(
-                            -(2.0 * other_ball.get_mass()
-                                / (ball.get_mass() + other_ball.get_mass()))
+                            -(2.0 * other_ball.get_physics_ball().get_mass()
+                                / (ball.get_physics_ball().get_mass() + other_ball.get_physics_ball().get_mass()))
                                 * ((ball.get_velocity() - other_ball.get_velocity())
                                     .dot(intersection_vector)
                                     / (intersection_vector.length()

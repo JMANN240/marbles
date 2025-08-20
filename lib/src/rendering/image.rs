@@ -165,14 +165,14 @@ impl Renderer for ImageRenderer {
 
     fn render_arc(
         &mut self,
-        _position: ::glam::DVec2,
-        _radius: f64,
+        position: ::glam::DVec2,
+        radius: f64,
         _rotation: f64,
         _arc: f64,
-        _thickness: f64,
-        _color: Srgba,
+        thickness: f64,
+        color: Srgba,
     ) {
-        //TODO: Darn it
+        self.render_circle_lines(position, radius, thickness, color);
     }
 
     fn render_text(

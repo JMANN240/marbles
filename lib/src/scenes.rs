@@ -48,6 +48,7 @@ pub fn build_balls(
                 position,
                 *velocity,
                 ball_config.radius,
+                ball_config.density,
                 ball_config.elasticity,
             ),
             if ball_config.name == "Fireball" {
@@ -377,14 +378,14 @@ pub fn scene_7(scene_width: f64, scene_height: f64) -> Scene {
         Ball::new(
             "Big Red".to_string(),
             Srgba::new(0.9, 0.1, 0.1, 1.0),
-            PhysicsBall::new(dvec2(100.0, 100.0), dvec2(100.0, 0.0), 32.0, 0.99),
+            PhysicsBall::new(dvec2(100.0, 100.0), dvec2(100.0, 0.0), 32.0, 1.0, 0.99),
             Box::new(BaseStyle::new(Srgba::new(0.9, 0.1, 0.1, 1.0))),
             PathBuf::from("piano_c6.wav"),
         ),
         Ball::new(
             "Little Blue".to_string(),
             Srgba::new(0.0, 0.5, 1.0, 1.0),
-            PhysicsBall::new(dvec2(300.0, 100.0), dvec2(300.0, 0.0), 8.0, 0.99),
+            PhysicsBall::new(dvec2(300.0, 100.0), dvec2(300.0, 0.0), 8.0, 1.0, 0.99),
             Box::new(BaseStyle::new(Srgba::new(0.0, 0.5, 1.0, 1.0))),
             PathBuf::from("piano_c7.wav"),
         ),

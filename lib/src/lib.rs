@@ -19,6 +19,7 @@ pub struct BallConfig {
     g: f32,
     b: f32,
     radius: f64,
+    density: f64,
     elasticity: f64,
     sound: String,
 }
