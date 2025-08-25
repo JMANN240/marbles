@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 use palette::Srgba;
 
 use crate::{
-    rendering::{HorizontalTextAnchor, Renderer, TextAnchor2D, VerticalTextAnchor},
+    rendering::{HorizontalAnchor, Renderer, Anchor2D, VerticalAnchor},
     util::srgba_to_color,
     wall::straight_wall::Line,
 };
@@ -81,22 +81,22 @@ impl Renderer for MacroquadRenderer {
         &mut self,
         text: &str,
         position: ::glam::DVec2,
-        anchor: TextAnchor2D,
+        anchor: Anchor2D,
         size: f64,
         color: Srgba,
     ) {
         let measurement = measure_text(text, Some(&self.font), size as u16, 1.0);
 
         let x = match anchor.horizontal {
-            HorizontalTextAnchor::Left => position.x,
-            HorizontalTextAnchor::Center => position.x - measurement.width as f64 / 2.0,
-            HorizontalTextAnchor::Right => position.x - measurement.width as f64,
+            HorizontalAnchor::Left => position.x,
+            HorizontalAnchor::Center => position.x - measurement.width as f64 / 2.0,
+            HorizontalAnchor::Right => position.x - measurement.width as f64,
         };
 
         let y = match anchor.vertical {
-            VerticalTextAnchor::Bottom => position.y,
-            VerticalTextAnchor::Center => position.y + measurement.offset_y as f64 / 2.0,
-            VerticalTextAnchor::Top => position.y + measurement.offset_y as f64,
+            VerticalAnchor::Bottom => position.y,
+            VerticalAnchor::Center => position.y + measurement.offset_y as f64 / 2.0,
+            VerticalAnchor::Top => position.y + measurement.offset_y as f64,
         };
 
         for i in -1..=1 {

@@ -26,7 +26,7 @@ pub trait Renderer {
         &mut self,
         text: &str,
         position: DVec2,
-        anchor: TextAnchor2D,
+        anchor: Anchor2D,
         size: f64,
         color: Srgba,
     );
@@ -55,18 +55,18 @@ pub trait Render {
     fn render(&self, renderer: &mut dyn Renderer);
 }
 
-pub struct TextAnchor2D {
-    pub horizontal: HorizontalTextAnchor,
-    pub vertical: VerticalTextAnchor,
+pub struct Anchor2D {
+    pub horizontal: HorizontalAnchor,
+    pub vertical: VerticalAnchor,
 }
 
-pub enum HorizontalTextAnchor {
+pub enum HorizontalAnchor {
     Left,
     Center,
     Right,
 }
 
-pub enum VerticalTextAnchor {
+pub enum VerticalAnchor {
     Top,
     Center,
     Bottom,

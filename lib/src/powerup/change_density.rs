@@ -9,7 +9,7 @@ use crate::{
     ball::Ball,
     particle::{emitter::BallParticleEmitter, system::BallParticleSystem, ParticleLayer, ShrinkingParticle},
     powerup::Powerup,
-    rendering::{HorizontalTextAnchor, Render, Renderer, TextAnchor2D, VerticalTextAnchor},
+    rendering::{HorizontalAnchor, Render, Renderer, Anchor2D, VerticalAnchor},
 };
 
 pub struct ChangeDensityConfig {
@@ -34,6 +34,7 @@ pub struct ChangeDensity {
     radius: f64,
     amount: f64,
     particles: BallParticleSystem,
+    is_active: bool,
 }
 
 impl ChangeDensity {
@@ -59,7 +60,7 @@ impl ChangeDensity {
                             1.0,
                         ),
                         random_range(0.5..1.0),
-                        ParticleLayer::Back,
+                        ParticleLayer::random(),
                     ))
                 }),
             )
@@ -71,15 +72,12 @@ impl ChangeDensity {
             radius,
             amount,
             particles,
+            is_active: true,
         }
     }
 
     pub fn get_position(&self) -> DVec2 {
         self.position + 2.0 * (self.time * 4.0).sin() * DVec2::Y
-    }
-
-    pub fn get_particles(&self) -> &BallParticleSystem {
-        &self.particles
     }
 }
 
@@ -88,8 +86,24 @@ impl Powerup for ChangeDensity {
         self.get_position().distance(ball.get_position()) < self.radius + ball.get_radius()
     }
 
-    fn on_collision(&self, ball: &mut Ball) {
-        ball.set_density(ball.get_density() * self.amount);
+    fn on_collision(&mut self, ball: &mut Ball) {
+        if self.is_active {
+            ball.set_density(ball.get_density() * self.amount);
+            
+            let mut new_particles = BallParticleSystem::default();
+
+            for particle in self.particles.iter_particles() {
+                new_particles.add_particle(particle.clone());
+            }
+
+            for emitter in self.particles.iter_emitters() {
+                ball.get_particles_mut().add_emitter(emitter.clone());
+            }
+
+            self.particles = new_particles;
+
+            self.is_active = false;
+        }
     }
 
     fn update(&mut self, dt: f64) {
@@ -101,22 +115,24 @@ impl Powerup for ChangeDensity {
 
 impl Render for ChangeDensity {
     fn render(&self, renderer: &mut dyn Renderer) {
-        let color = Srgba::new(0.5, 0.0, 0.0, 1.0);
+        let color = Srgba::new(1.0, 0.25, 0.25, 1.0);
 
         self.particles.render_back(renderer);
 
-        renderer.render_circle_lines(self.get_position(), 8.0, 1.0, color);
-
-        renderer.render_text(
-            &format!("Density x{:.1}", self.amount),
-            self.get_position() - DVec2::Y * 2.0 * self.radius,
-            TextAnchor2D {
-                horizontal: HorizontalTextAnchor::Center,
-                vertical: VerticalTextAnchor::Bottom,
-            },
-            16.0,
-            color,
-        );
+        if self.is_active {
+            renderer.render_circle_lines(self.get_position(), 8.0, 1.0, color);
+    
+            renderer.render_text(
+                &format!("Density x{:.1}", self.amount),
+                self.get_position() - DVec2::Y * 2.0 * self.radius,
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Center,
+                    vertical: VerticalAnchor::Bottom,
+                },
+                20.0,
+                color,
+            );
+        }
 
         self.particles.render_front(renderer);
     }

@@ -9,7 +9,7 @@ pub mod change_density;
 
 pub trait Powerup: Render + Send + Sync + DynClone {
     fn is_colliding_with(&self, ball: &Ball) -> bool;
-    fn on_collision(&self, ball: &mut Ball);
+    fn on_collision(&mut self, ball: &mut Ball);
     fn update(&mut self, dt: f64);
 }
 

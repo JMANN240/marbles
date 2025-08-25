@@ -1,6 +1,16 @@
 scene = 1
 
 [[balls]]
+name = "IKEA"
+r = 0
+g = 0.9
+b = 0.2
+radius = 8
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+
+[[balls]]
 name = "Green Machine"
 r = 0
 g = 0.9

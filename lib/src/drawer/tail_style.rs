@@ -6,7 +6,7 @@ use palette::Srgba;
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::BallStyle,
-    rendering::{HorizontalTextAnchor, Renderer, TextAnchor2D, VerticalTextAnchor},
+    rendering::{HorizontalAnchor, Renderer, Anchor2D, VerticalAnchor},
     util::lerp_color,
 };
 
@@ -81,9 +81,9 @@ impl BallStyle for TailStyle {
         renderer.render_text(
             ball.get_name(),
             ball.get_position() - DVec2::Y * 2.0 * ball.get_radius(),
-            TextAnchor2D {
-                horizontal: HorizontalTextAnchor::Center,
-                vertical: VerticalTextAnchor::Bottom,
+            Anchor2D {
+                horizontal: HorizontalAnchor::Center,
+                vertical: VerticalAnchor::Bottom,
             },
             20.0,
             ball.get_name_color(),

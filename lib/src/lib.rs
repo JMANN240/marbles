@@ -6,7 +6,7 @@ use particula_rs::ParticleSystem;
 use rand::random_range;
 use serde::Deserialize;
 
-use crate::{ball::{Ball, PhysicsBall}, drawer::{glow_style::GlowStyle, outline_style::OutlineStyle, tail_style::TailStyle}, particle::{emitter::BallParticleEmitter, FireParticle, ParticleLayer, ShrinkingParticle}};
+use crate::{ball::{Ball, PhysicsBall}, drawer::{glow_style::GlowStyle, ikea_style::IkeaStyle, outline_style::OutlineStyle, tail_style::TailStyle}, particle::{emitter::BallParticleEmitter, FireParticle, ParticleLayer, ShrinkingParticle}};
 
 pub mod ball;
 pub mod collision;
@@ -67,6 +67,8 @@ impl BallConfig {
                     Srgba::new(1.0, 1.0, 1.0, 1.0),
                     16,
                 ))
+            } else if self.name == "IKEA" {
+                Box::new(IkeaStyle)
             } else if self.name == "Black Hole" {
                 Box::new(GlowStyle::new(
                     Srgba::new(0.0, 0.0, 0.0, 1.0),

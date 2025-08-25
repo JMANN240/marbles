@@ -3,8 +3,8 @@ use palette::Srgba;
 
 use crate::{
     collision::Collision,
-    rendering::{HorizontalTextAnchor, Render, TextAnchor2D, VerticalTextAnchor},
-    scene::Scene, wall::straight_wall::Line,
+    rendering::{HorizontalAnchor, Render, Anchor2D, VerticalAnchor},
+    scene::Scene,
 };
 
 pub enum SimulationPhase {
@@ -129,9 +129,9 @@ impl Render for Simulation {
             renderer.render_text(
                 &text,
                 dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),
-                TextAnchor2D {
-                    horizontal: HorizontalTextAnchor::Center,
-                    vertical: VerticalTextAnchor::Bottom,
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Center,
+                    vertical: VerticalAnchor::Bottom,
                 },
                 196.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
@@ -144,9 +144,9 @@ impl Render for Simulation {
                         self.viewport_width / 2.0,
                         self.viewport_height / 2.0 + 100.0,
                     ),
-                    TextAnchor2D {
-                        horizontal: HorizontalTextAnchor::Center,
-                        vertical: VerticalTextAnchor::Bottom,
+                    Anchor2D {
+                        horizontal: HorizontalAnchor::Center,
+                        vertical: VerticalAnchor::Bottom,
                     },
                     48.0,
                     Srgba::new(1.0, 1.0, 1.0, 1.0),
@@ -156,9 +156,9 @@ impl Render for Simulation {
             renderer.render_text(
                 "Go!",
                 dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),
-                TextAnchor2D {
-                    horizontal: HorizontalTextAnchor::Center,
-                    vertical: VerticalTextAnchor::Bottom,
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Center,
+                    vertical: VerticalAnchor::Bottom,
                 },
                 196.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
@@ -197,7 +197,7 @@ impl Render for Simulation {
                     self.special_message_x + self.viewport_width / 2.0,
                     self.viewport_height * 0.825,
                 ),
-                TextAnchor2D { horizontal: HorizontalTextAnchor::Center, vertical: VerticalTextAnchor::Center },
+                Anchor2D { horizontal: HorizontalAnchor::Center, vertical: VerticalAnchor::Center },
                 24.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
@@ -208,7 +208,7 @@ impl Render for Simulation {
                     self.special_message_x,
                     self.viewport_height * 0.9 - 8.0,
                 ),
-                TextAnchor2D { horizontal: HorizontalTextAnchor::Left, vertical: VerticalTextAnchor::Bottom },
+                Anchor2D { horizontal: HorizontalAnchor::Left, vertical: VerticalAnchor::Bottom },
                 16.0,
                 Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
@@ -219,7 +219,7 @@ impl Render for Simulation {
                     self.special_message_x + self.viewport_width * 0.9 - 8.0,
                     self.viewport_height * 0.85,
                 ),
-                TextAnchor2D { horizontal: HorizontalTextAnchor::Right, vertical: VerticalTextAnchor::Bottom },
+                Anchor2D { horizontal: HorizontalAnchor::Right, vertical: VerticalAnchor::Bottom },
                 16.0,
                 Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
@@ -236,9 +236,9 @@ impl Render for Simulation {
                     self.viewport_width / 2.0,
                     font_size + font_size * index as f64,
                 ),
-                TextAnchor2D {
-                    horizontal: HorizontalTextAnchor::Center,
-                    vertical: VerticalTextAnchor::Bottom,
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Center,
+                    vertical: VerticalAnchor::Bottom,
                 },
                 font_size,
                 winner.get_name_color(),

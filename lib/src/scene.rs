@@ -230,15 +230,11 @@ impl Scene {
 
             ball.update(dt);
 
-            self.powerups.retain(|powerup| {
-                let colliding_with_ball = powerup.is_colliding_with(ball);
-
-                if colliding_with_ball {
+            for powerup in self.powerups.iter_mut() {
+                if powerup.is_colliding_with(ball) {
                     powerup.on_collision(ball);
                 }
-
-                !colliding_with_ball
-            });
+            }
         }
 
         self.particles.update(dt);

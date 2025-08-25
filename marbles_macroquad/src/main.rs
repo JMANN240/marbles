@@ -8,7 +8,7 @@ use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::collision::{Collision, render_collisions};
-use lib::rendering::{HorizontalTextAnchor, Render, Renderer, TextAnchor2D, VerticalTextAnchor};
+use lib::rendering::{HorizontalAnchor, Render, Renderer, Anchor2D, VerticalAnchor};
 use lib::rendering::macroquad::MacroquadRenderer;
 use lib::simulation::Simulation;
 use lib::util::{
@@ -200,9 +200,9 @@ async fn main() {
                             screen_width() as f64 / 2.0,
                             screen_height() as f64 / 2.0,
                         ),
-                        TextAnchor2D {
-                            horizontal: HorizontalTextAnchor::Center,
-                            vertical: VerticalTextAnchor::Center
+                        Anchor2D {
+                            horizontal: HorizontalAnchor::Center,
+                            vertical: VerticalAnchor::Center
                         },
                         196.0,
                         Srgba::new(1.0, 1.0, 1.0, 1.0)

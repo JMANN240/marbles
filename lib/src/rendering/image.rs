@@ -16,7 +16,7 @@ use imageproc::{
 use palette::Srgba;
 
 use crate::{
-    rendering::{HorizontalTextAnchor, Renderer, TextAnchor2D, VerticalTextAnchor},
+    rendering::{HorizontalAnchor, Renderer, Anchor2D, VerticalAnchor},
     util::srgba_to_rgba8,
     wall::straight_wall::Line,
 };
@@ -179,7 +179,7 @@ impl Renderer for ImageRenderer {
         &mut self,
         text: &str,
         position: ::glam::DVec2,
-        anchor: TextAnchor2D,
+        anchor: Anchor2D,
         size: f64,
         color: Srgba,
     ) {
@@ -191,15 +191,15 @@ impl Renderer for ImageRenderer {
         let (text_width, _) = text_size(size as f32, &font, text);
 
         let x = match anchor.horizontal {
-            HorizontalTextAnchor::Left => position.x,
-            HorizontalTextAnchor::Center => position.x - text_width as f64 / 2.0,
-            HorizontalTextAnchor::Right => position.x - text_width as f64,
+            HorizontalAnchor::Left => position.x,
+            HorizontalAnchor::Center => position.x - text_width as f64 / 2.0,
+            HorizontalAnchor::Right => position.x - text_width as f64,
         };
 
         let y = match anchor.vertical {
-            VerticalTextAnchor::Bottom => position.y - size / 1.25,
-            VerticalTextAnchor::Center => position.y - size / 1.25 / 2.0,
-            VerticalTextAnchor::Top => position.y,
+            VerticalAnchor::Bottom => position.y - size / 1.25,
+            VerticalAnchor::Center => position.y - size / 1.25 / 2.0,
+            VerticalAnchor::Top => position.y,
         };
 
         for i in -1..=1 {
