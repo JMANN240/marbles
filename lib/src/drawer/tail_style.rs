@@ -48,10 +48,10 @@ impl TailStyle {
 impl BallStyle for TailStyle {
     fn init(&mut self, ball: &PhysicsBall) {
         self.positions.clear();
-        self.update(ball);
+        self.update(ball, 0.0);
     }
 
-    fn update(&mut self, ball: &PhysicsBall) {
+    fn update(&mut self, ball: &PhysicsBall, _dt: f64) {
         if self.every_count % self.every == 0 {
             self.positions.push_back(ball.get_position());
             if self.positions.len() > self.max_positions {

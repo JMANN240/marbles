@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 
@@ -9,11 +11,22 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct IkeaStyle;
+pub struct IkeaStyle {
+    theta: f64,
+}
+
+impl Default for IkeaStyle {
+    fn default() -> Self {
+        Self { theta: 0.0 }
+    }
+}
 
 impl BallStyle for IkeaStyle {
     fn init(&mut self, _ball: &PhysicsBall) {}
-    fn update(&mut self, _ball: &PhysicsBall) {}
+
+    fn update(&mut self, ball: &PhysicsBall, dt: f64) {
+        self.theta += ball.get_velocity().x * 0.1 * dt;
+    }
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {
         renderer.render_circle(
@@ -27,12 +40,12 @@ impl BallStyle for IkeaStyle {
         renderer.render_line(
             &Line::new(
                 dvec2(
-                    ball.get_position().x - ball.get_radius(),
-                    ball.get_position().y,
+                    ball.get_position().x + ball.get_radius() * self.theta.cos(),
+                    ball.get_position().y + ball.get_radius() * self.theta.sin(),
                 ),
                 dvec2(
-                    ball.get_position().x + ball.get_radius(),
-                    ball.get_position().y,
+                    ball.get_position().x + ball.get_radius() * (self.theta + PI).cos(),
+                    ball.get_position().y + ball.get_radius() * (self.theta + PI).sin(),
                 ),
             ),
             2.0,
@@ -42,12 +55,12 @@ impl BallStyle for IkeaStyle {
         renderer.render_line(
             &Line::new(
                 dvec2(
-                    ball.get_position().x - ball.get_radius() / 3.0,
-                    ball.get_position().y - ball.get_radius() / 1.2,
+                    ball.get_position().x + ball.get_radius() * (self.theta + 2.0 / 3.0 * PI).cos(),
+                    ball.get_position().y + ball.get_radius() * (self.theta + 2.0 / 3.0 * PI).sin(),
                 ),
                 dvec2(
-                    ball.get_position().x - ball.get_radius() / 3.0,
-                    ball.get_position().y + ball.get_radius() / 1.2,
+                    ball.get_position().x + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).cos(),
+                    ball.get_position().y + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).sin(),
                 ),
             ),
             2.0,

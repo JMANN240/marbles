@@ -24,7 +24,7 @@ impl OutlineStyle {
 
 impl BallStyle for OutlineStyle {
     fn init(&mut self, _ball: &PhysicsBall) {}
-    fn update(&mut self, _ball: &PhysicsBall) {}
+    fn update(&mut self, _ball: &PhysicsBall, _dt: f64) {}
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {
         renderer.render_circle_lines(

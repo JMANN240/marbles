@@ -24,7 +24,7 @@ impl BaseStyle {
 
 impl BallStyle for BaseStyle {
     fn init(&mut self, _ball: &PhysicsBall) {}
-    fn update(&mut self, _ball: &PhysicsBall) {}
+    fn update(&mut self, _ball: &PhysicsBall, _dt: f64) {}
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {
         renderer.render_circle(ball.get_position(), ball.get_radius(), self.get_color());

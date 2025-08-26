@@ -39,7 +39,7 @@ impl GlowStyle {
 
 impl BallStyle for GlowStyle {
     fn init(&mut self, _ball: &PhysicsBall) {}
-    fn update(&mut self, _ball: &PhysicsBall) {}
+    fn update(&mut self, _ball: &PhysicsBall, _dt: f64) {}
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {
         for i in 0..=self.get_size() {

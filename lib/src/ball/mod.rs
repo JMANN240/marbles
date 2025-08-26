@@ -155,7 +155,7 @@ impl Ball {
         }
 
         self.get_particles_mut().update(dt);
-        self.style.update(&self.physics_ball);
+        self.style.update(&self.physics_ball, dt);
     }
 
     pub fn get_intersection_point(&self, wall: &dyn Wall) -> Option<DVec2> {
