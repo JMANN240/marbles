@@ -330,3 +330,92 @@ impl MaxAging for ConfettiParticle {
         self.max_age
     }
 }
+
+#[derive(Clone)]
+pub struct StaticParticle {
+    position: DVec2,
+    radius: f64,
+    color: Srgba,
+    age: f64,
+    max_age: f64,
+    layer: ParticleLayer,
+}
+
+impl StaticParticle {
+    pub fn new(
+        position: DVec2,
+        radius: f64,
+        color: Srgba,
+        max_age: f64,
+        layer: ParticleLayer,
+    ) -> Self {
+        Self {
+            position,
+            radius,
+            color,
+            age: 0.0,
+            max_age,
+            layer,
+        }
+    }
+
+    pub fn get_radius(&self) -> f64 {
+        self.radius
+    }
+
+    pub fn get_color(&self) -> Srgba {
+        self.color
+    }
+}
+
+impl LayeredParticle for StaticParticle {
+    fn get_particle_layer(&self) -> ParticleLayer {
+        self.layer
+    }
+
+    fn clone_box(&self) -> Box<dyn LayeredParticle> {
+        Box::new(self.clone())
+    }
+}
+
+impl Particle for StaticParticle {
+    type Coordinate = DVec2;
+
+    fn get_position(&self) -> DVec2 {
+        self.position
+    }
+
+    fn update(&mut self, dt: f64) {
+        self.age += dt;
+    }
+
+    fn is_alive(&self) -> bool {
+        MaxAging::is_alive(self)
+    }
+}
+
+impl Render for StaticParticle {
+    fn render(&self, renderer: &mut dyn Renderer) {
+        renderer.render_circle(
+            self.get_position(),
+            self.get_radius(),
+            self.get_color(),
+        );
+    }
+}
+
+impl Aging for StaticParticle {
+    fn get_age(&self) -> f64 {
+        self.age
+    }
+
+    fn set_age(&mut self, age: f64) {
+        self.age = age;
+    }
+}
+
+impl MaxAging for StaticParticle {
+    fn get_max_age(&self) -> f64 {
+        self.max_age
+    }
+}

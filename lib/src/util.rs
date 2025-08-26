@@ -13,7 +13,7 @@ use tracing::info;
 use crate::{posting::{
     cloudinary::Cloudinary,
     instagram::{InstagramPoster, MediaPublishResponse},
-}, scene::Scene, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7}, Config};
+}, scene::Scene, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8}, Config};
 
 #[cfg(feature = "macroquad")]
 pub fn srgba_to_color(srgba: Srgba) -> Color {
@@ -162,6 +162,7 @@ pub fn get_scene(rng: &mut impl Rng, scene_number: usize, config: &Config, width
         scene_5(rng, config.get_balls().clone(), width, height),
         scene_6(rng, config.get_balls().clone(), width, height),
         scene_7(width, height),
+        scene_8(rng, config.get_balls().clone(), width, height),
     ];
 
     scenes[scene_number - 1].clone()

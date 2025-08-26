@@ -70,9 +70,6 @@ pub struct Cli {
 
     #[arg(long, default_value_t = 0)]
     race_offset: usize,
-
-    #[arg(long, default_value_t = 60.0)]
-    monitor_fps: f64,
 }
 
 const FRAME_PADDING: usize = 6;
@@ -162,7 +159,7 @@ async fn main() {
 
         loop {
             let update_collisions =
-                simulation.update(1.0 / cli.monitor_fps, cli.timescale, cli.physics_steps);
+                simulation.update(get_frame_time() as f64, cli.timescale, cli.physics_steps);
 
             for collision in update_collisions.iter() {
                 play_sound(

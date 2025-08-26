@@ -1,12 +1,7 @@
 use std::path::PathBuf;
 
 use crate::{
-    BallConfig,
-    ball::{Ball, PhysicsBall},
-    drawer::base_style::BaseStyle,
-    levels::{level_1, level_2, level_3, level_4, level_5, level_6},
-    scene::Scene,
-    wall::{Wall, straight_wall::StraightWall},
+    ball::{Ball, PhysicsBall}, drawer::base_style::BaseStyle, levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8}, powerup::{change_position::ChangePosition, random_powerup}, scene::Scene, wall::{straight_wall::StraightWall, Wall}, BallConfig
 };
 use glam::dvec2;
 use palette::Srgba;
@@ -18,7 +13,18 @@ pub fn scene_1(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_1(ball_configs.len(), scene_width, scene_height).build_scene(rng, ball_configs)
+    level_1(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+    )
 }
 
 pub fn scene_2(
@@ -27,7 +33,18 @@ pub fn scene_2(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_2(ball_configs.len(), scene_width, scene_height).build_scene(rng, ball_configs)
+    level_2(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+    )
 }
 
 pub fn scene_3(
@@ -36,7 +53,18 @@ pub fn scene_3(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_3(ball_configs.len(), scene_width, scene_height).build_scene(rng, ball_configs)
+    level_3(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+    )
 }
 
 pub fn scene_4(
@@ -45,7 +73,18 @@ pub fn scene_4(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_4(ball_configs.len(), scene_width, scene_height).build_scene(rng, ball_configs)
+    level_4(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+    )
 }
 
 pub fn scene_5(
@@ -54,7 +93,18 @@ pub fn scene_5(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_5(ball_configs.len(), scene_width, scene_height).build_scene(rng, ball_configs)
+    level_5(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+    )
 }
 
 pub fn scene_6(
@@ -63,7 +113,18 @@ pub fn scene_6(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_6(ball_configs.len(), scene_width, scene_height).build_scene(rng, ball_configs)
+    level_6(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+    )
 }
 
 pub fn scene_7(scene_width: f64, scene_height: f64) -> Scene {
@@ -90,4 +151,25 @@ pub fn scene_7(scene_width: f64, scene_height: f64) -> Scene {
         .collect();
 
     Scene::new(balls, Vec::new(), walls)
+}
+
+pub fn scene_8(
+    rng: &mut impl Rng,
+    ball_configs: Vec<BallConfig>,
+    scene_width: f64,
+    scene_height: f64,
+) -> Scene {
+    level_8(ball_configs.len(), scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            Box::new(ChangePosition::new(
+                powerup_space.get_position(),
+                "Teleport",
+                8.0,
+                16.0..=(scene_width - 16.0),
+                16.0..=(scene_height - 16.0),
+            ))
+        },
+    )
 }

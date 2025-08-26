@@ -2,7 +2,7 @@ use glam::DVec2;
 use rand::{Rng, seq::SliceRandom};
 
 use crate::{
-    powerup::random_powerup, scene::Scene, util::space_evenly, wall::Wall, BallConfig
+    powerup::{random_powerup, Powerup}, scene::Scene, util::space_evenly, wall::Wall, BallConfig
 };
 
 #[derive(Clone)]
@@ -32,6 +32,10 @@ impl PowerupSpace {
     pub fn new(position: DVec2) -> Self {
         Self { position }
     }
+
+    pub fn get_position(&self) -> DVec2 {
+        self.position
+    }
 }
 
 pub struct Level {
@@ -53,7 +57,7 @@ impl Level {
         }
     }
 
-    pub fn build_scene(&self, rng: &mut impl Rng, ball_configs: Vec<BallConfig>) -> Scene {
+    pub fn build_scene(&self, rng: &mut impl Rng, ball_configs: Vec<BallConfig>, powerup_function: impl Fn(&PowerupSpace) -> Box<dyn Powerup>) -> Scene {
         let mut ball_spaces = self.ball_spaces.clone();
         ball_spaces.shuffle(rng);
 
@@ -68,9 +72,7 @@ impl Level {
         let powerups = self
             .powerup_spaces
             .iter()
-            .map(|powerup_space| {
-                random_powerup(rng, powerup_space.position)
-            })
+            .map(powerup_function)
             .collect();
 
         Scene::new(balls, powerups, self.walls.clone())

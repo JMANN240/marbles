@@ -1,10 +1,10 @@
-scene = 1
+scene = 8
 
 [[balls]]
 name = "IKEA"
-r = 0
-g = 0.9
-b = 0.2
+r = 1.0
+g = 0.8
+b = 0.0
 radius = 8
 density = 1
 elasticity = 0.95

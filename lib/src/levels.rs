@@ -198,3 +198,55 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
         walls,
     )
 }
+
+pub fn level_8(n: usize, scene_width: f64, scene_height: f64) -> Level {
+    let offset = 100.0;
+
+    let mut walls: Vec<Box<dyn Wall>> =
+        StraightWall::rect(0.0, 0.0, scene_width, scene_height, true)
+            .into_iter()
+            .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
+            .collect();
+
+    let mut powerup_spaces = Vec::new();
+
+    for i in 0..8 {
+        walls.push(Box::new(StraightWall::new(
+            Line::new(
+                dvec2(0.0, 100.0 + offset * i as f64),
+                dvec2(scene_width * 0.5 - 16.0, 125.0 + offset * i as f64),
+            ),
+            false,
+        )));
+        walls.push(Box::new(StraightWall::new(
+            Line::new(
+                dvec2(scene_width * 0.5 + 16.0, 125.0 + offset * i as f64),
+                dvec2(scene_width, 100.0 + offset * i as f64),
+            ),
+            false,
+        )));
+        walls.push(Box::new(StraightWall::new(
+            Line::new(
+                dvec2(scene_width * 0.5, 150.0 + offset * i as f64),
+                dvec2(32.0, 175.0 + offset * i as f64),
+            ),
+            false,
+        )));
+        walls.push(Box::new(StraightWall::new(
+            Line::new(
+                dvec2(scene_width * 0.5, 150.0 + offset * i as f64),
+                dvec2(scene_width - 32.0, 175.0 + offset * i as f64),
+            ),
+            false,
+        )));
+
+        powerup_spaces.push(PowerupSpace::new(dvec2(64.0, 150.0 + offset * i as f64)));
+        powerup_spaces.push(PowerupSpace::new(dvec2(scene_width - 64.0, 150.0 + offset * i as f64)));
+    }
+
+    Level::new(
+        BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
+        powerup_spaces,
+        walls,
+    )
+}
