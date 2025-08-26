@@ -1,15 +1,25 @@
 use std::{
-    collections::HashMap, env, path::Path, sync::{Arc, Mutex}, time::Duration
+    collections::HashMap,
+    env,
+    path::Path,
+    sync::{Arc, Mutex},
+    time::Duration,
 };
 
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::{
-    collision::{render_collisions, Collision}, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::{image::ImageRenderer, Render}, simulation::Simulation, util::{
-        get_formatted_frame_name, get_frame_template, get_scene, prepare_images_path,
-        prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube, MaybeMessage, Message,
-    }, Config, ENGAGEMENTS
+    Config, ENGAGEMENTS,
+    collision::{Collision, render_collisions},
+    posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
+    rendering::{Render, image::ImageRenderer},
+    simulation::Simulation,
+    util::{
+        MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
+        prepare_images_path, prepare_videos_path, render_video, upload_to_instagram,
+        upload_to_youtube,
+    },
 };
 use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;
@@ -75,33 +85,45 @@ fn main() {
         prepare_images_path(images_path).unwrap();
         prepare_videos_path(videos_path).unwrap();
 
-        let scene = get_scene(&mut rand::rng(), config.get_scene(), &config, WIDTH as f64, HEIGHT as f64);
+        let scene = get_scene(
+            &mut rand::rng(),
+            config.get_scene(),
+            &config,
+            WIDTH as f64,
+            HEIGHT as f64,
+        );
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
 
         let mut query = HashMap::new();
 
         if cli.consume_message {
-            query.insert("consumption_key", env::var("CONSUMPTION_KEY")
-                .expect("CONSUMPTION_KEY environment variable is not set"));
+            query.insert(
+                "consumption_key",
+                env::var("CONSUMPTION_KEY")
+                    .expect("CONSUMPTION_KEY environment variable is not set"),
+            );
         }
 
         let client = Client::new();
 
-        let special_message_text =
-            client.get("https://quantummarbleracing.com/api/next_message")
-                .query(&query)
-                .send()
-                .unwrap()
-                .text()
-                .unwrap();
+        let special_message_text = client
+            .get("https://quantummarbleracing.com/api/next_message")
+            .query(&query)
+            .send()
+            .unwrap()
+            .text()
+            .unwrap();
 
-        println!("{}", special_message_text);
+        println!("{special_message_text}");
 
         let special_message = serde_json::from_str::<MaybeMessage>(&special_message_text)
-                .unwrap()
-                .message
-                .unwrap_or(Message { message: "Your custom message here!".to_string(), user: "QMR".to_string() });
+            .unwrap()
+            .message
+            .unwrap_or(Message {
+                message: "Your custom message here!".to_string(),
+                user: "QMR".to_string(),
+            });
 
         let mut simulation = Simulation::new(
             scene,

@@ -6,7 +6,7 @@ use palette::Srgba;
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::BallStyle,
-    rendering::{HorizontalAnchor, Renderer, Anchor2D, VerticalAnchor},
+    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
     util::lerp_color,
 };
 

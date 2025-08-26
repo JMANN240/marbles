@@ -173,7 +173,13 @@ pub struct PhysicsBall {
 }
 
 impl PhysicsBall {
-    pub fn new(position: DVec2, velocity: DVec2, radius: f64, density: f64, elasticity: f64) -> Self {
+    pub fn new(
+        position: DVec2,
+        velocity: DVec2,
+        radius: f64,
+        density: f64,
+        elasticity: f64,
+    ) -> Self {
         Self {
             position,
             velocity,

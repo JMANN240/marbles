@@ -7,9 +7,11 @@ use rand::random_range;
 
 use crate::{
     ball::Ball,
-    particle::{emitter::BallParticleEmitter, system::BallParticleSystem, ParticleLayer, ShrinkingParticle},
+    particle::{
+        ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter, system::BallParticleSystem,
+    },
     powerup::Powerup,
-    rendering::{HorizontalAnchor, Render, Renderer, Anchor2D, VerticalAnchor},
+    rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor},
 };
 
 pub struct ChangeDensityConfig {
@@ -41,30 +43,23 @@ impl ChangeDensity {
     pub fn new(position: DVec2, radius: f64, amount: f64) -> Self {
         let mut particles = BallParticleSystem::default();
 
-        particles.add_emitter(
-            BallParticleEmitter::new(
-                position,
-                16.0,
-                Arc::new(move |position| {
-                    Box::new(ShrinkingParticle::new(
-                        position
-                            + DVec2::from_angle(random_range(0.0..(2.0 * PI)))
-                                * random_range(8.0..12.0),
-                        DVec2::from_angle(random_range(0.0..(2.0 * PI)))
-                            * random_range(8.0..16.0) + 10.0 * amount * DVec2::Y,
-                        random_range(1.0..=4.0),
-                        Srgba::new(
-                            random_range(0.4..=0.6),
-                            0.0,
-                            0.0,
-                            1.0,
-                        ),
-                        random_range(0.5..1.0),
-                        ParticleLayer::random(),
-                    ))
-                }),
-            )
-        );
+        particles.add_emitter(BallParticleEmitter::new(
+            position,
+            16.0,
+            Arc::new(move |position| {
+                Box::new(ShrinkingParticle::new(
+                    position
+                        + DVec2::from_angle(random_range(0.0..(2.0 * PI)))
+                            * random_range(8.0..12.0),
+                    DVec2::from_angle(random_range(0.0..(2.0 * PI))) * random_range(8.0..16.0)
+                        + 10.0 * amount * DVec2::Y,
+                    random_range(1.0..=4.0),
+                    Srgba::new(random_range(0.4..=0.6), 0.0, 0.0, 1.0),
+                    random_range(0.5..1.0),
+                    ParticleLayer::random(),
+                ))
+            }),
+        ));
 
         Self {
             time: 0.0,
@@ -89,7 +84,7 @@ impl Powerup for ChangeDensity {
     fn on_collision(&mut self, ball: &mut Ball) {
         if self.is_active {
             ball.set_density(ball.get_density() * self.amount);
-            
+
             let mut new_particles = BallParticleSystem::default();
 
             for particle in self.particles.iter_particles() {
@@ -121,7 +116,7 @@ impl Render for ChangeDensity {
 
         if self.is_active {
             renderer.render_circle_lines(self.get_position(), 8.0, 1.0, color);
-    
+
             renderer.render_text(
                 &format!("Density x{:.1}", self.amount),
                 self.get_position() - DVec2::Y * 2.0 * self.radius,

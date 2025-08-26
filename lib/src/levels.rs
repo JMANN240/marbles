@@ -1,6 +1,13 @@
-use glam::{dvec2, DVec2};
+use glam::{DVec2, dvec2};
 
-use crate::{level::{BallSpace, Level, PowerupSpace}, wall::{circle_wall::CircleWall, straight_wall::{Line, StraightWall}, Wall}};
+use crate::{
+    level::{BallSpace, Level, PowerupSpace},
+    wall::{
+        Wall,
+        circle_wall::CircleWall,
+        straight_wall::{Line, StraightWall},
+    },
+};
 
 pub fn level_1(n: usize, scene_width: f64, scene_height: f64) -> Level {
     let offset = 100.0;
@@ -193,7 +200,12 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
     )));
 
     Level::new(
-        BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), dvec2(100.0, 0.0)),
+        BallSpace::spaced_evenly(
+            n,
+            dvec2(0.0, 50.0),
+            dvec2(scene_width, 50.0),
+            dvec2(100.0, 0.0),
+        ),
         Vec::new(),
         walls,
     )
@@ -241,7 +253,10 @@ pub fn level_8(n: usize, scene_width: f64, scene_height: f64) -> Level {
         )));
 
         powerup_spaces.push(PowerupSpace::new(dvec2(64.0, 150.0 + offset * i as f64)));
-        powerup_spaces.push(PowerupSpace::new(dvec2(scene_width - 64.0, 150.0 + offset * i as f64)));
+        powerup_spaces.push(PowerupSpace::new(dvec2(
+            scene_width - 64.0,
+            150.0 + offset * i as f64,
+        )));
     }
 
     Level::new(

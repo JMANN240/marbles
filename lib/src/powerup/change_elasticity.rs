@@ -6,7 +6,12 @@ use particula_rs::ParticleSystem;
 use rand::random_range;
 
 use crate::{
-    ball::Ball, particle::{emitter::BallParticleEmitter, system::BallParticleSystem, ParticleLayer, ShrinkingParticle}, powerup::Powerup, rendering::{HorizontalAnchor, Render, Renderer, Anchor2D, VerticalAnchor}
+    ball::Ball,
+    particle::{
+        ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter, system::BallParticleSystem,
+    },
+    powerup::Powerup,
+    rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor},
 };
 
 pub struct ChangeElasticityConfig {
@@ -38,29 +43,22 @@ impl ChangeElasticity {
     pub fn new(position: DVec2, radius: f64, amount: f64) -> Self {
         let mut particles = BallParticleSystem::default();
 
-        particles.add_emitter(
-            BallParticleEmitter::new(
-                position,
-                16.0,
-                Arc::new(move |position| {
-                    let position_offset = DVec2::from_angle(random_range(0.0..(2.0 * PI)))
-                        * random_range(16.0..32.0);
-                    Box::new(ShrinkingParticle::new(
-                        position + position_offset,
-                        -2.0 * position_offset,
-                        random_range(1.0..=4.0),
-                        Srgba::new(
-                            0.0,
-                            random_range(0.2..=0.3),
-                            random_range(0.4..=0.6),
-                            1.0,
-                        ),
-                        0.5,
-                        ParticleLayer::random(),
-                    ))
-                }),
-            )
-        );
+        particles.add_emitter(BallParticleEmitter::new(
+            position,
+            16.0,
+            Arc::new(move |position| {
+                let position_offset =
+                    DVec2::from_angle(random_range(0.0..(2.0 * PI))) * random_range(16.0..32.0);
+                Box::new(ShrinkingParticle::new(
+                    position + position_offset,
+                    -2.0 * position_offset,
+                    random_range(1.0..=4.0),
+                    Srgba::new(0.0, random_range(0.2..=0.3), random_range(0.4..=0.6), 1.0),
+                    0.5,
+                    ParticleLayer::random(),
+                ))
+            }),
+        ));
 
         Self {
             time: 0.0,
@@ -85,7 +83,7 @@ impl Powerup for ChangeElasticity {
     fn on_collision(&mut self, ball: &mut Ball) {
         if self.is_active {
             ball.set_elasticity(ball.get_elasticity() * self.amount);
-            
+
             let mut new_particles = BallParticleSystem::default();
 
             for particle in self.particles.iter_particles() {
@@ -116,14 +114,8 @@ impl Render for ChangeElasticity {
         self.particles.render_back(renderer);
 
         if self.is_active {
-            renderer.render_circle_lines(
-                self.get_position(),
-                8.0,
-                1.0,
-                color,
-            );
-    
-    
+            renderer.render_circle_lines(self.get_position(), 8.0, 1.0, color);
+
             renderer.render_text(
                 &format!("Elasticity x{:.1}", self.amount),
                 self.get_position() - DVec2::Y * 2.0 * self.radius,

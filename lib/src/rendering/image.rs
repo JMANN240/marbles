@@ -16,7 +16,7 @@ use imageproc::{
 use palette::Srgba;
 
 use crate::{
-    rendering::{HorizontalAnchor, Renderer, Anchor2D, VerticalAnchor},
+    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
     util::srgba_to_rgba8,
     wall::straight_wall::Line,
 };
@@ -273,15 +273,16 @@ impl Renderer for ImageRenderer {
         // TODO: Handle rotation
         draw_filled_rect_mut(
             &mut rectangle_image,
-            Rect::at(0, 0)
-                .of_size((width as u32).max(1), (height as u32).max(1)),
+            Rect::at(0, 0).of_size((width as u32).max(1), (height as u32).max(1)),
             srgba_to_rgba8(color),
         );
 
         draw_filled_rect_mut(
             &mut rectangle_image,
-            Rect::at(thickness as i32, thickness as i32)
-                .of_size((width as u32 - 2 * thickness).max(1), (height as u32 - 2 * thickness).max(1)),
+            Rect::at(thickness as i32, thickness as i32).of_size(
+                (width as u32 - 2 * thickness).max(1),
+                (height as u32 - 2 * thickness).max(1),
+            ),
             Rgba([0, 0, 0, 0]),
         );
 

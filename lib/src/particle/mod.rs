@@ -396,11 +396,7 @@ impl Particle for StaticParticle {
 
 impl Render for StaticParticle {
     fn render(&self, renderer: &mut dyn Renderer) {
-        renderer.render_circle(
-            self.get_position(),
-            self.get_radius(),
-            self.get_color(),
-        );
+        renderer.render_circle(self.get_position(), self.get_radius(), self.get_color());
     }
 }
 

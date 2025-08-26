@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 use palette::Srgba;
 
 use crate::{
-    rendering::{HorizontalAnchor, Renderer, Anchor2D, VerticalAnchor},
+    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
     util::srgba_to_color,
     wall::straight_wall::Line,
 };

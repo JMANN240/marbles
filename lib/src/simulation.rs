@@ -1,11 +1,9 @@
-use std::time::Duration;
-
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 
 use crate::{
     collision::Collision,
-    rendering::{HorizontalAnchor, Render, Anchor2D, VerticalAnchor},
+    rendering::{Anchor2D, HorizontalAnchor, Render, VerticalAnchor},
     scene::Scene,
 };
 
@@ -167,7 +165,9 @@ impl Render for Simulation {
             );
         }
 
-        if self.get_time() > self.get_countdown_seconds() + 2.0 && self.get_time() < self.get_countdown_seconds() + 22.0 {
+        if self.get_time() > self.get_countdown_seconds() + 2.0
+            && self.get_time() < self.get_countdown_seconds() + 22.0
+        {
             renderer.render_rectangle(
                 dvec2(
                     self.special_message_x - self.viewport_width,
@@ -179,7 +179,7 @@ impl Render for Simulation {
                 0.0,
                 Srgba::new(0.0, 0.0, 0.0, 1.0),
             );
-    
+
             renderer.render_rectangle_lines(
                 dvec2(
                     self.special_message_x - self.viewport_width,
@@ -192,44 +192,61 @@ impl Render for Simulation {
                 2.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
-    
+
             renderer.render_text(
                 &self.special_message,
                 dvec2(
                     self.special_message_x + self.viewport_width / 2.0,
                     self.viewport_height * 0.825,
                 ),
-                Anchor2D { horizontal: HorizontalAnchor::Center, vertical: VerticalAnchor::Center },
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Center,
+                    vertical: VerticalAnchor::Center,
+                },
                 24.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
-    
+
             renderer.render_text(
                 "Submit your own message at https://quantummarbleracing.com",
-                dvec2(
-                    self.special_message_x,
-                    self.viewport_height * 0.9 - 8.0,
-                ),
-                Anchor2D { horizontal: HorizontalAnchor::Left, vertical: VerticalAnchor::Bottom },
+                dvec2(self.special_message_x, self.viewport_height * 0.9 - 8.0),
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Left,
+                    vertical: VerticalAnchor::Bottom,
+                },
                 16.0,
                 Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
-    
+
             renderer.render_text(
                 &format!("-{}", self.special_message_user),
                 dvec2(
                     self.special_message_x + self.viewport_width * 0.9 - 8.0,
                     self.viewport_height * 0.85,
                 ),
-                Anchor2D { horizontal: HorizontalAnchor::Right, vertical: VerticalAnchor::Bottom },
+                Anchor2D {
+                    horizontal: HorizontalAnchor::Right,
+                    vertical: VerticalAnchor::Bottom,
+                },
                 16.0,
                 Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
         }
 
-        for (index, (winner_index, win_time)) in self.get_scene().get_winners().iter().zip(self.get_scene().get_win_times()).enumerate() {
+        for (index, (winner_index, win_time)) in self
+            .get_scene()
+            .get_winners()
+            .iter()
+            .zip(self.get_scene().get_win_times())
+            .enumerate()
+        {
             let winner = self.get_scene().get_balls().get(*winner_index).unwrap();
-            let time_string = format!("{:02}:{:02}.{:03}", (win_time.as_secs_f64() / 60.0).floor(), (win_time.as_secs_f64() % 60.0).floor(), win_time.subsec_millis());
+            let time_string = format!(
+                "{:02}:{:02}.{:03}",
+                (win_time.as_secs_f64() / 60.0).floor(),
+                (win_time.as_secs_f64() % 60.0).floor(),
+                win_time.subsec_millis()
+            );
             let text = format!("{}. {} ({})", index + 1, winner.get_name(), time_string);
             let font_size = 40.0;
 

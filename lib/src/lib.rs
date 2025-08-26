@@ -1,12 +1,19 @@
 use std::{f64::consts::PI, path::PathBuf, sync::Arc};
 
-use glam::{dvec2, DVec2};
+use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::ParticleSystem;
 use rand::random_range;
 use serde::Deserialize;
 
-use crate::{ball::{Ball, PhysicsBall}, drawer::{glow_style::GlowStyle, ikea_style::IkeaStyle, outline_style::OutlineStyle, tail_style::TailStyle}, particle::{emitter::BallParticleEmitter, FireParticle, ParticleLayer, ShrinkingParticle}};
+use crate::{
+    ball::{Ball, PhysicsBall},
+    drawer::{
+        glow_style::GlowStyle, ikea_style::IkeaStyle, outline_style::OutlineStyle,
+        tail_style::TailStyle,
+    },
+    particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter},
+};
 
 pub mod ball;
 pub mod collision;

@@ -2,21 +2,22 @@ use std::env;
 use std::time::Duration;
 use std::{collections::HashMap, fs, path::Path};
 
-use palette::Srgba;
 use ::rand::{rng, seq::IndexedRandom};
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::collision::{Collision, render_collisions};
-use lib::rendering::{HorizontalAnchor, Render, Renderer, Anchor2D, VerticalAnchor};
 use lib::rendering::macroquad::MacroquadRenderer;
+use lib::rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor};
 use lib::simulation::Simulation;
 use lib::util::{
-    get_formatted_frame_name, get_frame_template, get_scene, prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube, MaybeMessage, Message
+    MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
+    prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube,
 };
 use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
 use macroquad::prelude::*;
+use palette::Srgba;
 use reqwest::blocking::Client;
 use toml::from_str;
 use tracing::{error, info};
@@ -96,7 +97,8 @@ async fn main() {
     let images_path = Path::new("images/macroquad/");
     let videos_path = Path::new("videos/macroquad/");
 
-    while cli.endless || maybe_render_number.is_none_or(|render_number| render_number < cli.renders) {
+    while cli.endless || maybe_render_number.is_none_or(|render_number| render_number < cli.renders)
+    {
         if let Some(render_number) = &mut maybe_render_number {
             *render_number += 1;
         }
@@ -108,7 +110,13 @@ async fn main() {
         let config_string = std::fs::read_to_string("config.toml").unwrap();
         let config = from_str::<Config>(&config_string).unwrap();
 
-        let scene = get_scene(&mut ::rand::rng(), config.get_scene(), &config, screen_width() as f64, screen_height() as f64);
+        let scene = get_scene(
+            &mut ::rand::rng(),
+            config.get_scene(),
+            &config,
+            screen_width() as f64,
+            screen_height() as f64,
+        );
         let mut frame_number = 0;
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
         let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
@@ -117,26 +125,32 @@ async fn main() {
         let mut query = HashMap::new();
 
         if cli.consume_message {
-            query.insert("consumption_key", env::var("CONSUMPTION_KEY")
-                .expect("CONSUMPTION_KEY environment variable is not set"));
+            query.insert(
+                "consumption_key",
+                env::var("CONSUMPTION_KEY")
+                    .expect("CONSUMPTION_KEY environment variable is not set"),
+            );
         }
 
         let client = Client::new();
 
-        let special_message_text =
-            client.get("https://quantummarbleracing.com/api/next_message")
-                .query(&query)
-                .send()
-                .unwrap()
-                .text()
-                .unwrap();
+        let special_message_text = client
+            .get("https://quantummarbleracing.com/api/next_message")
+            .query(&query)
+            .send()
+            .unwrap()
+            .text()
+            .unwrap();
 
-        println!("{}", special_message_text);
+        println!("{special_message_text}");
 
         let special_message = serde_json::from_str::<MaybeMessage>(&special_message_text)
-                .unwrap()
-                .message
-                .unwrap_or(Message { message: "Your custom message here!".to_string(), user: "QMR".to_string() });
+            .unwrap()
+            .message
+            .unwrap_or(Message {
+                message: "Your custom message here!".to_string(),
+                user: "QMR".to_string(),
+            });
 
         let mut simulation = Simulation::new(
             scene,
@@ -193,16 +207,13 @@ async fn main() {
 
                     renderer.render_text(
                         &text,
-                        ::glam::dvec2(
-                            screen_width() as f64 / 2.0,
-                            screen_height() as f64 / 2.0,
-                        ),
+                        ::glam::dvec2(screen_width() as f64 / 2.0, screen_height() as f64 / 2.0),
                         Anchor2D {
                             horizontal: HorizontalAnchor::Center,
-                            vertical: VerticalAnchor::Center
+                            vertical: VerticalAnchor::Center,
                         },
                         196.0,
-                        Srgba::new(1.0, 1.0, 1.0, 1.0)
+                        Srgba::new(1.0, 1.0, 1.0, 1.0),
                     );
                 }
 
@@ -226,7 +237,12 @@ async fn main() {
         if cli.render {
             prepare_videos_path(videos_path).unwrap();
 
-            render_collisions("output.wav", &collisions, Duration::from_secs_f64(300.0), 44100);
+            render_collisions(
+                "output.wav",
+                &collisions,
+                Duration::from_secs_f64(300.0),
+                44100,
+            );
 
             let video_name = Local::now()
                 .format("video_%Y-%m-%d_%H-%M-%S.mp4")

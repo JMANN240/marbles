@@ -8,8 +8,7 @@ use rand::random_range;
 use crate::{
     ball::Ball,
     particle::{
-        ParticleLayer, StaticParticle, emitter::BallParticleEmitter,
-        system::BallParticleSystem,
+        ParticleLayer, StaticParticle, emitter::BallParticleEmitter, system::BallParticleSystem,
     },
     powerup::Powerup,
     rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor},

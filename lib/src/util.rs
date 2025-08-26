@@ -10,10 +10,15 @@ use rand::Rng;
 use serde::Deserialize;
 use tracing::info;
 
-use crate::{posting::{
-    cloudinary::Cloudinary,
-    instagram::{InstagramPoster, MediaPublishResponse},
-}, scene::Scene, scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8}, Config};
+use crate::{
+    Config,
+    posting::{
+        cloudinary::Cloudinary,
+        instagram::{InstagramPoster, MediaPublishResponse},
+    },
+    scene::Scene,
+    scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8},
+};
 
 #[cfg(feature = "macroquad")]
 pub fn srgba_to_color(srgba: Srgba) -> Color {
@@ -153,7 +158,13 @@ pub fn get_frame_template(padding: usize) -> String {
     format_frame_name(&format!("%0{padding}d"))
 }
 
-pub fn get_scene(rng: &mut impl Rng, scene_number: usize, config: &Config, width: f64, height: f64) -> Scene {
+pub fn get_scene(
+    rng: &mut impl Rng,
+    scene_number: usize,
+    config: &Config,
+    width: f64,
+    height: f64,
+) -> Scene {
     let scenes = [
         scene_1(rng, config.get_balls().clone(), width, height),
         scene_2(rng, config.get_balls().clone(), width, height),

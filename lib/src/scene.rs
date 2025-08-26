@@ -7,7 +7,12 @@ use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
 
 use crate::{
-    ball::Ball, collision::Collision, particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle}, powerup::Powerup, rendering::{Render, Renderer}, wall::Wall
+    ball::Ball,
+    collision::Collision,
+    particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle},
+    powerup::Powerup,
+    rendering::{Render, Renderer},
+    wall::Wall,
 };
 
 const MIN_OVERLAP: f64 = 0.01;
@@ -34,7 +39,11 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(balls: Vec<Ball>, powerups: Vec<Box<dyn Powerup>>, walls: Vec<Box<dyn Wall>>) -> Self {
+    pub fn new(
+        balls: Vec<Ball>,
+        powerups: Vec<Box<dyn Powerup>>,
+        walls: Vec<Box<dyn Wall>>,
+    ) -> Self {
         Self {
             time: 0.0,
             balls,
@@ -201,7 +210,8 @@ impl Scene {
                         position_offsets.push(intersection_vector.normalize() * overlap);
                         velocity_offsets.push(
                             -(2.0 * other_ball.get_physics_ball().get_mass()
-                                / (ball.get_physics_ball().get_mass() + other_ball.get_physics_ball().get_mass()))
+                                / (ball.get_physics_ball().get_mass()
+                                    + other_ball.get_physics_ball().get_mass()))
                                 * ((ball.get_velocity() - other_ball.get_velocity())
                                     .dot(intersection_vector)
                                     / (intersection_vector.length()

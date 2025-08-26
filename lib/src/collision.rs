@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
-    path::{Path, PathBuf}, time::Duration,
+    path::{Path, PathBuf},
+    time::Duration,
 };
 
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};

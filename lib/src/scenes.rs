@@ -1,7 +1,13 @@
 use std::path::PathBuf;
 
 use crate::{
-    ball::{Ball, PhysicsBall}, drawer::base_style::BaseStyle, levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8}, powerup::{change_position::ChangePosition, random_powerup}, scene::Scene, wall::{straight_wall::StraightWall, Wall}, BallConfig
+    BallConfig,
+    ball::{Ball, PhysicsBall},
+    drawer::base_style::BaseStyle,
+    levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8},
+    powerup::{change_position::ChangePosition, random_powerup},
+    scene::Scene,
+    wall::{Wall, straight_wall::StraightWall},
 };
 use glam::dvec2;
 use palette::Srgba;
