@@ -2,7 +2,7 @@ use glam::DVec2;
 use rand::{Rng, seq::SliceRandom};
 
 use crate::{
-    powerup::{random_powerup, Powerup}, scene::Scene, util::space_evenly, wall::Wall, BallConfig
+    powerup::Powerup, scene::Scene, util::space_evenly, wall::Wall, BallConfig
 };
 
 #[derive(Clone)]

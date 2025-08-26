@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, time::Duration};
 
 use ::rand::random_range;
 use dyn_clone::DynClone;
@@ -24,20 +24,24 @@ pub type SceneParticleSystem =
 
 #[derive(Clone)]
 pub struct Scene {
+    time: f64,
     balls: Vec<Ball>,
     powerups: Vec<Box<dyn Powerup>>,
     walls: Vec<Box<dyn Wall>>,
     winners: Vec<usize>,
+    win_times: Vec<Duration>,
     particles: SceneParticleSystem,
 }
 
 impl Scene {
     pub fn new(balls: Vec<Ball>, powerups: Vec<Box<dyn Powerup>>, walls: Vec<Box<dyn Wall>>) -> Self {
         Self {
+            time: 0.0,
             balls,
             powerups,
             walls,
             winners: Vec::new(),
+            win_times: Vec::new(),
             particles: VecParticleSystem::default(),
         }
     }
@@ -56,6 +60,10 @@ impl Scene {
 
     pub fn get_winners(&self) -> &Vec<usize> {
         &self.winners
+    }
+
+    pub fn get_win_times(&self) -> &Vec<Duration> {
+        &self.win_times
     }
 
     pub fn all_won(&self) -> bool {
@@ -127,6 +135,7 @@ impl Scene {
 
                             if wall.is_goal() && !self.winners.contains(&index) {
                                 self.winners.push(index);
+                                self.win_times.push(Duration::from_secs_f64(self.time));
 
                                 for _ in 0..100 {
                                     self.particles.add_particle(Box::new(ConfettiParticle::new(
@@ -238,6 +247,8 @@ impl Scene {
         }
 
         self.particles.update(dt);
+
+        self.time += dt;
 
         collisions
     }

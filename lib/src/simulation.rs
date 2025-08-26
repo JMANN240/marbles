@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 
@@ -225,10 +227,11 @@ impl Render for Simulation {
             );
         }
 
-        for (index, winner_index) in self.get_scene().get_winners().iter().enumerate() {
+        for (index, (winner_index, win_time)) in self.get_scene().get_winners().iter().zip(self.get_scene().get_win_times()).enumerate() {
             let winner = self.get_scene().get_balls().get(*winner_index).unwrap();
-            let text = format!("{}. {}", index + 1, winner.get_name());
-            let font_size = 48.0;
+            let time_string = format!("{:02}:{:02}.{:03}", (win_time.as_secs_f64() / 60.0).floor(), (win_time.as_secs_f64() % 60.0).floor(), win_time.subsec_millis());
+            let text = format!("{}. {} ({})", index + 1, winner.get_name(), time_string);
+            let font_size = 40.0;
 
             renderer.render_text(
                 &text,
