@@ -3,12 +3,15 @@ use std::time::Duration;
 use std::{collections::HashMap, fs, path::Path};
 
 use ::rand::{rng, seq::IndexedRandom};
+use anchor2d::{
+    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
+};
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::collision::{Collision, render_collisions};
 use lib::rendering::macroquad::MacroquadRenderer;
-use lib::rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor};
+use lib::rendering::{Render, Renderer};
 use lib::simulation::Simulation;
 use lib::util::{
     MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
@@ -208,10 +211,13 @@ async fn main() {
                     renderer.render_text(
                         &text,
                         ::glam::dvec2(screen_width() as f64 / 2.0, screen_height() as f64 / 2.0),
-                        Anchor2D {
-                            horizontal: HorizontalAnchor::Center,
-                            vertical: VerticalAnchor::Center,
-                        },
+                        Anchor2D::new(
+                            HorizontalAnchor::Center,
+                            VerticalAnchor::new(
+                                VerticalAnchorContext::Graphics,
+                                VerticalAnchorValue::Center,
+                            ),
+                        ),
                         196.0,
                         Srgba::new(1.0, 1.0, 1.0, 1.0),
                     );

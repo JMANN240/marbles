@@ -3,6 +3,7 @@ resolver = "3"
 members = ["lib", "marbles_headless", "marbles_macroquad"]
 
 [workspace.dependencies]
+anchor2d = "0.1.10"
 glam = "0.30.5"
 image = { version = "0.25.6" }
 macroquad = { version = "0.4.14", features = ["audio", "glam-serde"] }

@@ -1,11 +1,8 @@
+use anchor2d::{Anchor2D, HorizontalAnchor, VerticalAnchorContext, VerticalAnchorValue};
 use macroquad::prelude::*;
 use palette::Srgba;
 
-use crate::{
-    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
-    util::srgba_to_color,
-    wall::straight_wall::Line,
-};
+use crate::{rendering::Renderer, util::srgba_to_color, wall::straight_wall::Line};
 
 pub struct MacroquadRenderer {
     font: Font,
@@ -87,16 +84,24 @@ impl Renderer for MacroquadRenderer {
     ) {
         let measurement = measure_text(text, Some(&self.font), size as u16, 1.0);
 
-        let x = match anchor.horizontal {
+        let x = match anchor.get_horizontal() {
             HorizontalAnchor::Left => position.x,
             HorizontalAnchor::Center => position.x - measurement.width as f64 / 2.0,
             HorizontalAnchor::Right => position.x - measurement.width as f64,
         };
 
-        let y = match anchor.vertical {
-            VerticalAnchor::Bottom => position.y,
-            VerticalAnchor::Center => position.y + measurement.offset_y as f64 / 2.0,
-            VerticalAnchor::Top => position.y + measurement.offset_y as f64,
+        let vertical_anchor = anchor.get_vertical();
+
+        let y = match (vertical_anchor.get_context(), vertical_anchor.get_value()) {
+            (VerticalAnchorContext::Graphics, VerticalAnchorValue::Bottom) => position.y,
+            (VerticalAnchorContext::Math, VerticalAnchorValue::Bottom) => {
+                position.y + measurement.offset_y as f64
+            }
+            (_, VerticalAnchorValue::Center) => position.y + measurement.offset_y as f64 / 2.0,
+            (VerticalAnchorContext::Graphics, VerticalAnchorValue::Top) => {
+                position.y + measurement.offset_y as f64
+            }
+            (VerticalAnchorContext::Math, VerticalAnchorValue::Top) => position.y,
         };
 
         for i in -1..=1 {

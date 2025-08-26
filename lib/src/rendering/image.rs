@@ -1,6 +1,7 @@
 use std::f64::consts::PI;
 
 use ab_glyph::FontRef;
+use anchor2d::{Anchor2D, HorizontalAnchor, VerticalAnchorContext, VerticalAnchorValue};
 use glam::{DVec2, dvec2};
 use image::{
     Rgba, RgbaImage,
@@ -15,11 +16,7 @@ use imageproc::{
 };
 use palette::Srgba;
 
-use crate::{
-    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
-    util::srgba_to_rgba8,
-    wall::straight_wall::Line,
-};
+use crate::{rendering::Renderer, util::srgba_to_rgba8, wall::straight_wall::Line};
 
 pub struct ImageRenderer {
     width: u32,
@@ -190,16 +187,22 @@ impl Renderer for ImageRenderer {
 
         let (text_width, _) = text_size(size as f32, &font, text);
 
-        let x = match anchor.horizontal {
+        let x = match anchor.get_horizontal() {
             HorizontalAnchor::Left => position.x,
             HorizontalAnchor::Center => position.x - text_width as f64 / 2.0,
             HorizontalAnchor::Right => position.x - text_width as f64,
         };
 
-        let y = match anchor.vertical {
-            VerticalAnchor::Bottom => position.y - size / 1.25,
-            VerticalAnchor::Center => position.y - size / 1.25 / 2.0,
-            VerticalAnchor::Top => position.y,
+        let vertical_anchor = anchor.get_vertical();
+
+        let y = match (vertical_anchor.get_context(), vertical_anchor.get_value()) {
+            (VerticalAnchorContext::Graphics, VerticalAnchorValue::Bottom) => {
+                position.y - size / 1.25
+            }
+            (VerticalAnchorContext::Math, VerticalAnchorValue::Bottom) => position.y,
+            (_, VerticalAnchorValue::Center) => position.y - size / 1.25 / 2.0,
+            (VerticalAnchorContext::Graphics, VerticalAnchorValue::Top) => position.y,
+            (VerticalAnchorContext::Math, VerticalAnchorValue::Top) => position.y - size / 1.25,
         };
 
         for i in -1..=1 {

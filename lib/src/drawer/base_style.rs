@@ -1,10 +1,13 @@
+use anchor2d::{
+    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
+};
 use glam::DVec2;
 use palette::Srgba;
 
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::BallStyle,
-    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
+    rendering::Renderer,
 };
 
 #[derive(Clone)]
@@ -32,10 +35,10 @@ impl BallStyle for BaseStyle {
         renderer.render_text(
             ball.get_name(),
             ball.get_position() - DVec2::Y * 2.0 * ball.get_radius(),
-            Anchor2D {
-                horizontal: HorizontalAnchor::Center,
-                vertical: VerticalAnchor::Bottom,
-            },
+            Anchor2D::new(
+                HorizontalAnchor::Center,
+                VerticalAnchor::new(VerticalAnchorContext::Graphics, VerticalAnchorValue::Bottom),
+            ),
             20.0,
             ball.get_name_color(),
         );

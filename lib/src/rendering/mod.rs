@@ -1,3 +1,4 @@
+use anchor2d::Anchor2D;
 use glam::DVec2;
 use palette::Srgba;
 
@@ -53,21 +54,4 @@ pub trait Renderer {
 
 pub trait Render {
     fn render(&self, renderer: &mut dyn Renderer);
-}
-
-pub struct Anchor2D {
-    pub horizontal: HorizontalAnchor,
-    pub vertical: VerticalAnchor,
-}
-
-pub enum HorizontalAnchor {
-    Left,
-    Center,
-    Right,
-}
-
-pub enum VerticalAnchor {
-    Top,
-    Center,
-    Bottom,
 }

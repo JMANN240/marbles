@@ -1,11 +1,10 @@
+use anchor2d::{
+    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
+};
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 
-use crate::{
-    collision::Collision,
-    rendering::{Anchor2D, HorizontalAnchor, Render, VerticalAnchor},
-    scene::Scene,
-};
+use crate::{collision::Collision, rendering::Render, scene::Scene};
 
 pub enum SimulationPhase {
     Countdown,
@@ -129,10 +128,13 @@ impl Render for Simulation {
             renderer.render_text(
                 &text,
                 dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Center,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Center,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 196.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
@@ -144,10 +146,13 @@ impl Render for Simulation {
                         self.viewport_width / 2.0,
                         self.viewport_height / 2.0 + 100.0,
                     ),
-                    Anchor2D {
-                        horizontal: HorizontalAnchor::Center,
-                        vertical: VerticalAnchor::Bottom,
-                    },
+                    Anchor2D::new(
+                        HorizontalAnchor::Center,
+                        VerticalAnchor::new(
+                            VerticalAnchorContext::Graphics,
+                            VerticalAnchorValue::Bottom,
+                        ),
+                    ),
                     48.0,
                     Srgba::new(1.0, 1.0, 1.0, 1.0),
                 );
@@ -156,10 +161,13 @@ impl Render for Simulation {
             renderer.render_text(
                 "Go!",
                 dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Center,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Center,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 196.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
@@ -199,10 +207,13 @@ impl Render for Simulation {
                     self.special_message_x + self.viewport_width / 2.0,
                     self.viewport_height * 0.825,
                 ),
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Center,
-                    vertical: VerticalAnchor::Center,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Center,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Center,
+                    ),
+                ),
                 24.0,
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
@@ -210,10 +221,13 @@ impl Render for Simulation {
             renderer.render_text(
                 "Submit your own message at https://quantummarbleracing.com",
                 dvec2(self.special_message_x, self.viewport_height * 0.9 - 8.0),
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Left,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Left,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 16.0,
                 Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
@@ -224,10 +238,13 @@ impl Render for Simulation {
                     self.special_message_x + self.viewport_width * 0.9 - 8.0,
                     self.viewport_height * 0.85,
                 ),
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Right,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Right,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 16.0,
                 Srgba::new(0.5, 0.5, 0.5, 1.0),
             );
@@ -256,10 +273,13 @@ impl Render for Simulation {
                     self.viewport_width / 2.0,
                     font_size + font_size * index as f64,
                 ),
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Center,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Center,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 font_size,
                 winner.get_name_color(),
             );

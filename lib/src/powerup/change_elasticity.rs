@@ -1,5 +1,8 @@
 use std::{f64::consts::PI, sync::Arc};
 
+use anchor2d::{
+    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
+};
 use glam::DVec2;
 use palette::Srgba;
 use particula_rs::ParticleSystem;
@@ -11,7 +14,7 @@ use crate::{
         ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter, system::BallParticleSystem,
     },
     powerup::Powerup,
-    rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor},
+    rendering::{Render, Renderer},
 };
 
 pub struct ChangeElasticityConfig {
@@ -119,10 +122,13 @@ impl Render for ChangeElasticity {
             renderer.render_text(
                 &format!("Elasticity x{:.1}", self.amount),
                 self.get_position() - DVec2::Y * 2.0 * self.radius,
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Center,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Center,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 20.0,
                 color,
             );

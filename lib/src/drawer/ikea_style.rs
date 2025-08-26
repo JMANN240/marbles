@@ -1,12 +1,15 @@
 use std::f64::consts::PI;
 
+use anchor2d::{
+    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
+};
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::BallStyle,
-    rendering::{Anchor2D, HorizontalAnchor, Renderer, VerticalAnchor},
+    rendering::Renderer,
     wall::straight_wall::Line,
 };
 
@@ -70,10 +73,10 @@ impl BallStyle for IkeaStyle {
         renderer.render_text(
             ball.get_name(),
             ball.get_position() - DVec2::Y * 2.0 * ball.get_radius(),
-            Anchor2D {
-                horizontal: HorizontalAnchor::Center,
-                vertical: VerticalAnchor::Bottom,
-            },
+            Anchor2D::new(
+                HorizontalAnchor::Center,
+                VerticalAnchor::new(VerticalAnchorContext::Graphics, VerticalAnchorValue::Bottom),
+            ),
             20.0,
             yellow.into(),
         );

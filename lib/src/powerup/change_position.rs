@@ -1,5 +1,8 @@
 use std::{f64::consts::PI, ops::RangeInclusive, sync::Arc};
 
+use anchor2d::{
+    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
+};
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::ParticleSystem;
@@ -11,7 +14,7 @@ use crate::{
         ParticleLayer, StaticParticle, emitter::BallParticleEmitter, system::BallParticleSystem,
     },
     powerup::Powerup,
-    rendering::{Anchor2D, HorizontalAnchor, Render, Renderer, VerticalAnchor},
+    rendering::{Render, Renderer},
 };
 
 pub struct ChangePositionConfig {
@@ -141,10 +144,13 @@ impl Render for ChangePosition {
             renderer.render_text(
                 &self.name,
                 self.get_position() - DVec2::Y * 2.0 * self.radius,
-                Anchor2D {
-                    horizontal: HorizontalAnchor::Center,
-                    vertical: VerticalAnchor::Bottom,
-                },
+                Anchor2D::new(
+                    HorizontalAnchor::Center,
+                    VerticalAnchor::new(
+                        VerticalAnchorContext::Graphics,
+                        VerticalAnchorValue::Bottom,
+                    ),
+                ),
                 20.0,
                 color,
             );

@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 ab_glyph = "0.2.31"
+anchor2d = { workspace = true }
 chrono = "0.4.41"
 clap = { version = "4.5.41", features = ["derive"] }
 dotenvy = "0.15.7"
