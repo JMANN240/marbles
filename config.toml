@@ -1,9 +1,9 @@
 scene = 8
 
 [[balls]]
-name = "IKEA"
+name = "Boban Ball"
 r = 1.0
-g = 0.8
+g = 0.0
 b = 0.0
 radius = 8
 density = 1
@@ -41,7 +41,7 @@ elasticity = 0.95
 sound = "piano_g6.wav"
 
 [[balls]]
-name = "White Light"
+name = "White's Brother"
 r = 1.0
 g = 1.0
 b = 1.0

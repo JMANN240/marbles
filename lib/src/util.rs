@@ -113,18 +113,25 @@ pub fn upload_to_instagram<V: AsRef<Path>>(
     instagram: InstagramPoster,
     video_path: V,
     caption: &str,
-) -> Result<MediaPublishResponse, Box<dyn Error>> {
-    let cloudinary_response = cloudinary.post(video_path)?;
+) -> Option<Result<MediaPublishResponse, Box<dyn Error>>> {
+    let cloudinary_response_result = cloudinary.post(video_path);
 
-    let media_publish_response = instagram.post(
-        caption,
-        &cloudinary_response.secure_url,
-        (cloudinary_response.duration * 0.25 * 1000.0).floor(),
-    )?;
-
-    cloudinary.delete(&cloudinary_response.public_id)?;
-
-    Ok(media_publish_response)
+    match cloudinary_response_result {
+        Ok(cloudinary_response) => {
+            let maybe_media_publish_response = instagram.post(
+                caption,
+                &cloudinary_response.secure_url,
+                (cloudinary_response.duration * 0.25 * 1000.0).floor(),
+            );
+        
+            if let Err(e) = cloudinary.delete(&cloudinary_response.public_id) {
+                return Some(Err(e));
+            }
+        
+            maybe_media_publish_response
+        },
+        Err(e) => Some(Err(e)),
+    }
 }
 
 pub fn prepare_images_path<P: AsRef<Path>>(images_path: P) -> std::io::Result<()> {

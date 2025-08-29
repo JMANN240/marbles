@@ -9,10 +9,9 @@ use serde::Deserialize;
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::{
-        glow_style::GlowStyle, ikea_style::IkeaStyle, outline_style::OutlineStyle,
-        tail_style::TailStyle,
+        base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle, outline_style::OutlineStyle, tail_style::TailStyle
     },
-    particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter},
+    particle::{emitter::BallParticleEmitter, FireParticle, ParticleLayer, ShrinkingParticle},
 };
 
 pub mod ball;
@@ -68,7 +67,7 @@ impl BallConfig {
                     100,
                     10,
                 ))
-            } else if self.name == "White Light" {
+            } else if self.name == "White Light" || self.name == "White's Brother" {
                 Box::new(GlowStyle::new(
                     Srgba::new(1.0, 1.0, 1.0, 1.0),
                     Srgba::new(1.0, 1.0, 1.0, 1.0),
@@ -84,13 +83,15 @@ impl BallConfig {
                 ))
             } else if self.name == "Green Machine" {
                 Box::new(OutlineStyle::new(Srgba::new(0.0, 0.9, 0.1, 1.0)))
-            } else {
+            } else if self.name == "Deep Blue" || self.name == "Blue's Wife" {
                 Box::new(TailStyle::new(
                     color,
                     Srgba::new(0.0, 0.0, 0.0, 1.0),
                     100,
                     10,
                 ))
+            } else {
+                Box::new(BaseStyle::new(color))
             },
             PathBuf::from(self.sound.clone()),
         );
@@ -113,7 +114,7 @@ impl BallConfig {
                 ));
         }
 
-        if self.name == "White Light" {
+        if self.name == "White Light" || self.name == "White's Brother" {
             ball.get_particles_mut()
                 .add_emitter(BallParticleEmitter::new(
                     position,

@@ -49,28 +49,34 @@ impl InstagramPoster {
         caption: &str,
         video_url: &str, // TODO: proper URL
         thumb_offset: f64,
-    ) -> Result<MediaPublishResponse, Box<dyn Error>> {
-        let media_response = self.create_media(caption, video_url, thumb_offset)?;
+    ) -> Option<Result<MediaPublishResponse, Box<dyn Error>>> {
+        let media_response = self.create_media(caption, video_url, thumb_offset);
 
-        info!("Sleeping...");
-        thread::sleep(Duration::from_secs(60));
+        match media_response {
+            Ok(media_response) => {
+                for _ in 0..10 {
+                    info!("Sleeping...");
+                    thread::sleep(Duration::from_secs(60));
 
-        loop {
-            match self.get_container_status(&media_response.id) {
-                Ok(container_status_response) => {
-                    if container_status_response.status_code == "FINISHED" {
-                        return self.publish_media(&media_response.id);
+                    match self.get_container_status(&media_response.id) {
+                        Ok(container_status_response) => {
+                            if container_status_response.status_code == "FINISHED" {
+                                return Some(self.publish_media(&media_response.id));
+                            }
+                        }
+                        Err(e) => {
+                            info!(?e, "Checking Container Status Failed!");
+                            return Some(Err(e));
+                        }
                     }
                 }
-                Err(e) => {
-                    info!(?e, "Checking Container Status Failed!");
-                    return Err(e);
-                }
+            },
+            Err(e) => {
+                return Some(Err(e));
             }
-
-            info!("Sleeping...");
-            thread::sleep(Duration::from_secs(60));
         }
+
+        None
     }
 
     pub fn create_media(

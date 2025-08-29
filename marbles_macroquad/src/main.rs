@@ -299,8 +299,15 @@ async fn main() {
                         &video_path,
                         "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
                     ) {
-                        Ok(media_publish_response) => info!(?media_publish_response),
-                        Err(error) => error!(error),
+                        Some(media_publish_response_result) => {
+                            match media_publish_response_result {
+                                Ok(media_publish_response) => info!(?media_publish_response),
+                                Err(error) => error!(error),
+                            }
+                        },
+                        None => {
+                            error!("Could not post to instagram!");
+                        }
                     }
                 }
 

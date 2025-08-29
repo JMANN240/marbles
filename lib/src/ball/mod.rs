@@ -119,7 +119,7 @@ impl Ball {
     pub fn handle_collision(&mut self, new_velocity: DVec2) {
         let dv = new_velocity.distance(self.get_velocity());
 
-        if self.get_name() == "Deep Blue" && dv >= 150.0 {
+        if (self.get_name() == "Deep Blue" || self.get_name() == "Blue's Wife") && dv >= 150.0 {
             // TODO: Fix this to not be hard coded.
             let velocity = self.get_velocity();
 
