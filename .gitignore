@@ -5,3 +5,7 @@
 youtube_client_secrets.json
 youtube_token.json
 .env
+create_instagram_container.sh
+get_instagram_container_status.sh
+get_instagram_publishing_limit.sh
+get_youtube_token.py

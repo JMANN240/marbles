@@ -70,7 +70,7 @@ impl InstagramPoster {
                         }
                     }
                 }
-            },
+            }
             Err(e) => {
                 return Some(Err(e));
             }

@@ -5,11 +5,11 @@ use anchor2d::{
 };
 use glam::DVec2;
 use palette::Srgba;
+use render_agnostic::Renderer;
 
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::BallStyle,
-    rendering::Renderer,
     util::lerp_color,
 };
 

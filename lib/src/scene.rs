@@ -5,13 +5,14 @@ use dyn_clone::DynClone;
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
+use render_agnostic::Renderer;
 
 use crate::{
     ball::Ball,
     collision::Collision,
     particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle},
     powerup::Powerup,
-    rendering::{Render, Renderer},
+    rendering::Render,
     wall::Wall,
 };
 

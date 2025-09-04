@@ -7,6 +7,7 @@ use glam::DVec2;
 use palette::Srgba;
 use particula_rs::ParticleSystem;
 use rand::random_range;
+use render_agnostic::Renderer;
 
 use crate::{
     ball::Ball,
@@ -14,7 +15,7 @@ use crate::{
         ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter, system::BallParticleSystem,
     },
     powerup::Powerup,
-    rendering::{Render, Renderer},
+    rendering::Render,
 };
 
 pub struct ChangeElasticityConfig {

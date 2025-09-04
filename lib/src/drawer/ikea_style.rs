@@ -5,12 +5,11 @@ use anchor2d::{
 };
 use glam::{DVec2, dvec2};
 use palette::Srgba;
+use render_agnostic::Renderer;
 
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::BallStyle,
-    rendering::Renderer,
-    wall::straight_wall::Line,
 };
 
 #[derive(Clone)]
@@ -41,30 +40,26 @@ impl BallStyle for IkeaStyle {
         let yellow = Srgba::new(0xFE, 0xCC, 0x02, 255);
 
         renderer.render_line(
-            &Line::new(
-                dvec2(
-                    ball.get_position().x + ball.get_radius() * self.theta.cos(),
-                    ball.get_position().y + ball.get_radius() * self.theta.sin(),
-                ),
-                dvec2(
-                    ball.get_position().x + ball.get_radius() * (self.theta + PI).cos(),
-                    ball.get_position().y + ball.get_radius() * (self.theta + PI).sin(),
-                ),
+            dvec2(
+                ball.get_position().x + ball.get_radius() * self.theta.cos(),
+                ball.get_position().y + ball.get_radius() * self.theta.sin(),
+            ),
+            dvec2(
+                ball.get_position().x + ball.get_radius() * (self.theta + PI).cos(),
+                ball.get_position().y + ball.get_radius() * (self.theta + PI).sin(),
             ),
             2.0,
             yellow.into(),
         );
 
         renderer.render_line(
-            &Line::new(
-                dvec2(
-                    ball.get_position().x + ball.get_radius() * (self.theta + 2.0 / 3.0 * PI).cos(),
-                    ball.get_position().y + ball.get_radius() * (self.theta + 2.0 / 3.0 * PI).sin(),
-                ),
-                dvec2(
-                    ball.get_position().x + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).cos(),
-                    ball.get_position().y + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).sin(),
-                ),
+            dvec2(
+                ball.get_position().x + ball.get_radius() * (self.theta + 2.0 / 3.0 * PI).cos(),
+                ball.get_position().y + ball.get_radius() * (self.theta + 2.0 / 3.0 * PI).sin(),
+            ),
+            dvec2(
+                ball.get_position().x + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).cos(),
+                ball.get_position().y + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).sin(),
             ),
             2.0,
             yellow.into(),

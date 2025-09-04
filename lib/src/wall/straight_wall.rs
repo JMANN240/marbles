@@ -1,9 +1,7 @@
-use crate::{
-    ball::PhysicsBall,
-    rendering::{Render, Renderer},
-};
+use crate::{ball::PhysicsBall, rendering::Render};
 use glam::{DVec2, dvec2};
 use palette::Srgba;
+use render_agnostic::Renderer;
 
 use super::Wall;
 
@@ -137,6 +135,11 @@ impl Wall for StraightWall {
 
 impl Render for StraightWall {
     fn render(&self, renderer: &mut dyn Renderer) {
-        renderer.render_line(&self.get_line(), 2.0, Srgba::new(1.0, 1.0, 1.0, 1.0));
+        renderer.render_line(
+            self.get_line().get_start(),
+            self.get_line().get_end(),
+            2.0,
+            Srgba::new(1.0, 1.0, 1.0, 1.0),
+        );
     }
 }

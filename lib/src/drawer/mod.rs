@@ -1,9 +1,7 @@
 use dyn_clone::DynClone;
+use render_agnostic::Renderer;
 
-use crate::{
-    ball::{Ball, PhysicsBall},
-    rendering::Renderer,
-};
+use crate::ball::{Ball, PhysicsBall};
 
 pub mod base_style;
 pub mod glow_style;

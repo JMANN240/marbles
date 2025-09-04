@@ -7,11 +7,11 @@ use ::rand::random_range;
 use glam::DVec2;
 use palette::Srgba;
 use particula_rs::ParticleSystem;
+use render_agnostic::Renderer;
 
 use crate::{
     drawer::BallStyle,
     particle::{ParticleLayer, ShrinkingParticle, system::BallParticleSystem},
-    rendering::Renderer,
     util::lerp_color,
     wall::Wall,
 };

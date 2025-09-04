@@ -10,8 +10,7 @@ use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use lib::collision::{Collision, render_collisions};
-use lib::rendering::macroquad::MacroquadRenderer;
-use lib::rendering::{Render, Renderer};
+use lib::rendering::Render;
 use lib::simulation::Simulation;
 use lib::util::{
     MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
@@ -21,6 +20,8 @@ use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
 use macroquad::prelude::*;
 use palette::Srgba;
+use render_agnostic::renderers::macroquad::MacroquadRenderer;
+use render_agnostic::Renderer;
 use reqwest::blocking::Client;
 use toml::from_str;
 use tracing::{error, info};
@@ -85,7 +86,7 @@ async fn main() {
     let mut rng = rng();
     let cli = Cli::parse();
 
-    let mut renderer = MacroquadRenderer::new("roboto.ttf").await;
+    let mut renderer = MacroquadRenderer::new(Some(load_ttf_font_from_bytes(include_bytes!("../../roboto.ttf")).unwrap()));
 
     let mut maybe_render_number = if cli.render { Some(0) } else { None };
 
@@ -304,7 +305,7 @@ async fn main() {
                                 Ok(media_publish_response) => info!(?media_publish_response),
                                 Err(error) => error!(error),
                             }
-                        },
+                        }
                         None => {
                             error!("Could not post to instagram!");
                         }

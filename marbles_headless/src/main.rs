@@ -6,14 +6,16 @@ use std::{
     time::Duration,
 };
 
+use ab_glyph::FontArc;
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
+use glam::DVec2;
 use lib::{
     Config, ENGAGEMENTS,
     collision::{Collision, render_collisions},
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
-    rendering::{Render, image::ImageRenderer},
+    rendering::Render,
     simulation::Simulation,
     util::{
         MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
@@ -23,6 +25,7 @@ use lib::{
 };
 use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;
+use render_agnostic::renderers::image::ImageRenderer;
 use reqwest::blocking::Client;
 use toml::from_str;
 use tracing::{Level, debug, error, info};
@@ -162,11 +165,11 @@ fn main() {
             .par_iter()
             .enumerate()
             .for_each(|(frame_number, simulation)| {
-                let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875, 2);
+                let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875, DVec2::splat(0.5), 2, FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap());
 
                 simulation.render(&mut renderer);
 
-                let image = renderer.get_image();
+                let image = renderer.render_image_onto(renderer.black());
                 let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
 
                 image.save(images_path.join(image_name)).unwrap();
@@ -232,11 +235,9 @@ fn main() {
                     &video_path,
                     "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
                 ) {
-                    Some(media_publish_response_result) => {
-                        match media_publish_response_result {
-                            Ok(media_publish_response) => info!(?media_publish_response),
-                            Err(error) => error!(error),
-                        }
+                    Some(media_publish_response_result) => match media_publish_response_result {
+                        Ok(media_publish_response) => info!(?media_publish_response),
+                        Err(error) => error!(error),
                     },
                     None => {
                         error!("Could not post to instagram!");

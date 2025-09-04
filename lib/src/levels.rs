@@ -136,7 +136,7 @@ pub fn level_4(n: usize, scene_width: f64, scene_height: f64) -> Level {
             n,
             dvec2(scene_width / 2.0, 0.0),
             dvec2(scene_width / 2.0, n as f64 * 100.0),
-            DVec2::ZERO,
+            DVec2::X * 400.0,
         ),
         Vec::new(),
         walls,

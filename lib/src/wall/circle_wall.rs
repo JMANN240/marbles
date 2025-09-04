@@ -2,11 +2,9 @@ use std::f64::consts::PI;
 
 use glam::{DVec2, dvec2};
 use palette::Srgba;
+use render_agnostic::Renderer;
 
-use crate::{
-    ball::PhysicsBall,
-    rendering::{Render, Renderer},
-};
+use crate::{ball::PhysicsBall, rendering::Render};
 
 use super::Wall;
 

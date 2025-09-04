@@ -5,8 +5,9 @@ use dyn_clone::DynClone;
 use glam::DVec2;
 use palette::{FromColor, Hsla, Srgba};
 use particula_rs::{Aging, MaxAging, Particle};
+use render_agnostic::Renderer;
 
-use crate::rendering::{Render, Renderer};
+use crate::rendering::Render;
 
 pub mod emitter;
 pub mod system;

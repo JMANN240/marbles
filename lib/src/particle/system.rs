@@ -1,9 +1,7 @@
 use particula_rs::{ParticleEmitter, ParticleSystem};
+use render_agnostic::Renderer;
 
-use crate::{
-    particle::{LayeredParticle, ParticleLayer, emitter::BallParticleEmitter},
-    rendering::Renderer,
-};
+use crate::particle::{LayeredParticle, ParticleLayer, emitter::BallParticleEmitter};
 
 #[derive(Clone, Default)]
 pub struct BallParticleSystem {

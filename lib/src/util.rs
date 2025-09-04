@@ -123,13 +123,13 @@ pub fn upload_to_instagram<V: AsRef<Path>>(
                 &cloudinary_response.secure_url,
                 (cloudinary_response.duration * 0.25 * 1000.0).floor(),
             );
-        
+
             if let Err(e) = cloudinary.delete(&cloudinary_response.public_id) {
                 return Some(Err(e));
             }
-        
+
             maybe_media_publish_response
-        },
+        }
         Err(e) => Some(Err(e)),
     }
 }

@@ -3,6 +3,7 @@ use anchor2d::{
 };
 use glam::{DVec2, dvec2};
 use palette::Srgba;
+use render_agnostic::Renderer;
 
 use crate::{collision::Collision, rendering::Render, scene::Scene};
 
@@ -120,7 +121,7 @@ impl Simulation {
 }
 
 impl Render for Simulation {
-    fn render(&self, renderer: &mut dyn crate::rendering::Renderer) {
+    fn render(&self, renderer: &mut dyn Renderer) {
         self.get_scene().render(renderer);
 
         if self.get_time().floor() < self.get_countdown_seconds() {
@@ -174,7 +175,7 @@ impl Render for Simulation {
         }
 
         if self.get_time() > self.get_countdown_seconds() + 2.0
-            && self.get_time() < self.get_countdown_seconds() + 22.0
+            && self.get_time() < self.get_countdown_seconds() + 12.0
         {
             renderer.render_rectangle(
                 dvec2(
