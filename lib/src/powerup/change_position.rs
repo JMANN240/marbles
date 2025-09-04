@@ -1,8 +1,5 @@
 use std::{f64::consts::PI, ops::RangeInclusive, sync::Arc};
 
-use anchor2d::{
-    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
-};
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::ParticleSystem;

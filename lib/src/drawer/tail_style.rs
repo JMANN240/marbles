@@ -1,8 +1,5 @@
 use std::collections::VecDeque;
 
-use anchor2d::{
-    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
-};
 use glam::DVec2;
 use palette::Srgba;
 use render_agnostic::Renderer;

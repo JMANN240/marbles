@@ -3,9 +3,6 @@ use std::time::Duration;
 use std::{collections::HashMap, fs, path::Path};
 
 use ::rand::{rng, seq::IndexedRandom};
-use anchor2d::{
-    Anchor2D, HorizontalAnchor, VerticalAnchor, VerticalAnchorContext, VerticalAnchorValue,
-};
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
