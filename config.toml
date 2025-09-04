@@ -1,4 +1,4 @@
-scene = 3
+scene = 2
 
 # [[balls]]
 # name = "Boban Ball"
@@ -17,7 +17,7 @@ g = 0.8
 b = 0.0
 radius = 8
 density = 1
-elasticity = 0.98
+elasticity = 0.9
 sound = "piano_c6.wav"
 
 [[balls]]
@@ -27,7 +27,7 @@ g = 0.9
 b = 0.2
 radius = 8
 density = 1
-elasticity = 0.98
+elasticity = 0.9
 sound = "piano_c6.wav"
 
 [[balls]]
@@ -37,7 +37,7 @@ g = 0.5
 b = 1.0
 radius = 8
 density = 1
-elasticity = 0.98
+elasticity = 0.9
 sound = "piano_e6.wav"
 
 # [[balls]]
@@ -57,7 +57,7 @@ g = 0.1
 b = 0.1
 radius = 8
 density = 1
-elasticity = 0.98
+elasticity = 0.9
 sound = "piano_g6.wav"
 
 [[balls]]
@@ -67,7 +67,7 @@ g = 1.0
 b = 1.0
 radius = 8
 density = 1
-elasticity = 0.98
+elasticity = 0.9
 sound = "piano_c7.wav"
 
 # [[balls]]
@@ -87,5 +87,5 @@ g = 0.0
 b = 1.0
 radius = 8
 density = 1
-elasticity = 0.98
+elasticity = 0.9
 sound = "piano_c7.wav"

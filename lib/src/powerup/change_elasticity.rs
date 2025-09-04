@@ -120,18 +120,14 @@ impl Render for ChangeElasticity {
         if self.is_active {
             renderer.render_circle_lines(self.get_position(), 8.0, 1.0, color);
 
-            renderer.render_text(
+            renderer.render_text_outline(
                 &format!("Elasticity x{:.1}", self.amount),
                 self.get_position() - DVec2::Y * 2.0 * self.radius,
-                Anchor2D::new(
-                    HorizontalAnchor::Center,
-                    VerticalAnchor::new(
-                        VerticalAnchorContext::Graphics,
-                        VerticalAnchorValue::Bottom,
-                    ),
-                ),
+                anchor2d::CGB,
                 20.0,
+                1.0,
                 color,
+                Srgba::new(0.0, 0.0, 0.0, 1.0),
             );
         }
 

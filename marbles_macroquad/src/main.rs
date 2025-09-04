@@ -209,18 +209,14 @@ async fn main() {
                         cli.reset_seconds as f64 - (simulation.get_time() - all_won_time).floor()
                     );
 
-                    renderer.render_text(
+                    renderer.render_text_outline(
                         &text,
                         ::glam::dvec2(screen_width() as f64 / 2.0, screen_height() as f64 / 2.0),
-                        Anchor2D::new(
-                            HorizontalAnchor::Center,
-                            VerticalAnchor::new(
-                                VerticalAnchorContext::Graphics,
-                                VerticalAnchorValue::Center,
-                            ),
-                        ),
+                        anchor2d::CGC,
                         196.0,
+                        1.0,
                         Srgba::new(1.0, 1.0, 1.0, 1.0),
+                        Srgba::new(0.0, 0.0, 0.0, 1.0),
                     );
                 }
 

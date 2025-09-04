@@ -81,15 +81,14 @@ impl BallStyle for TailStyle {
             );
         }
 
-        renderer.render_text(
+        renderer.render_text_outline(
             ball.get_name(),
             ball.get_position() - DVec2::Y * 2.0 * ball.get_radius(),
-            Anchor2D::new(
-                HorizontalAnchor::Center,
-                VerticalAnchor::new(VerticalAnchorContext::Graphics, VerticalAnchorValue::Bottom),
-            ),
+            anchor2d::CGB,
             20.0,
+            1.0,
             ball.get_name_color(),
+            Srgba::new(0.0, 0.0, 0.0, 1.0),
         );
     }
 }

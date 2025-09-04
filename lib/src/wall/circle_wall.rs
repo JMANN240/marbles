@@ -120,7 +120,7 @@ impl Wall for CircleWall {
 
 impl Render for CircleWall {
     fn render(&self, renderer: &mut dyn Renderer) {
-        renderer.render_arc(
+        renderer.render_arc_lines(
             self.get_position(),
             self.get_radius(),
             self.get_start(),
