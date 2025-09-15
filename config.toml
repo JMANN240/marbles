@@ -1,4 +1,4 @@
-scene = 2
+scene = 1
 
 # [[balls]]
 # name = "Boban Ball"
@@ -10,15 +10,25 @@ scene = 2
 # elasticity = 0.98
 # sound = "piano_c6.wav"
 
+# [[balls]]
+# name = "IKEA"
+# r = 1.0
+# g = 0.8
+# b = 0.0
+# radius = 8
+# density = 1
+# elasticity = 0.9
+# sound = "piano_c6.wav"
+
 [[balls]]
-name = "IKEA"
+name = "IKEA Jr."
 r = 1.0
 g = 0.8
 b = 0.0
-radius = 8
+radius = 4
 density = 1
 elasticity = 0.9
-sound = "piano_c6.wav"
+sound = "piano_c7.wav"
 
 [[balls]]
 name = "Green Machine"

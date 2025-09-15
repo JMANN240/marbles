@@ -124,7 +124,7 @@ fn main() {
             .unwrap()
             .message
             .unwrap_or(Message {
-                message: "Your custom message here!".to_string(),
+                message: "Please buy a custom message, I need to pay my mortgage!".to_string(),
                 user: "QMR".to_string(),
             });
 

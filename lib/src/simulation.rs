@@ -1,4 +1,5 @@
 use glam::{DVec2, dvec2};
+use itertools::Itertools;
 use palette::Srgba;
 use render_agnostic::Renderer;
 
@@ -98,7 +99,7 @@ impl Simulation {
             SimulationPhase::Running => self.scene.update(dt, timescale, physics_steps),
         };
 
-        if self.get_time() > self.get_countdown_seconds() + 12.0 {
+        if self.get_time() > self.get_countdown_seconds() + 7.0 {
             self.special_message_target_x = -self.viewport_width;
         } else if self.get_time() > self.get_countdown_seconds() + 2.0 {
             self.special_message_target_x = 0.0;
@@ -187,16 +188,22 @@ impl Render for Simulation {
                 Srgba::new(1.0, 1.0, 1.0, 1.0),
             );
 
-            renderer.render_text(
-                &self.special_message,
-                dvec2(
-                    self.special_message_x + self.viewport_width / 2.0,
-                    self.viewport_height * 0.825,
-                ),
-                anchor2d::CGC,
-                24.0,
-                Srgba::new(1.0, 1.0, 1.0, 1.0),
-            );
+            let chars = self.special_message.chars().collect::<Vec<char>>();
+
+            let font_size = 24.0;
+
+            for (index, chunk) in chars.chunks(30).map(|chunk| chunk.iter().collect::<String>()).enumerate() {
+                renderer.render_text(
+                    &chunk,
+                    dvec2(
+                        self.special_message_x + self.viewport_width * 0.4,
+                        self.viewport_height * 0.825 + font_size * index as f64,
+                    ),
+                    anchor2d::CGC,
+                    font_size,
+                    Srgba::new(1.0, 1.0, 1.0, 1.0),
+                );
+            }
 
             renderer.render_text(
                 "Submit your own message at https://quantummarbleracing.com",

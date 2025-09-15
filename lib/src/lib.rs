@@ -74,7 +74,7 @@ impl BallConfig {
                     Srgba::new(1.0, 1.0, 1.0, 1.0),
                     16,
                 ))
-            } else if self.name == "IKEA" {
+            } else if self.name == "IKEA" || self.name == "IKEA Jr." {
                 Box::new(IkeaStyle::default())
             } else if self.name == "Black Hole" {
                 Box::new(GlowStyle::new(
