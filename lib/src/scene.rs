@@ -84,28 +84,28 @@ impl Scene {
         &self.particles
     }
 
-    pub fn update(&mut self, dt: f64, timescale: f64, physics_steps: usize) -> Vec<Collision> {
+    pub fn update(&self, dt: f64, timescale: f64, physics_steps: usize) -> (Self, Vec<Collision>) {
+        let mut new_scene = self.clone();
+
         let step_dt = dt * timescale / physics_steps as f64;
 
         let mut collisions = Vec::new();
 
         for _ in 0..physics_steps {
-            collisions.append(&mut self.step_physics(step_dt));
+            collisions.append(&mut new_scene.step_physics(step_dt));
         }
 
-        collisions
+        (new_scene, collisions)
     }
 
     pub fn step_physics(&mut self, dt: f64) -> Vec<Collision> {
         let mut collisions = Vec::new();
 
-        for wall in self.walls.iter_mut() {
-            wall.update(dt);
-        }
+        let new_walls = self.walls.iter().map(|wall| wall.update(dt)).collect();
+        let new_powerups = self.powerups.iter().map(|powerup| powerup.update(dt)).collect();
 
-        for powerup in self.powerups.iter_mut() {
-            powerup.update(dt);
-        }
+        self.walls = new_walls;
+        self.powerups = new_powerups;
 
         let new_attributes: Vec<(DVec2, DVec2)> = self
             .balls
@@ -248,7 +248,7 @@ impl Scene {
             }
             ball.set_velocity(new_velocity);
 
-            ball.update(dt);
+            *ball = ball.update(dt);
 
             for powerup in self.powerups.iter_mut() {
                 if powerup.is_colliding_with(ball) {

@@ -11,7 +11,7 @@ pub mod tail_style;
 
 pub trait BallStyle: Send + Sync + DynClone {
     fn init(&mut self, ball: &PhysicsBall);
-    fn update(&mut self, ball: &PhysicsBall, dt: f64);
+    fn update(&self, ball: &PhysicsBall, dt: f64) -> Box<dyn BallStyle>;
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer);
 }
 

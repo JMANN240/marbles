@@ -93,28 +93,31 @@ impl Simulation {
         }
     }
 
-    pub fn update(&mut self, dt: f64, timescale: f64, physics_steps: usize) -> Vec<Collision> {
-        let collisions = match self.get_phase() {
-            SimulationPhase::Countdown => vec![],
+    pub fn update(&self, dt: f64, timescale: f64, physics_steps: usize) -> (Self, Vec<Collision>) {
+        let (new_scene, collisions) = match self.get_phase() {
+            SimulationPhase::Countdown => (self.scene.clone(), vec![]),
             SimulationPhase::Running => self.scene.update(dt, timescale, physics_steps),
         };
 
-        if self.get_time() > self.get_countdown_seconds() + 7.0 {
-            self.special_message_target_x = -self.viewport_width;
-        } else if self.get_time() > self.get_countdown_seconds() + 2.0 {
-            self.special_message_target_x = 0.0;
+        let mut new_simulation = self.clone();
+        new_simulation.scene = new_scene;
+
+        if new_simulation.get_time() > new_simulation.get_countdown_seconds() + 7.0 {
+            new_simulation.special_message_target_x = -new_simulation.viewport_width;
+        } else if new_simulation.get_time() > new_simulation.get_countdown_seconds() + 2.0 {
+            new_simulation.special_message_target_x = 0.0;
         }
 
-        self.special_message_x +=
-            (self.special_message_target_x - self.special_message_x) * 8.0 * dt;
+        new_simulation.special_message_x +=
+            (new_simulation.special_message_target_x - new_simulation.special_message_x) * 8.0 * dt;
 
-        if self.scene.all_won() && self.maybe_all_won_time.is_none() {
-            self.maybe_all_won_time = Some(self.time);
+        if new_simulation.scene.all_won() && new_simulation.maybe_all_won_time.is_none() {
+            new_simulation.maybe_all_won_time = Some(new_simulation.time);
         }
 
-        self.time += dt;
+        new_simulation.time += dt;
 
-        collisions
+        (new_simulation, collisions)
     }
 }
 

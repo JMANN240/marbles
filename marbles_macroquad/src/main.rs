@@ -173,8 +173,10 @@ async fn main() {
         set_camera(&camera);
 
         loop {
-            let update_collisions =
+            let (new_simulation, update_collisions) =
                 simulation.update(get_frame_time() as f64, cli.timescale, cli.physics_steps);
+
+            simulation = new_simulation;
 
             for collision in update_collisions.iter() {
                 play_sound(

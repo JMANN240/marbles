@@ -7,7 +7,7 @@ pub mod circle_wall;
 pub mod straight_wall;
 
 pub trait Wall: Render + Send + Sync + DynClone {
-    fn update(&mut self, dt: f64);
+    fn update(&self, dt: f64) -> Box<dyn Wall>;
     fn get_intersection_point(&self, ball: &PhysicsBall) -> Option<DVec2>;
     fn is_goal(&self) -> bool;
 }

@@ -39,7 +39,9 @@ impl GlowStyle {
 
 impl BallStyle for GlowStyle {
     fn init(&mut self, _ball: &PhysicsBall) {}
-    fn update(&mut self, _ball: &PhysicsBall, _dt: f64) {}
+    fn update(&self, _ball: &PhysicsBall, _dt: f64) -> Box<dyn BallStyle> {
+        Box::new(self.clone())
+    }
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {
         for i in 0..=self.get_size() {

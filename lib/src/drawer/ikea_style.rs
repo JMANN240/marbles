@@ -23,8 +23,12 @@ impl Default for IkeaStyle {
 impl BallStyle for IkeaStyle {
     fn init(&mut self, _ball: &PhysicsBall) {}
 
-    fn update(&mut self, ball: &PhysicsBall, dt: f64) {
-        self.theta += ball.get_velocity().x * 0.1 * dt;
+    fn update(&self, ball: &PhysicsBall, dt: f64) -> Box<dyn BallStyle> {
+        let mut new_style = self.clone();
+
+        new_style.theta += ball.get_velocity().x * 0.1 * dt;
+
+        Box::new(new_style)
     }
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {

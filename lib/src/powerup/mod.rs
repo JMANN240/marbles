@@ -17,7 +17,7 @@ pub mod change_position;
 pub trait Powerup: Render + Send + Sync + DynClone {
     fn is_colliding_with(&self, ball: &Ball) -> bool;
     fn on_collision(&mut self, ball: &mut Ball);
-    fn update(&mut self, dt: f64);
+    fn update(&self, dt: f64) -> Box<dyn Powerup>;
 }
 
 dyn_clone::clone_trait_object!(Powerup);

@@ -145,17 +145,21 @@ impl Ball {
         }
     }
 
-    pub fn update(&mut self, dt: f64) {
-        self.set_position(self.get_position() + self.get_velocity() * dt);
+    pub fn update(&self, dt: f64) -> Self {
+        let mut new_ball = self.clone();
 
-        let position = self.get_position();
+        new_ball.set_position(new_ball.get_position() + new_ball.get_velocity() * dt);
 
-        for emitter in self.get_particles_mut().iter_emitters_mut() {
+        let position = new_ball.get_position();
+
+        for emitter in new_ball.get_particles_mut().iter_emitters_mut() {
             emitter.set_position(position);
         }
 
-        self.get_particles_mut().update(dt);
-        self.style.update(&self.physics_ball, dt);
+        new_ball.get_particles_mut().update(dt);
+        new_ball.style = new_ball.style.update(&new_ball.physics_ball, dt);
+
+        new_ball
     }
 
     pub fn get_intersection_point(&self, wall: &dyn Wall) -> Option<DVec2> {

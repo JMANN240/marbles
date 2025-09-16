@@ -43,24 +43,32 @@ impl TailStyle {
     pub fn get_end_color(&self) -> Srgba {
         self.end_color
     }
+
+    fn update_internal(&self, ball: &PhysicsBall, _dt: f64) -> Self {
+        let mut new_style = self.clone();
+
+        if new_style.every_count % new_style.every == 0 {
+            new_style.positions.push_back(ball.get_position());
+            if new_style.positions.len() > new_style.max_positions {
+                new_style.positions.pop_front();
+            }
+        }
+
+        new_style.every_count += 1;
+        new_style.every_count %= new_style.every;
+
+        new_style
+    }
 }
 
 impl BallStyle for TailStyle {
     fn init(&mut self, ball: &PhysicsBall) {
         self.positions.clear();
-        self.update(ball, 0.0);
+        *self = self.update_internal(ball, 0.0);
     }
 
-    fn update(&mut self, ball: &PhysicsBall, _dt: f64) {
-        if self.every_count % self.every == 0 {
-            self.positions.push_back(ball.get_position());
-            if self.positions.len() > self.max_positions {
-                self.positions.pop_front();
-            }
-        }
-
-        self.every_count += 1;
-        self.every_count %= self.every;
+    fn update(&self, ball: &PhysicsBall, dt: f64) -> Box<dyn BallStyle> {
+        Box::new(self.update_internal(ball, dt))
     }
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {

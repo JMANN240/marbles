@@ -143,7 +143,9 @@ fn main() {
 
         loop {
             debug!(simulation_time = simulation.get_time());
-            let update_collisions = simulation.update(1.0 / 60.0, cli.timescale, cli.physics_steps);
+            let (new_simulation, update_collisions) = simulation.update(1.0 / 60.0, cli.timescale, cli.physics_steps);
+
+            simulation = new_simulation;
 
             collisions.insert(simulation_states.len(), update_collisions);
             simulation_states.push(simulation.clone());

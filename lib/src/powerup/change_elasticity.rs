@@ -101,10 +101,14 @@ impl Powerup for ChangeElasticity {
         }
     }
 
-    fn update(&mut self, dt: f64) {
-        self.time += dt;
+    fn update(&self, dt: f64) -> Box<dyn Powerup> {
+        let mut new_powerup = self.clone();
 
-        self.particles.update(dt);
+        new_powerup.time += dt;
+
+        new_powerup.particles.update(dt);
+
+        Box::new(new_powerup)
     }
 }
 

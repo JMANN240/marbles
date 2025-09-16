@@ -80,7 +80,9 @@ impl StraightWall {
 }
 
 impl Wall for StraightWall {
-    fn update(&mut self, _dt: f64) {}
+    fn update(&self, _dt: f64) -> Box<dyn Wall> {
+        Box::new(self.clone())
+    }
 
     fn get_intersection_point(&self, ball: &PhysicsBall) -> Option<DVec2> {
         let x1 = self.get_line().get_start().x;
