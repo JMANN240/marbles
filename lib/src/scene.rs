@@ -1,9 +1,12 @@
-use std::{f64::consts::PI, time::Duration};
+use std::{
+    any::Any,
+    f64::consts::PI,
+    time::Duration,
+};
 
 use ::rand::random_range;
 use dyn_clone::DynClone;
 use glam::{DVec2, dvec2};
-use macroquad::{color::RED, shapes::draw_line};
 use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
 use render_agnostic::Renderer;
@@ -12,7 +15,7 @@ use crate::{
     ball::Ball,
     collision::Collision,
     particle::{ConfettiParticle, ParticleLayer, RenderParticle, ShrinkingParticle},
-    powerup::Powerup,
+    powerup::{Powerup, special::Special},
     rendering::Render,
     wall::Wall,
 };
@@ -59,6 +62,10 @@ impl Scene {
 
     pub fn get_balls(&self) -> &Vec<Ball> {
         &self.balls
+    }
+
+    pub fn get_balls_mut(&mut self) -> &mut Vec<Ball> {
+        &mut self.balls
     }
 
     pub fn get_walls(&self) -> &Vec<Box<dyn Wall>> {
@@ -120,8 +127,34 @@ impl Scene {
                 let mut new_ball = ball.update(dt);
 
                 for powerup in resolved_collisions_scene.get_powerups() {
-                    if powerup.is_active() && powerup.is_colliding_with(ball) {
-                        powerup.apply(&mut new_ball);
+                    if powerup.is_active() {
+                        if powerup.is_colliding_with(ball) {
+                            powerup.apply(&mut new_ball);
+
+                            if (powerup.as_ref() as &dyn Any).is::<Special>() {
+                                if new_ball.get_name() == "Black Hole" {
+                                    new_ball.set_density(1000.0);
+                                }
+                            }
+                        }
+
+                        for other_ball in resolved_collisions_scene
+                            .get_balls()
+                            .iter()
+                            .filter(|other_ball| ball.get_position() != other_ball.get_position())
+                        {
+                            if (powerup.as_ref() as &dyn Any).is::<Special>()
+                                && powerup.is_colliding_with(other_ball)
+                            {
+                                if other_ball.get_name() == "Fireball" {
+                                    let direction = new_ball.get_position() - other_ball.get_position();
+
+                                    new_ball.set_velocity(
+                                        direction.normalize() * 200000.0 / (direction.length() + 200.0),
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -153,7 +186,10 @@ impl Scene {
             for wall in new_walls.iter() {
                 let maybe_intersection_point = ball.get_intersection_point(wall.as_ref());
 
-                if maybe_intersection_point.is_some() && wall.is_goal() && !self.winners.contains(&index) {
+                if maybe_intersection_point.is_some()
+                    && wall.is_goal()
+                    && !self.winners.contains(&index)
+                {
                     new_winners.push(index);
                     new_win_times.push(Duration::from_secs_f64(self.time));
 
@@ -184,14 +220,16 @@ impl Scene {
         };
 
         for collision in &collisions {
-            updated_scene.particles.add_particle(Box::new(ShrinkingParticle::new(
-                collision.position,
-                DVec2::ZERO,
-                collision.volume as f64 * 10.0,
-                Srgba::new(1.0, 1.0, 1.0, 1.0),
-                0.2,
-                ParticleLayer::Front,
-            )));
+            updated_scene
+                .particles
+                .add_particle(Box::new(ShrinkingParticle::new(
+                    collision.position,
+                    DVec2::ZERO,
+                    collision.volume as f64 * 10.0,
+                    Srgba::new(1.0, 1.0, 1.0, 1.0),
+                    0.2,
+                    ParticleLayer::Front,
+                )));
         }
 
         updated_scene.particles.update(dt);
@@ -298,15 +336,13 @@ impl Scene {
                     let overlap = MIN_OVERLAP.max(ball.get_radius() - intersection_vector.length());
                     position_offsets.push(intersection_vector.normalize() * overlap);
 
-                    let v_proj = ball
-                        .get_velocity()
-                        .project_onto(intersection_vector);
+                    let v_proj = ball.get_velocity().project_onto(intersection_vector);
 
                     if v_proj.length() > 30.0 {
                         collisions.push(Collision::new(
                             ball.get_sound_path().to_path_buf(),
                             ((v_proj.length() as f32 - 30.0) * 0.005).min(1.0),
-                            intersection_point
+                            intersection_point,
                         ));
                     }
                 }
@@ -317,7 +353,8 @@ impl Scene {
                     .iter()
                     .filter(|other_ball| ball.get_position() != other_ball.get_position())
                 {
-                    let intersection_point = ball.get_position().midpoint(other_ball.get_position());
+                    let intersection_point =
+                        ball.get_position().midpoint(other_ball.get_position());
                     let intersection_vector = ball.get_position() - other_ball.get_position();
 
                     if intersection_vector.length() < ball.get_radius() + other_ball.get_radius() {
@@ -327,9 +364,7 @@ impl Scene {
                         );
                         position_offsets.push(intersection_vector.normalize() * overlap);
 
-                        let v_proj = ball
-                            .get_velocity()
-                            .project_onto(intersection_vector);
+                        let v_proj = ball.get_velocity().project_onto(intersection_vector);
 
                         if v_proj.length() > 30.0 {
                             collisions.push(Collision::new(

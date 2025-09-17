@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use dyn_clone::DynClone;
 use glam::DVec2;
 use rand::{Rng, seq::IndexedRandom};
@@ -14,7 +16,9 @@ use crate::{
 pub mod change_density;
 pub mod change_elasticity;
 pub mod change_position;
-pub trait Powerup: Render + Send + Sync + DynClone {
+pub mod special;
+
+pub trait Powerup: Render + Send + Sync + DynClone + Any {
     fn is_colliding_with(&self, ball: &Ball) -> bool;
     fn apply(&self, ball: &mut Ball);
     fn consume(&mut self);
@@ -40,6 +44,7 @@ pub fn random_powerup(
             16.0..=(viewport_width - 16.0),
             16.0..=(viewport_height - 16.0),
         )),
+        // Box::new(Special::new(position, 8.0)),
     ];
 
     powerups.choose(rng).unwrap().clone()

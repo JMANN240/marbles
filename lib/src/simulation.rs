@@ -1,5 +1,4 @@
 use glam::{DVec2, dvec2};
-use itertools::Itertools;
 use palette::Srgba;
 use render_agnostic::Renderer;
 
