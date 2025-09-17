@@ -16,7 +16,9 @@ pub mod change_elasticity;
 pub mod change_position;
 pub trait Powerup: Render + Send + Sync + DynClone {
     fn is_colliding_with(&self, ball: &Ball) -> bool;
-    fn on_collision(&mut self, ball: &mut Ball);
+    fn apply(&self, ball: &mut Ball);
+    fn consume(&mut self);
+    fn is_active(&self) -> bool;
     fn update(&self, dt: f64) -> Box<dyn Powerup>;
 }
 

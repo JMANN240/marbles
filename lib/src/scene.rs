@@ -3,6 +3,7 @@ use std::{f64::consts::PI, time::Duration};
 use ::rand::random_range;
 use dyn_clone::DynClone;
 use glam::{DVec2, dvec2};
+use macroquad::{color::RED, shapes::draw_line};
 use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
 use render_agnostic::Renderer;
@@ -92,27 +93,119 @@ impl Scene {
         let mut collisions = Vec::new();
 
         for _ in 0..physics_steps {
-            collisions.append(&mut new_scene.step_physics(step_dt));
+            let (update_scene, mut update_collisions) = new_scene.step_physics(step_dt);
+            collisions.append(&mut update_collisions);
+            new_scene = update_scene;
         }
 
         (new_scene, collisions)
     }
 
-    pub fn step_physics(&mut self, dt: f64) -> Vec<Collision> {
-        let mut collisions = Vec::new();
+    pub fn step_physics(&self, dt: f64) -> (Self, Vec<Collision>) {
+        let stepped_velocities_scene = self.step_velocities(dt); // Overlapping old positions, new velocities
+        let (resolved_collisions_scene, collisions) = stepped_velocities_scene.resolve_collisions(); // NOT overlapping old positions, new velocities
 
-        let new_walls = self.walls.iter().map(|wall| wall.update(dt)).collect();
-        let new_powerups = self.powerups.iter().map(|powerup| powerup.update(dt)).collect();
+        let new_time = resolved_collisions_scene.time + dt;
 
-        self.walls = new_walls;
-        self.powerups = new_powerups;
+        let new_walls = resolved_collisions_scene
+            .get_walls()
+            .iter()
+            .map(|wall| wall.update(dt))
+            .collect::<Vec<Box<dyn Wall>>>();
 
-        let new_attributes: Vec<(DVec2, DVec2)> = self
+        let new_balls = resolved_collisions_scene // Overlapping new positions, new velocities, powered up
+            .get_balls()
+            .iter()
+            .map(|ball| {
+                let mut new_ball = ball.update(dt);
+
+                for powerup in resolved_collisions_scene.get_powerups() {
+                    if powerup.is_active() && powerup.is_colliding_with(ball) {
+                        powerup.apply(&mut new_ball);
+                    }
+                }
+
+                new_ball
+            })
+            .collect::<Vec<Ball>>();
+
+        let new_powerups = resolved_collisions_scene
+            .get_powerups()
+            .iter()
+            .map(|powerup| {
+                let mut new_powerup = powerup.update(dt);
+
+                for ball in resolved_collisions_scene.get_balls() {
+                    if powerup.is_colliding_with(ball) {
+                        new_powerup.consume();
+                    }
+                }
+
+                new_powerup
+            })
+            .collect();
+
+        let mut new_winners = resolved_collisions_scene.get_winners().clone();
+        let mut new_win_times = resolved_collisions_scene.get_win_times().clone();
+        let mut new_particles = resolved_collisions_scene.particles.clone();
+
+        for (index, ball) in new_balls.iter().enumerate() {
+            for wall in new_walls.iter() {
+                let maybe_intersection_point = ball.get_intersection_point(wall.as_ref());
+
+                if maybe_intersection_point.is_some() && wall.is_goal() && !self.winners.contains(&index) {
+                    new_winners.push(index);
+                    new_win_times.push(Duration::from_secs_f64(self.time));
+
+                    for _ in 0..100 {
+                        new_particles.add_particle(Box::new(ConfettiParticle::new(
+                            ball.get_position()
+                                + ball.get_radius()
+                                    * DVec2::from_angle(random_range(0.0..(2.0 * PI))),
+                            DVec2::from_angle(random_range((1.25 * PI)..(1.75 * PI)))
+                                * random_range(100.0..=1000.0),
+                            random_range(4.0..=8.0),
+                            2.0,
+                            ParticleLayer::random(),
+                        )));
+                    }
+                }
+            }
+        }
+
+        let mut updated_scene = Scene {
+            time: new_time,
+            balls: new_balls,
+            powerups: new_powerups,
+            walls: new_walls,
+            winners: new_winners,
+            win_times: new_win_times,
+            particles: new_particles,
+        };
+
+        for collision in &collisions {
+            updated_scene.particles.add_particle(Box::new(ShrinkingParticle::new(
+                collision.position,
+                DVec2::ZERO,
+                collision.volume as f64 * 10.0,
+                Srgba::new(1.0, 1.0, 1.0, 1.0),
+                0.2,
+                ParticleLayer::Front,
+            )));
+        }
+
+        updated_scene.particles.update(dt);
+
+        (updated_scene, collisions)
+    }
+
+    pub fn step_velocities(&self, dt: f64) -> Self {
+        let new_balls = self
             .balls
             .iter()
-            .enumerate()
-            .map(|(index, ball)| {
-                let mut position_offsets = Vec::new();
+            .map(|ball| {
+                let mut new_ball = ball.clone();
+
                 let mut velocity_offsets = Vec::new();
 
                 // Gravity
@@ -120,57 +213,14 @@ impl Scene {
 
                 // Walls
                 let wall_intersection_points = self
-                    .walls
+                    .get_walls()
                     .iter()
-                    .filter_map(|wall| {
-                        let maybe_intersection_point = ball.get_intersection_point(wall.as_ref());
-
-                        if let Some(intersection_point) = maybe_intersection_point {
-                            let intersection_vector = ball.get_position() - intersection_point;
-
-                            let v_dot = ball
-                                .get_velocity()
-                                .dot(intersection_vector.normalize())
-                                .abs();
-                            if v_dot >= 100.0 {
-                                self.particles.add_particle(Box::new(ShrinkingParticle::new(
-                                    intersection_point,
-                                    DVec2::ZERO,
-                                    v_dot.sqrt() / 2.0,
-                                    Srgba::new(1.0, 1.0, 1.0, 1.0),
-                                    0.2,
-                                    ParticleLayer::Front,
-                                )));
-                            }
-
-                            if wall.is_goal() && !self.winners.contains(&index) {
-                                self.winners.push(index);
-                                self.win_times.push(Duration::from_secs_f64(self.time));
-
-                                for _ in 0..100 {
-                                    self.particles.add_particle(Box::new(ConfettiParticle::new(
-                                        ball.get_position()
-                                            + ball.get_radius()
-                                                * DVec2::from_angle(random_range(0.0..(2.0 * PI))),
-                                        DVec2::from_angle(random_range((1.25 * PI)..(1.75 * PI)))
-                                            * random_range(100.0..=1000.0),
-                                        random_range(4.0..=8.0),
-                                        2.0,
-                                        ParticleLayer::random(),
-                                    )));
-                                }
-                            }
-                        }
-
-                        maybe_intersection_point
-                    })
+                    .filter_map(|wall| ball.get_intersection_point(wall.as_ref()))
                     .collect::<Vec<DVec2>>();
                 let number_of_wall_intersection_points = wall_intersection_points.len();
 
                 for intersection_point in wall_intersection_points {
                     let intersection_vector = ball.get_position() - intersection_point;
-                    let overlap = MIN_OVERLAP.max(ball.get_radius() - intersection_vector.length());
-                    position_offsets.push(intersection_vector.normalize() * overlap);
                     velocity_offsets.push(
                         -((2.0 * ball.get_velocity()).dot(intersection_vector)
                             / (intersection_vector.length() * intersection_vector.length()))
@@ -182,33 +232,13 @@ impl Scene {
 
                 // Other balls {
                 for other_ball in self
-                    .balls
+                    .get_balls()
                     .iter()
                     .filter(|other_ball| ball.get_position() != other_ball.get_position())
                 {
                     let intersection_vector = ball.get_position() - other_ball.get_position();
 
                     if intersection_vector.length() < ball.get_radius() + other_ball.get_radius() {
-                        let v_dot = ball
-                            .get_velocity()
-                            .dot(intersection_vector.normalize())
-                            .abs();
-                        if v_dot >= 100.0 {
-                            self.particles.add_particle(Box::new(ShrinkingParticle::new(
-                                ball.get_position().midpoint(other_ball.get_position()),
-                                DVec2::ZERO,
-                                v_dot.sqrt() / 2.0,
-                                Srgba::new(1.0, 1.0, 1.0, 1.0),
-                                0.2,
-                                ParticleLayer::Front,
-                            )));
-                        }
-
-                        let overlap = MIN_OVERLAP.max(
-                            ball.get_radius() + other_ball.get_radius()
-                                - intersection_vector.length(),
-                        );
-                        position_offsets.push(intersection_vector.normalize() * overlap);
                         velocity_offsets.push(
                             -(2.0 * other_ball.get_physics_ball().get_mass()
                                 / (ball.get_physics_ball().get_mass()
@@ -223,45 +253,109 @@ impl Scene {
                     }
                 }
 
-                let new_position = ball.get_position() + position_offsets.iter().sum::<DVec2>();
-                let new_velocity = ball.get_velocity() + velocity_offsets.iter().sum::<DVec2>();
+                let velocity_offset = velocity_offsets.iter().sum::<DVec2>();
+
+                let new_velocity = ball.get_velocity() + velocity_offset;
 
                 let dv = new_velocity.distance(ball.get_velocity());
-                let _v_dot = new_velocity.dot(ball.get_velocity());
 
                 if dv >= 100.0 {
-                    let volume = ((dv - 100.0) / 2000.0).min(1.0) as f32;
-
-                    collisions.push(Collision::new(ball.get_sound_path().to_path_buf(), volume));
+                    new_ball.handle_collision(new_velocity);
                 }
 
-                (new_position, new_velocity)
+                new_ball.set_velocity(new_velocity);
+
+                new_ball
             })
             .collect();
 
-        for (ball, (new_position, new_velocity)) in self.balls.iter_mut().zip(new_attributes) {
-            ball.set_position(new_position);
-
-            let dv = new_velocity.distance(ball.get_velocity());
-            if dv >= 100.0 {
-                ball.handle_collision(new_velocity);
-            }
-            ball.set_velocity(new_velocity);
-
-            *ball = ball.update(dt);
-
-            for powerup in self.powerups.iter_mut() {
-                if powerup.is_colliding_with(ball) {
-                    powerup.on_collision(ball);
-                }
-            }
+        Self {
+            balls: new_balls,
+            ..self.clone()
         }
+    }
 
-        self.particles.update(dt);
+    pub fn resolve_collisions(&self) -> (Self, Vec<Collision>) {
+        let mut collisions = Vec::new();
 
-        self.time += dt;
+        let new_balls = self
+            .balls
+            .iter()
+            .map(|ball| {
+                let mut new_ball = ball.clone();
 
-        collisions
+                let mut position_offsets = Vec::new();
+
+                // Walls
+                let wall_intersection_points = self
+                    .get_walls()
+                    .iter()
+                    .filter_map(|wall| ball.get_intersection_point(wall.as_ref()))
+                    .collect::<Vec<DVec2>>();
+
+                for intersection_point in wall_intersection_points {
+                    let intersection_vector = ball.get_position() - intersection_point;
+                    let overlap = MIN_OVERLAP.max(ball.get_radius() - intersection_vector.length());
+                    position_offsets.push(intersection_vector.normalize() * overlap);
+
+                    let v_proj = ball
+                        .get_velocity()
+                        .project_onto(intersection_vector);
+
+                    if v_proj.length() > 30.0 {
+                        collisions.push(Collision::new(
+                            ball.get_sound_path().to_path_buf(),
+                            ((v_proj.length() as f32 - 30.0) * 0.005).min(1.0),
+                            intersection_point
+                        ));
+                    }
+                }
+
+                // Other balls {
+                for other_ball in self
+                    .get_balls()
+                    .iter()
+                    .filter(|other_ball| ball.get_position() != other_ball.get_position())
+                {
+                    let intersection_point = ball.get_position().midpoint(other_ball.get_position());
+                    let intersection_vector = ball.get_position() - other_ball.get_position();
+
+                    if intersection_vector.length() < ball.get_radius() + other_ball.get_radius() {
+                        let overlap = MIN_OVERLAP.max(
+                            ball.get_radius() + other_ball.get_radius()
+                                - intersection_vector.length(),
+                        );
+                        position_offsets.push(intersection_vector.normalize() * overlap);
+
+                        let v_proj = ball
+                            .get_velocity()
+                            .project_onto(intersection_vector);
+
+                        if v_proj.length() > 30.0 {
+                            collisions.push(Collision::new(
+                                ball.get_sound_path().to_path_buf(),
+                                ((v_proj.length() as f32 - 30.0) * 0.005).min(1.0),
+                                intersection_point,
+                            ));
+                        }
+                    }
+                }
+
+                let position_offset = position_offsets.iter().sum::<DVec2>();
+
+                new_ball.set_position(ball.get_position() + position_offset);
+
+                new_ball
+            })
+            .collect();
+
+        (
+            Self {
+                balls: new_balls,
+                ..self.clone()
+            },
+            collisions,
+        )
     }
 }
 

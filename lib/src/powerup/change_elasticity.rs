@@ -81,24 +81,28 @@ impl Powerup for ChangeElasticity {
         self.get_position().distance(ball.get_position()) < self.radius + ball.get_radius()
     }
 
-    fn on_collision(&mut self, ball: &mut Ball) {
-        if self.is_active {
-            ball.set_elasticity(ball.get_elasticity() * self.amount);
+    fn apply(&self, ball: &mut Ball) {
+        ball.set_elasticity(ball.get_elasticity() * self.amount);
 
-            let mut new_particles = BallParticleSystem::default();
-
-            for particle in self.particles.iter_particles() {
-                new_particles.add_particle(particle.clone());
-            }
-
-            for emitter in self.particles.iter_emitters() {
-                ball.get_particles_mut().add_emitter(emitter.clone());
-            }
-
-            self.particles = new_particles;
-
-            self.is_active = false;
+        for emitter in self.particles.iter_emitters() {
+            ball.get_particles_mut().add_emitter(emitter.clone());
         }
+    }
+
+    fn consume(&mut self) {
+        let mut new_particles = BallParticleSystem::default();
+
+        for particle in self.particles.iter_particles() {
+            new_particles.add_particle(particle.clone());
+        }
+
+        self.particles = new_particles;
+
+        self.is_active = false;
+    }
+
+    fn is_active(&self) -> bool {
+        self.is_active
     }
 
     fn update(&self, dt: f64) -> Box<dyn Powerup> {

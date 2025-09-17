@@ -4,17 +4,19 @@ use std::{
     time::Duration,
 };
 
+use glam::DVec2;
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
 
 #[derive(Debug)]
 pub struct Collision {
     pub sound_path: PathBuf,
     pub volume: f32,
+    pub position: DVec2,
 }
 
 impl Collision {
-    pub fn new(sound_path: PathBuf, volume: f32) -> Self {
-        Self { sound_path, volume }
+    pub fn new(sound_path: PathBuf, volume: f32, position: DVec2) -> Self {
+        Self { sound_path, volume, position }
     }
 }
 

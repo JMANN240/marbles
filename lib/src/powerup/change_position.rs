@@ -104,23 +104,27 @@ impl Powerup for ChangePosition {
         self.get_position().distance(ball.get_position()) < self.radius + ball.get_radius()
     }
 
-    fn on_collision(&mut self, ball: &mut Ball) {
-        if self.is_active {
-            ball.set_position(dvec2(
-                random_range(self.x_range.clone()),
-                random_range(self.y_range.clone()),
-            ));
+    fn apply(&self, ball: &mut Ball) {
+        ball.set_position(dvec2(
+            random_range(self.x_range.clone()),
+            random_range(self.y_range.clone()),
+        ));
+    }
 
-            let mut new_particles = BallParticleSystem::default();
+    fn consume(&mut self) {
+        let mut new_particles = BallParticleSystem::default();
 
-            for particle in self.particles.iter_particles() {
-                new_particles.add_particle(particle.clone());
-            }
-
-            self.particles = new_particles;
-
-            self.is_active = false;
+        for particle in self.particles.iter_particles() {
+            new_particles.add_particle(particle.clone());
         }
+
+        self.particles = new_particles;
+
+        self.is_active = false;
+    }
+
+    fn is_active(&self) -> bool {
+        self.is_active
     }
 
     fn update(&self, dt: f64) -> Box<dyn Powerup> {
