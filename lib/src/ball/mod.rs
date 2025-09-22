@@ -12,7 +12,7 @@ use render_agnostic::Renderer;
 use crate::{
     drawer::BallStyle,
     particle::{ParticleLayer, ShrinkingParticle, system::BallParticleSystem},
-    util::lerp_color,
+    util::{ValueOverTime, lerp_color},
     wall::Wall,
 };
 
@@ -58,6 +58,10 @@ impl Ball {
         &self.physics_ball
     }
 
+    pub fn get_physics_ball_mut(&mut self) -> &mut PhysicsBall {
+        &mut self.physics_ball
+    }
+
     pub fn get_style(&self) -> &dyn BallStyle {
         self.style.as_ref()
     }
@@ -66,6 +70,14 @@ impl Ball {
         self.get_particles().render_back(renderer);
         self.get_style().render(self, renderer);
         self.get_particles().render_front(renderer);
+    }
+
+    pub fn get_time(&self) -> f64 {
+        self.physics_ball.get_time()
+    }
+
+    pub fn set_time(&mut self, time: f64) {
+        self.physics_ball.set_time(time);
     }
 
     pub fn get_position(&self) -> DVec2 {
@@ -148,7 +160,17 @@ impl Ball {
     pub fn update(&self, dt: f64) -> Self {
         let mut new_ball = self.clone();
 
-        new_ball.set_position(new_ball.get_position() + new_ball.get_velocity() * dt);
+        new_ball.set_time(new_ball.get_time() + dt);
+
+        new_ball.set_position(
+            new_ball.get_position()
+                + new_ball.get_velocity()
+                    * dt
+                    * new_ball
+                        .get_physics_ball()
+                        .get_velocity_coefficient()
+                        .get_value(new_ball.get_time()),
+        );
 
         let position = new_ball.get_position();
 
@@ -169,8 +191,11 @@ impl Ball {
 
 #[derive(Clone)]
 pub struct PhysicsBall {
+    time: f64,
     position: DVec2,
     velocity: DVec2,
+    velocity_coefficient: ValueOverTime,
+    gravity_coefficient: ValueOverTime,
     radius: f64,
     density: f64,
     elasticity: f64,
@@ -185,12 +210,23 @@ impl PhysicsBall {
         elasticity: f64,
     ) -> Self {
         Self {
+            time: 0.0,
             position,
             velocity,
+            velocity_coefficient: ValueOverTime::new(1.0),
+            gravity_coefficient: ValueOverTime::new(1.0),
             radius,
             density,
             elasticity,
         }
+    }
+
+    pub fn get_time(&self) -> f64 {
+        self.time
+    }
+
+    pub fn set_time(&mut self, time: f64) {
+        self.time = time;
     }
 
     pub fn get_position(&self) -> DVec2 {
@@ -207,6 +243,22 @@ impl PhysicsBall {
 
     pub fn set_velocity(&mut self, velocity: DVec2) {
         self.velocity = velocity;
+    }
+
+    pub fn get_velocity_coefficient(&self) -> &ValueOverTime {
+        &self.velocity_coefficient
+    }
+
+    pub fn get_velocity_coefficient_mut(&mut self) -> &mut ValueOverTime {
+        &mut self.velocity_coefficient
+    }
+
+    pub fn get_gravity_coefficient(&self) -> &ValueOverTime {
+        &self.gravity_coefficient
+    }
+
+    pub fn get_gravity_coefficient_mut(&mut self) -> &mut ValueOverTime {
+        &mut self.gravity_coefficient
     }
 
     pub fn get_radius(&self) -> f64 {

@@ -8,7 +8,7 @@ use crate::{
     ball::Ball,
     powerup::{
         change_density::ChangeDensity, change_elasticity::ChangeElasticity,
-        change_position::ChangePosition,
+        change_position::ChangePosition, special::Special,
     },
     rendering::Render,
 };
@@ -35,16 +35,16 @@ pub fn random_powerup(
     viewport_height: f64,
 ) -> Box<dyn Powerup> {
     let powerups: Vec<Box<dyn Powerup>> = vec![
-        Box::new(ChangeElasticity::new(position, 8.0, 0.9)),
-        Box::new(ChangeDensity::new(position, 8.0, 4.0)),
-        Box::new(ChangePosition::new(
-            position,
-            "Teleport",
-            8.0,
-            16.0..=(viewport_width - 16.0),
-            16.0..=(viewport_height - 16.0),
-        )),
-        // Box::new(Special::new(position, 8.0)),
+        // Box::new(ChangeElasticity::new(position, 8.0, 0.9)),
+        // Box::new(ChangeDensity::new(position, 8.0, 4.0)),
+        // Box::new(ChangePosition::new(
+        //     position,
+        //     "Teleport",
+        //     8.0,
+        //     16.0..=(viewport_width - 16.0),
+        //     16.0..=(viewport_height - 16.0),
+        // )),
+        Box::new(Special::new(position, 8.0)),
     ];
 
     powerups.choose(rng).unwrap().clone()

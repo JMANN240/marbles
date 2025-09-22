@@ -149,7 +149,7 @@ async fn main() {
             .unwrap()
             .message
             .unwrap_or(Message {
-                message: "Please buy a custom message, I need to pay my mortgage!".to_string(),
+                message: "Want to reach thousands of    people? Buy a custom message!".to_string(),
                 user: "QMR".to_string(),
             });
 

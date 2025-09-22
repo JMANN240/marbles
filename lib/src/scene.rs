@@ -1,8 +1,4 @@
-use std::{
-    any::Any,
-    f64::consts::PI,
-    time::Duration,
-};
+use std::{any::Any, f64::consts::PI, time::Duration};
 
 use ::rand::random_range;
 use dyn_clone::DynClone;
@@ -134,6 +130,15 @@ impl Scene {
                             if (powerup.as_ref() as &dyn Any).is::<Special>() {
                                 if new_ball.get_name() == "Black Hole" {
                                     new_ball.set_density(1000.0);
+                                } else if new_ball.get_name() == "Green Machine" {
+                                    let new_physics_ball = new_ball.get_physics_ball_mut();
+                                    let new_physics_ball_time = new_physics_ball.get_time();
+                                    new_physics_ball
+                                        .get_velocity_coefficient_mut()
+                                        .add_modifier(
+                                            new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                            2.0,
+                                        );
                                 }
                             }
                         }
@@ -147,10 +152,36 @@ impl Scene {
                                 && powerup.is_colliding_with(other_ball)
                             {
                                 if other_ball.get_name() == "Fireball" {
-                                    let direction = new_ball.get_position() - other_ball.get_position();
+                                    let direction =
+                                        new_ball.get_position() - other_ball.get_position();
 
                                     new_ball.set_velocity(
-                                        direction.normalize() * 200000.0 / (direction.length() + 200.0),
+                                        direction.normalize() * 200000.0
+                                            / (direction.length() + 200.0),
+                                    );
+                                } else if other_ball.get_name() == "White Light" {
+                                    new_ball.set_velocity(DVec2::ZERO);
+
+                                    let new_physics_ball = new_ball.get_physics_ball_mut();
+                                    let new_physics_ball_time = new_physics_ball.get_time();
+                                    new_physics_ball
+                                        .get_gravity_coefficient_mut()
+                                        .add_modifier(
+                                            new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                            0.0,
+                                        );
+                                } else if other_ball.get_name() == "Deep Blue" {
+                                    let new_physics_ball = new_ball.get_physics_ball_mut();
+                                    let new_physics_ball_time = new_physics_ball.get_time();
+                                    new_physics_ball
+                                        .get_velocity_coefficient_mut()
+                                        .add_modifier(
+                                            new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                            0.5,
+                                        );
+                                    new_physics_ball.get_gravity_coefficient_mut().add_modifier(
+                                        new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                        0.05,
                                     );
                                 }
                             }
@@ -169,8 +200,24 @@ impl Scene {
                 let mut new_powerup = powerup.update(dt);
 
                 for ball in resolved_collisions_scene.get_balls() {
-                    if powerup.is_colliding_with(ball) {
-                        new_powerup.consume();
+                    if powerup.is_active() {
+                        if powerup.is_colliding_with(ball) {
+                            new_powerup.consume();
+
+                            if let Some(special) = (new_powerup.as_mut() as &mut dyn Any).downcast_mut::<Special>() {
+                                if ball.get_name() == "Black Hole" {
+                                    special.set_text("SUPERMASSIVE");
+                                } else if ball.get_name() == "Green Machine" {
+                                    special.set_text("FASTFORWARD");
+                                } else if ball.get_name() == "Fireball" {
+                                    special.set_text("EXPLOSION");
+                                } else if ball.get_name() == "White Light" {
+                                    special.set_text("FREEZEFRAME");
+                                } else if ball.get_name() == "Deep Blue" {
+                                    special.set_text("UNDERWATER");
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -247,7 +294,7 @@ impl Scene {
                 let mut velocity_offsets = Vec::new();
 
                 // Gravity
-                velocity_offsets.push(dvec2(0.0, 500.0) * dt);
+                velocity_offsets.push(dvec2(0.0, 500.0) * dt * new_ball.get_physics_ball().get_gravity_coefficient().get_value(new_ball.get_time()));
 
                 // Walls
                 let wall_intersection_points = self

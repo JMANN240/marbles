@@ -5,11 +5,7 @@ use palette::{FromColor, Oklcha, Srgba};
 use rand::random_range;
 use render_agnostic::Renderer;
 
-use crate::{
-    ball::Ball,
-    powerup::Powerup,
-    rendering::Render,
-};
+use crate::{ball::Ball, powerup::Powerup, rendering::Render};
 
 pub struct SpecialConfig {
     radius: f64,
@@ -17,16 +13,11 @@ pub struct SpecialConfig {
 
 impl SpecialConfig {
     pub fn new(radius: f64) -> Self {
-        Self {
-            radius,
-        }
+        Self { radius }
     }
 
     pub fn build(&self, position: DVec2) -> Special {
-        Special::new(
-            position,
-            self.radius,
-        )
+        Special::new(position, self.radius)
     }
 }
 
@@ -38,13 +29,12 @@ pub struct Special {
     is_active: bool,
     last_color_change_time: Option<f64>,
     color: Srgba,
+    text: String,
+    consumed_time: Option<f64>,
 }
 
 impl Special {
-    pub fn new(
-        position: DVec2,
-        radius: f64,
-    ) -> Self {
+    pub fn new(position: DVec2, radius: f64) -> Self {
         Self {
             time: 0.0,
             position,
@@ -52,11 +42,17 @@ impl Special {
             is_active: true,
             last_color_change_time: None,
             color: Srgba::from_color(Oklcha::new(1.0, 0.5, random_range(0.0..360.0), 1.0)),
+            text: String::default(),
+            consumed_time: None,
         }
     }
 
     pub fn get_position(&self) -> DVec2 {
         self.position + 2.0 * (self.time * 4.0).sin() * DVec2::Y
+    }
+
+    pub fn set_text(&mut self, text: impl Into<String>) {
+        self.text = text.into();
     }
 }
 
@@ -69,6 +65,7 @@ impl Powerup for Special {
 
     fn consume(&mut self) {
         self.is_active = false;
+        self.consumed_time = Some(self.time);
     }
 
     fn is_active(&self) -> bool {
@@ -80,8 +77,12 @@ impl Powerup for Special {
 
         new_powerup.time += dt;
 
-        if new_powerup.last_color_change_time.is_none_or(|last_color_change_time| new_powerup.time > last_color_change_time + 0.1) {
-            new_powerup.color = Srgba::from_color(Oklcha::new(1.0, 0.5, random_range(0.0..360.0), 1.0));
+        if new_powerup
+            .last_color_change_time
+            .is_none_or(|last_color_change_time| new_powerup.time > last_color_change_time + 0.1)
+        {
+            new_powerup.color =
+                Srgba::from_color(Oklcha::new(1.0, 0.5, random_range(0.0..360.0), 1.0));
             new_powerup.last_color_change_time = Some(new_powerup.time);
         }
 
@@ -105,9 +106,31 @@ impl Render for Special {
             );
 
             for i in 0..16 {
-                let start = self.get_position() + DVec2::from_angle(self.time * 2.123123 + TAU * i as f64 / 16.0) * self.radius * (1.0 + (self.time * 4.123123).cos() / 2.0);
-                let end = self.get_position() + DVec2::from_angle(self.time * 3.456456 + TAU * i as f64 / 16.0) * self.radius * (1.0 - (self.time * 5.456456).cos() / 2.0);
+                let start = self.get_position()
+                    + DVec2::from_angle(self.time * 2.123123 + TAU * i as f64 / 16.0)
+                        * self.radius
+                        * (1.0 + (self.time * 4.123123).cos() / 2.0);
+                let end = self.get_position()
+                    + DVec2::from_angle(self.time * 3.456456 + TAU * i as f64 / 16.0)
+                        * self.radius
+                        * (1.0 - (self.time * 5.456456).cos() / 2.0);
                 renderer.render_line(start, end, 1.0, self.color);
+            }
+        } else {
+            if let Some(consumed_time) = self.consumed_time && self.time < consumed_time + 2.0 {
+                let time_since_consumption = self.time - consumed_time;
+
+                let text_alpha = 1.0f64.min(2.0 - time_since_consumption);
+
+                renderer.render_text_outline(
+                    &self.text,
+                    self.position + DVec2::NEG_Y * 10.0 * time_since_consumption,
+                    anchor2d::CGC,
+                    24.0,
+                    1.0,
+                    Srgba::new(1.0, 1.0, 1.0, text_alpha as f32),
+                    Srgba::new(0.0, 0.0, 0.0, text_alpha as f32),
+                );
             }
         }
     }

@@ -1,4 +1,4 @@
-use std::{error::Error, path::Path, process::ExitStatus};
+use std::{error::Error, ops::RangeInclusive, path::Path, process::ExitStatus};
 
 use glam::DVec2;
 #[cfg(feature = "image")]
@@ -195,4 +195,32 @@ pub struct Message {
 #[derive(Deserialize)]
 pub struct MaybeMessage {
     pub message: Option<Message>,
+}
+
+#[derive(Clone)]
+pub struct ValueOverTime {
+    base_value: f64,
+    modifiers: Vec<(RangeInclusive<f64>, f64)>,
+}
+
+impl ValueOverTime {
+    pub fn new(base_value: f64) -> Self {
+        Self { base_value, modifiers: Vec::new() }
+    }
+
+    pub fn get_value(&self, time: f64) -> f64 {
+        let mut value = self.base_value;
+
+        for (time_range, modified_value) in &self.modifiers {
+            if time_range.contains(&time) {
+                value = *modified_value;
+            }
+        }
+
+        value
+    }
+
+    pub fn add_modifier(&mut self, time_range: RangeInclusive<f64>, modified_value: f64) {
+        self.modifiers.push((time_range, modified_value));
+    }
 }
