@@ -100,6 +100,10 @@ impl Ball {
         self.physics_ball.get_radius()
     }
 
+    pub fn set_radius(&mut self, radius: f64) {
+        self.physics_ball.set_radius(radius)
+    }
+
     pub fn get_density(&self) -> f64 {
         self.physics_ball.get_density()
     }
@@ -263,6 +267,10 @@ impl PhysicsBall {
 
     pub fn get_radius(&self) -> f64 {
         self.radius
+    }
+
+    pub fn set_radius(&mut self, radius: f64) {
+        self.radius = radius;
     }
 
     pub fn get_density(&self) -> f64 {

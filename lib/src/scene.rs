@@ -137,8 +137,10 @@ impl Scene {
                                         .get_velocity_coefficient_mut()
                                         .add_modifier(
                                             new_physics_ball_time..=(new_physics_ball_time + 10.0),
-                                            2.0,
+                                            4.0,
                                         );
+                                } else if new_ball.get_name() == "IKEA" {
+                                    new_ball.set_radius(ball.get_radius() * 0.5);
                                 }
                             }
                         }
@@ -215,6 +217,8 @@ impl Scene {
                                     special.set_text("FREEZEFRAME");
                                 } else if ball.get_name() == "Deep Blue" {
                                     special.set_text("UNDERWATER");
+                                } else if ball.get_name() == "IKEA" {
+                                    special.set_text("JUNIOR");
                                 }
                             }
                         }

@@ -21,11 +21,11 @@ scene = 1
 # sound = "piano_c6.wav"
 
 [[balls]]
-name = "IKEA Jr."
+name = "IKEA"
 r = 1.0
 g = 0.8
 b = 0.0
-radius = 4
+radius = 8
 density = 1
 elasticity = 0.9
 sound = "piano_c7.wav"
