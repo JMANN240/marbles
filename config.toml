@@ -28,7 +28,7 @@ b = 0.0
 radius = 8
 density = 1
 elasticity = 0.9
-sound = "piano_c7.wav"
+sound = "ikea_g5.wav"
 
 [[balls]]
 name = "Green Machine"
@@ -38,7 +38,7 @@ b = 0.2
 radius = 8
 density = 1
 elasticity = 0.9
-sound = "piano_c6.wav"
+sound = "greenmachine_e5.wav"
 
 [[balls]]
 name = "Deep Blue"
@@ -48,7 +48,7 @@ b = 1.0
 radius = 8
 density = 1
 elasticity = 0.9
-sound = "piano_e6.wav"
+sound = "deepblue_e5.wav"
 
 # [[balls]]
 # name = "Blue's Wife"
@@ -68,7 +68,7 @@ b = 0.1
 radius = 8
 density = 1
 elasticity = 0.9
-sound = "piano_g6.wav"
+sound = "fireball_c4.wav"
 
 [[balls]]
 name = "White Light"
@@ -78,7 +78,7 @@ b = 1.0
 radius = 8
 density = 1
 elasticity = 0.9
-sound = "piano_c7.wav"
+sound = "whitelight_c6.wav"
 
 # [[balls]]
 # name = "White's Brother"
@@ -98,4 +98,4 @@ b = 1.0
 radius = 8
 density = 1
 elasticity = 0.9
-sound = "piano_c7.wav"
+sound = "blackhole_g4.wav"

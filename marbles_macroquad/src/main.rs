@@ -94,6 +94,12 @@ async fn main() {
     sounds.insert("piano_e6.wav", load_sound("piano_e6.wav").await.unwrap());
     sounds.insert("piano_g6.wav", load_sound("piano_g6.wav").await.unwrap());
     sounds.insert("piano_c7.wav", load_sound("piano_c7.wav").await.unwrap());
+    sounds.insert("deepblue_e5.wav", load_sound("deepblue_e5.wav").await.unwrap());
+    sounds.insert("fireball_c4.wav", load_sound("fireball_c4.wav").await.unwrap());
+    sounds.insert("whitelight_c6.wav", load_sound("whitelight_c6.wav").await.unwrap());
+    sounds.insert("blackhole_g4.wav", load_sound("blackhole_g4.wav").await.unwrap());
+    sounds.insert("greenmachine_e5.wav", load_sound("greenmachine_e5.wav").await.unwrap());
+    sounds.insert("ikea_g5.wav", load_sound("ikea_g5.wav").await.unwrap());
 
     let images_path = Path::new("images/macroquad/");
     let videos_path = Path::new("videos/macroquad/");
