@@ -1,7 +1,7 @@
 /target
 /images
 /videos
-*.wav
+output.wav
 youtube_client_secrets.json
 youtube_token.json
 .env
