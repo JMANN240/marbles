@@ -6,6 +6,7 @@ use std::{
 
 use glam::DVec2;
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
+use itertools::Itertools;
 
 #[derive(Debug)]
 pub struct Collision {
@@ -56,7 +57,9 @@ pub fn render_collisions<P: AsRef<Path>>(
         let time_sec = *frame as f32 / 60.0;
         let offset_samples = (2.0 * time_sec * sample_rate as f32).round() as usize;
 
-        for collision in collisions {
+        let unique_collisions = collisions.iter().unique_by(|collision| &collision.sound_path).collect::<Vec<_>>();
+
+        for collision in unique_collisions {
             let samples = sound_samples.get(&collision.sound_path).unwrap();
 
             for (index, sample) in samples.iter().enumerate() {

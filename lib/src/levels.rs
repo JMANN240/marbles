@@ -185,7 +185,7 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
             .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
             .collect();
 
-    let wall_size = scene_width / 2.0 - 9.0;
+    let wall_size = scene_width / 2.0 - 10.0;
 
     walls.push(Box::new(StraightWall::new(
         Line::new(dvec2(0.0, 400.0), dvec2(wall_size, 400.0 + wall_size)),
@@ -199,14 +199,20 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
         false,
     )));
 
+    let ball_y =  scene_height * 0.1;
+
     Level::new(
         BallSpace::spaced_evenly(
             n,
-            dvec2(0.0, 50.0),
-            dvec2(scene_width, 50.0),
-            dvec2(100.0, 0.0),
+            dvec2(0.0, ball_y),
+            dvec2(scene_width, ball_y),
+            dvec2(0.0, 0.0),
         ),
-        Vec::new(),
+        vec![
+            PowerupSpace::new(dvec2(scene_width * 0.1, scene_height * 0.05)),
+            PowerupSpace::new(dvec2(scene_width / 2.0, scene_height * 0.33)),
+            PowerupSpace::new(dvec2(scene_width * 0.9, scene_height * 0.05)),
+        ],
         walls,
     )
 }

@@ -98,6 +98,7 @@ async fn main() {
     sounds.insert("fireball_c4.wav", load_sound("fireball_c4.wav").await.unwrap());
     sounds.insert("whitelight_c6.wav", load_sound("whitelight_c6.wav").await.unwrap());
     sounds.insert("blackhole_g4.wav", load_sound("blackhole_g4.wav").await.unwrap());
+    sounds.insert("greenmachine_e4.wav", load_sound("greenmachine_e4.wav").await.unwrap());
     sounds.insert("greenmachine_e5.wav", load_sound("greenmachine_e5.wav").await.unwrap());
     sounds.insert("ikea_g5.wav", load_sound("ikea_g5.wav").await.unwrap());
 
