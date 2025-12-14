@@ -8,4 +8,4 @@ glam = "0.30.5"
 image = { version = "0.25.6" }
 macroquad = { version = "0.4.14", features = ["audio", "glam-serde"] }
 palette = "0.7.6"
-render-agnostic = { version = "0.1.7", default-features = false }
+render-agnostic = { version = "0.1.15", default-features = false }

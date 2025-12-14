@@ -5,6 +5,7 @@ use dyn_clone::DynClone;
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
+use rand::{rng, rngs::ThreadRng, seq::SliceRandom};
 use render_agnostic::Renderer;
 
 use crate::{
@@ -64,6 +65,10 @@ impl Scene {
         &mut self.balls
     }
 
+    pub fn get_current_winner(&self) -> Option<&Ball> {
+        self.get_balls().iter().max_by_key(|ball| ball.get_position().y as i32)
+    }
+
     pub fn get_walls(&self) -> &Vec<Box<dyn Wall>> {
         &self.walls
     }
@@ -116,7 +121,9 @@ impl Scene {
             .map(|wall| wall.update(dt))
             .collect::<Vec<Box<dyn Wall>>>();
 
-        let new_balls = resolved_collisions_scene // Overlapping new positions, new velocities, powered up
+        let mut should_shuffle = false;
+
+        let mut new_balls = resolved_collisions_scene // Overlapping new positions, new velocities, powered up
             .get_balls()
             .iter()
             .map(|ball| {
@@ -128,19 +135,38 @@ impl Scene {
                             powerup.apply(&mut new_ball);
 
                             if (powerup.as_ref() as &dyn Any).is::<Special>() {
-                                if new_ball.get_name() == "Black Hole" {
+                                if new_ball.get_id() == "Black Hole" {
                                     new_ball.set_density(1000.0);
-                                } else if new_ball.get_name() == "Green Machine" {
+                                    new_ball.set_name(format!("Supermassive {}", ball.get_name()));
+                                } else if new_ball.get_id() == "Green Machine" {
                                     let new_physics_ball = new_ball.get_physics_ball_mut();
                                     let new_physics_ball_time = new_physics_ball.get_time();
                                     new_physics_ball
                                         .get_velocity_coefficient_mut()
                                         .add_modifier(
                                             new_physics_ball_time..=(new_physics_ball_time + 10.0),
-                                            4.0,
+                                            2.0,
                                         );
-                                } else if new_ball.get_name() == "IKEA" {
+                                    new_physics_ball
+                                        .get_gravity_coefficient_mut()
+                                        .add_modifier(
+                                            new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                            2.0,
+                                        );
+                                } else if new_ball.get_id() == "IKEA" {
                                     new_ball.set_radius(ball.get_radius() * 0.5);
+                                    new_ball.set_name(format!("{} Junior", ball.get_name()));
+                                } else if new_ball.get_id() == "Psycho" {
+                                    let new_physics_ball = new_ball.get_physics_ball_mut();
+                                    let new_physics_ball_time = new_physics_ball.get_time();
+                                    new_physics_ball
+                                        .get_bloodbath_mut()
+                                        .add_modifier(
+                                            new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                            true,
+                                        );
+                                } else if new_ball.get_id() == "Instabwillity" {
+                                    should_shuffle = true;
                                 }
                             }
                         }
@@ -153,7 +179,7 @@ impl Scene {
                             if (powerup.as_ref() as &dyn Any).is::<Special>()
                                 && powerup.is_colliding_with(other_ball)
                             {
-                                if other_ball.get_name() == "Fireball" {
+                                if other_ball.get_id() == "Fireball" {
                                     let direction =
                                         new_ball.get_position() - other_ball.get_position();
 
@@ -161,7 +187,7 @@ impl Scene {
                                         direction.normalize() * 200000.0
                                             / (direction.length() + 200.0),
                                     );
-                                } else if other_ball.get_name() == "White Light" {
+                                } else if other_ball.get_id() == "White Light" {
                                     new_ball.set_velocity(DVec2::ZERO);
 
                                     let new_physics_ball = new_ball.get_physics_ball_mut();
@@ -172,7 +198,7 @@ impl Scene {
                                             new_physics_ball_time..=(new_physics_ball_time + 10.0),
                                             0.0,
                                         );
-                                } else if other_ball.get_name() == "Deep Blue" {
+                                } else if other_ball.get_id() == "Deep Blue" {
                                     let new_physics_ball = new_ball.get_physics_ball_mut();
                                     let new_physics_ball_time = new_physics_ball.get_time();
                                     new_physics_ball
@@ -185,6 +211,50 @@ impl Scene {
                                         new_physics_ball_time..=(new_physics_ball_time + 10.0),
                                         0.05,
                                     );
+                                } else if other_ball.get_id() == "Timmy J" {
+                                    if let Some(current_winner) = self.get_current_winner() {
+                                        new_ball.set_position(
+                                            if new_ball.get_id() == "Deep Blue" {
+                                                current_winner.get_position()
+                                            } else if new_ball.get_id() == current_winner.get_id() {
+                                                if let Some(deep_blue) = self.get_balls().iter().find(|ball| ball.get_id() == "Deep Blue") {
+                                                    deep_blue.get_position()
+                                                } else {
+                                                    new_ball.get_position()
+                                                }
+                                            } else {
+                                                new_ball.get_position()
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        for any_ball in resolved_collisions_scene
+                            .get_balls()
+                            .iter()
+                        {
+                            if (powerup.as_ref() as &dyn Any).is::<Special>()
+                                && powerup.is_colliding_with(any_ball)
+                            {
+                                if any_ball.get_id() == "Timmy J" {
+                                    if let Some(current_winner) = self.get_current_winner() {
+                                        let target_ball = if new_ball.get_id() == "Deep Blue" {
+                                            current_winner.clone()
+                                        } else if new_ball.get_id() == current_winner.get_id() {
+                                            if let Some(deep_blue) = self.get_balls().iter().find(|ball| ball.get_id() == "Deep Blue") {
+                                                deep_blue.clone()
+                                            } else {
+                                                new_ball.clone()
+                                            }
+                                        } else {
+                                            new_ball.clone()
+                                        };
+
+                                        new_ball.set_position(target_ball.get_position());
+                                        new_ball.set_velocity(target_ball.get_velocity());
+                                    }
                                 }
                             }
                         }
@@ -207,18 +277,26 @@ impl Scene {
                             new_powerup.consume();
 
                             if let Some(special) = (new_powerup.as_mut() as &mut dyn Any).downcast_mut::<Special>() {
-                                if ball.get_name() == "Black Hole" {
+                                if ball.get_id() == "Black Hole" {
                                     special.set_text("SUPERMASSIVE");
-                                } else if ball.get_name() == "Green Machine" {
+                                } else if ball.get_id() == "Green Machine" {
                                     special.set_text("FASTFORWARD");
-                                } else if ball.get_name() == "Fireball" {
+                                } else if ball.get_id() == "Fireball" {
                                     special.set_text("EXPLOSION");
-                                } else if ball.get_name() == "White Light" {
+                                } else if ball.get_id() == "White Light" {
                                     special.set_text("FREEZEFRAME");
-                                } else if ball.get_name() == "Deep Blue" {
+                                } else if ball.get_id() == "Deep Blue" {
                                     special.set_text("UNDERWATER");
-                                } else if ball.get_name() == "IKEA" {
+                                } else if ball.get_id() == "IKEA" {
                                     special.set_text("JUNIOR");
+                                } else if ball.get_id() == "Psycho" {
+                                    special.set_text("BLOODBATH");
+                                } else if ball.get_id() == "Timmy J" {
+                                    special.set_text("BLUE IS KING");
+                                } else if ball.get_id() == "Instabwillity" {
+                                    special.set_text("CHAOS");
+                                } else {
+                                    special.set_text("nothing");
                                 }
                             }
                         }
@@ -228,6 +306,15 @@ impl Scene {
                 new_powerup
             })
             .collect();
+
+        if should_shuffle {
+            let mut new_new_balls = new_balls.clone();
+            new_new_balls.shuffle(&mut rng());
+
+            for (new_ball, new_new_ball) in new_balls.iter_mut().zip(new_new_balls.iter()) {
+                new_ball.set_position(new_new_ball.get_position());
+            }
+        }
 
         let mut new_winners = resolved_collisions_scene.get_winners().clone();
         let mut new_win_times = resolved_collisions_scene.get_win_times().clone();
@@ -423,6 +510,21 @@ impl Scene {
                                 ((v_proj.length() as f32 - 30.0) * 0.005).min(1.0),
                                 intersection_point,
                             ));
+                        }
+
+                        if *other_ball.get_physics_ball().get_bloodbath().get_value(other_ball.get_time()) {
+                            let new_ball_density = *new_ball.get_physics_ball().get_density().get_value(0.0);
+                            let new_ball_gravity_coefficient = *new_ball.get_physics_ball().get_gravity_coefficient().get_value(0.0);
+                            let new_physics_ball = new_ball.get_physics_ball_mut();
+                            let new_physics_ball_time = new_physics_ball.get_time();
+                            new_physics_ball.get_density_mut().add_modifier(
+                                new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                new_ball_density / 2.0
+                            );
+                            new_physics_ball.get_gravity_coefficient_mut().add_modifier(
+                                new_physics_ball_time..=(new_physics_ball_time + 10.0),
+                                new_ball_gravity_coefficient / 100.0
+                            );
                         }
                     }
                 }

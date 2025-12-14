@@ -9,8 +9,7 @@ use serde::Deserialize;
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::{
-        base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle,
-        outline_style::OutlineStyle, tail_style::TailStyle,
+        base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle, image_style::ImageStyle, outline_style::OutlineStyle, tail_style::TailStyle
     },
     particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter},
 };
@@ -32,14 +31,15 @@ pub mod wall;
 
 #[derive(Deserialize, Clone)]
 pub struct BallConfig {
-    name: String,
-    r: f32,
-    g: f32,
-    b: f32,
-    radius: f64,
-    density: f64,
-    elasticity: f64,
-    sound: String,
+    pub name: String,
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
+    pub radius: f64,
+    pub density: f64,
+    pub elasticity: f64,
+    pub sound: String,
+    pub image: Option<String>,
 }
 
 impl BallConfig {
@@ -51,7 +51,14 @@ impl BallConfig {
             position.y + random_range(-8.0..=8.0),
         );
 
+        let id = match self.name.as_str() {
+            "Blue's Wife" => String::from("Deep Blue"),
+            "White's Brother" => String::from("White Light"),
+            name => name.to_string(),
+        };
+
         let mut ball = Ball::new(
+            id,
             self.name.clone(),
             color,
             PhysicsBall::new(
@@ -91,6 +98,8 @@ impl BallConfig {
                     100,
                     10,
                 ))
+            } else if let Some(image_name) = &self.image {
+                Box::new(ImageStyle::new(color, image_name.clone()))
             } else {
                 Box::new(BaseStyle::new(color))
             },

@@ -1,23 +1,13 @@
-scene = 6
+scene = 10
 
 # [[balls]]
 # name = "Boban Ball"
 # r = 1.0
 # g = 0.0
 # b = 0.0
-# radius = 8
+# radius = 16
 # density = 1
-# elasticity = 0.98
-# sound = "piano_c6.wav"
-
-# [[balls]]
-# name = "IKEA"
-# r = 1.0
-# g = 0.8
-# b = 0.0
-# radius = 8
-# density = 1
-# elasticity = 0.9
+# elasticity = 0.95
 # sound = "piano_c6.wav"
 
 [[balls]]
@@ -25,77 +15,396 @@ name = "IKEA"
 r = 1.0
 g = 0.8
 b = 0.0
-radius = 8
+radius = 16
 density = 1
-elasticity = 0.98
-sound = "ikea_g5.wav"
+elasticity = 0.95
+sound = "piano_c7.wav"
 
 [[balls]]
 name = "Green Machine"
 r = 0
 g = 0.9
 b = 0.2
-radius = 8
+radius = 16
 density = 1
-elasticity = 0.98
-sound = "greenmachine_e4.wav"
+elasticity = 0.95
+sound = "piano_g6.wav"
 
 [[balls]]
 name = "Deep Blue"
 r = 0
 g = 0.5
 b = 1.0
-radius = 8
+radius = 16
 density = 1
-elasticity = 0.98
-sound = "deepblue_e5.wav"
+elasticity = 0.95
+sound = "piano_c6.wav"
 
-# [[balls]]
-# name = "Blue's Wife"
-# r = 0
-# g = 0.5
-# b = 1.0
-# radius = 8
-# density = 1
-# elasticity = 0.98
-# sound = "piano_e6.wav"
+[[balls]]
+name = "Blue's Wife"
+r = 0
+g = 0.5
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
 
 [[balls]]
 name = "Fireball"
 r = 1.0
 g = 0.1
 b = 0.1
-radius = 8
+radius = 16
 density = 1
-elasticity = 0.98
-sound = "fireball_c4.wav"
+elasticity = 0.95
+sound = "piano_e6.wav"
 
 [[balls]]
 name = "White Light"
 r = 1.0
 g = 1.0
 b = 1.0
-radius = 8
+radius = 16
 density = 1
-elasticity = 0.98
-sound = "whitelight_c6.wav"
+elasticity = 0.95
+sound = "piano_c7.wav"
 
-# [[balls]]
-# name = "White's Brother"
-# r = 1.0
-# g = 1.0
-# b = 1.0
-# radius = 8
-# density = 1
-# elasticity = 0.98
-# sound = "piano_c7.wav"
+[[balls]]
+name = "White's Brother"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
 
 [[balls]]
 name = "Black Hole"
 r = 0.5
 g = 0.0
 b = 1.0
-radius = 8
+radius = 16
 density = 1
-elasticity = 0.98
-sound = "blackhole_g4.wav"
+elasticity = 0.95
+sound = "piano_c6.wav"
+
+[[balls]]
+name = "Beebo"
+r = 0.0
+g = 0.6
+b = 0.8
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "BeeboBall.png"
+
+[[balls]]
+name = "Trump Card"
+r = 1.0
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "TrumpBall.png"
+
+[[balls]]
+name = "Muskrat"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "MuskBall.png"
+
+[[balls]]
+name = "Jokester"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "JokerBall.png"
+
+[[balls]]
+name = "Joe Mama"
+r = 0.0
+g = 0.5
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "BidenBall.png"
+
+[[balls]]
+name = "Alternator"
+r = 0.5
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "AltmanBall.png"
+
+[[balls]]
+name = "The Butcher"
+r = 0.5
+g = 0.5
+b = 0.5
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "ButcherBall.png"
+
+[[balls]]
+name = "Gambino"
+r = 0.0
+g = 0.75
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "GambinoBall.png"
+
+[[balls]]
+name = "Homelander"
+r = 0.0
+g = 0.25
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "HomelanderBall.png"
+
+[[balls]]
+name = "Giftbringer"
+r = 1.0
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "SantaBall.png"
+
+[[balls]]
+name = "Saul Ball"
+r = 1.0
+g = 0.5
+b = 0.25
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "SaulBall.png"
+
+[[balls]]
+name = "The Boss"
+r = 1.0
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "SopranoBall.png"
+
+[[balls]]
+name = "Ozymandias"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "WalterBall.png"
+
+[[balls]]
+name = "Erwin"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "ErwinBall.png"
+
+[[balls]]
+name = "Psycho"
+r = 0.8
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "BatemanBall.png"
+
+[[balls]]
+name = "Mastermind"
+r = 1.0
+g = 1.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "NerdBall.png"
+
+[[balls]]
+name = "The Rock"
+r = 0.5
+g = 0.25
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "RockBall.png"
+
+[[balls]]
+name = "Molly"
+r = 0.4
+g = 0.3
+b = 0.2
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "MollyBall.png"
+
+[[balls]]
+name = "Timmy J"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "TimmyBall.png"
+
+[[balls]]
+name = "The Beast"
+r = 1.0
+g = 1.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "BeastBall.png"
+
+[[balls]]
+name = "Apollo"
+r = 1.0
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "ApolloBall.png"
+
+# [[balls]]
+# name = "JR"
+# r = 0.5
+# g = 0.0
+# b = 0.0
+# radius = 16
+# density = 1
+# elasticity = 0.95
+# sound = "piano_c6.wav"
+# image = "JRBall.png"
+
+# [[balls]]
+# name = "Eneko"
+# r = 1.0
+# g = 0.0
+# b = 0.0
+# radius = 16
+# density = 1
+# elasticity = 0.95
+# sound = "piano_e6.wav"
+# image = "EnekoBall.png"
+
+[[balls]]
+name = "Canada"
+r = 0.875
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "CanadaBall.png"
+
+[[balls]]
+name = "Megatron"
+r = 1.0
+g = 0.75
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "MegatronBall.png"
+
+[[balls]]
+name = "Perl"
+r = 0.75
+g = 0.75
+b = 0.75
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "PerlBall.png"
+
+# [[balls]]
+# name = "Ryyan"
+# r = 1.0
+# g = 0.6
+# b = 0.8
+# radius = 16
+# density = 1
+# elasticity = 0.95
+# sound = "piano_e6.wav"
+# image = "RyyanBall.png"
+
+# [[balls]]
+# name = "Starship"
+# r = 1.0
+# g = 0.0
+# b = 0.0
+# radius = 16
+# density = 1
+# elasticity = 0.95
+# sound = "piano_g6.wav"
+# image = "StarshipBall.png"
+
+[[balls]]
+name = "Instabwillity"
+r = 5.0
+g = 0.25
+b = 0.25
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "InstabwillityBall.png"

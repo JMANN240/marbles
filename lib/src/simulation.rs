@@ -194,7 +194,7 @@ impl Render for Simulation {
 
             let font_size = 24.0;
 
-            for (index, chunk) in chars.chunks(30).map(|chunk| chunk.iter().collect::<String>()).enumerate() {
+            for (index, chunk) in chars.chunks(35).map(|chunk| chunk.iter().collect::<String>()).enumerate() {
                 renderer.render_text(
                     &chunk,
                     dvec2(
@@ -241,7 +241,7 @@ impl Render for Simulation {
                 (win_time.as_secs_f64() % 60.0).floor(),
                 win_time.subsec_millis()
             );
-            let text = format!("{}. {} ({})", index + 1, winner.get_name(), time_string);
+            let text = format!("{}. {} ({})", index + 1, winner.get_id(), time_string);
             let font_size = 40.0;
 
             renderer.render_text_outline(

@@ -118,6 +118,15 @@ async fn main() {
         let config_string = std::fs::read_to_string("config.toml").unwrap();
         let config = from_str::<Config>(&config_string).unwrap();
 
+        for ball_config in config.get_balls() {
+            if let Some(ball_image) = &ball_config.image {
+                renderer.register_image(
+                    ball_image.to_string(),
+                    Texture2D::from_image(&load_image(&ball_image).await.unwrap()),
+                );
+            }
+        }
+
         let scene = get_scene(
             &mut ::rand::rng(),
             config.get_scene(),
@@ -156,7 +165,7 @@ async fn main() {
             .unwrap()
             .message
             .unwrap_or(Message {
-                message: "Want to reach thousands of    people? Buy a custom message!".to_string(),
+                message: "Want to reach THOUSANDS of people  for just $1? Buy a custom message!".to_string(),
                 user: "QMR".to_string(),
             });
 
@@ -300,7 +309,7 @@ async fn main() {
                         cloudinary,
                         instagram,
                         &video_path,
-                        "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
+                        "Want to learn how to make and monetize your own simulations? Check the link in my bio!\n\n#satisfying #marblerace",
                     ) {
                         Some(media_publish_response_result) => {
                             match media_publish_response_result {
@@ -318,7 +327,7 @@ async fn main() {
                     let status = upload_to_youtube(
                         &video_path,
                         &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y")),
-                        "Want to learn how to make and monetize your own simulations? Let me know down in the comments.",
+                        "Want to learn how to make and monetize your own simulations? Check the link in my bio!",
                         ["marble racing","marble race","simulation","satisfying"],
                     )
                         .expect("Failed to upload to YouTube");

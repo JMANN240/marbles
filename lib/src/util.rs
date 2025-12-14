@@ -17,7 +17,7 @@ use crate::{
         instagram::{InstagramPoster, MediaPublishResponse},
     },
     scene::Scene,
-    scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8},
+    scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10},
 };
 
 #[cfg(feature = "macroquad")]
@@ -181,6 +181,8 @@ pub fn get_scene(
         scene_6(rng, config.get_balls().clone(), width, height),
         scene_7(width, height),
         scene_8(rng, config.get_balls().clone(), width, height),
+        scene_9(rng, config.get_balls().clone(), width, height),
+        scene_10(rng, config.get_balls().clone(), width, height),
     ];
 
     scenes[scene_number - 1].clone()
@@ -198,29 +200,33 @@ pub struct MaybeMessage {
 }
 
 #[derive(Clone)]
-pub struct ValueOverTime {
-    base_value: f64,
-    modifiers: Vec<(RangeInclusive<f64>, f64)>,
+pub struct ValueOverTime<T> {
+    base_value: T,
+    modifiers: Vec<(RangeInclusive<f64>, T)>,
 }
 
-impl ValueOverTime {
-    pub fn new(base_value: f64) -> Self {
+impl<T> ValueOverTime<T> {
+    pub fn new(base_value: T) -> Self {
         Self { base_value, modifiers: Vec::new() }
     }
 
-    pub fn get_value(&self, time: f64) -> f64 {
-        let mut value = self.base_value;
+    pub fn set_value(&mut self, new_value: T) {
+        self.base_value = new_value;
+    }
+
+    pub fn get_value(&self, time: f64) -> &T {
+        let mut value = &self.base_value;
 
         for (time_range, modified_value) in &self.modifiers {
             if time_range.contains(&time) {
-                value = *modified_value;
+                value = modified_value;
             }
         }
 
         value
     }
 
-    pub fn add_modifier(&mut self, time_range: RangeInclusive<f64>, modified_value: f64) {
+    pub fn add_modifier(&mut self, time_range: RangeInclusive<f64>, modified_value: T) {
         self.modifiers.push((time_range, modified_value));
     }
 }

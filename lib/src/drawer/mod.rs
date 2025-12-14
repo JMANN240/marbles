@@ -6,6 +6,7 @@ use crate::ball::{Ball, PhysicsBall};
 pub mod base_style;
 pub mod glow_style;
 pub mod ikea_style;
+pub mod image_style;
 pub mod outline_style;
 pub mod tail_style;
 

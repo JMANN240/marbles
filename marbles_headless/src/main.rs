@@ -11,6 +11,7 @@ use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use glam::DVec2;
+use image::ImageReader;
 use lib::{
     Config, ENGAGEMENTS,
     collision::{Collision, render_collisions},
@@ -124,7 +125,7 @@ fn main() {
             .unwrap()
             .message
             .unwrap_or(Message {
-                message: "Want to reach thousands of    people? Buy a custom message!".to_string(),
+                message: "Want to reach THOUSANDS of people  for just $1? Buy a custom message!".to_string(),
                 user: "QMR".to_string(),
             });
 
@@ -163,11 +164,22 @@ fn main() {
         let number_of_frames = simulation_states.len();
         let frames_rendered: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
+        let ball_images = config.get_balls().iter().filter_map(|ball_config| {
+            ball_config.image.as_ref().map(|image_name| (image_name, ImageReader::open(image_name).unwrap().decode().unwrap().into_rgba8()))
+        }).collect::<HashMap<_, _>>();
+
         simulation_states
             .par_iter()
             .enumerate()
             .for_each(|(frame_number, simulation)| {
                 let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875, DVec2::splat(0.5), 2, FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap());
+
+                for (image_name, image) in ball_images.iter() {
+                    renderer.register_image(
+                        image_name.to_string(),
+                        image.clone(),
+                    );
+                }
 
                 simulation.render(&mut renderer);
 
@@ -235,7 +247,7 @@ fn main() {
                     cloudinary,
                     instagram,
                     &video_path,
-                    "Want to learn how to make and monetize your own simulations? Let me know down in the comments.\n\n#satisfying #marblerace",
+                    "Want to learn how to make and monetize your own simulations? Check the link in my bio!\n\n#satisfying #marblerace",
                 ) {
                     Some(media_publish_response_result) => match media_publish_response_result {
                         Ok(media_publish_response) => info!(?media_publish_response),
@@ -251,7 +263,7 @@ fn main() {
                 let status = upload_to_youtube(
                     &video_path,
                     &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y")),
-                    "Want to learn how to make and monetize your own simulations? Let me know down in the comments.",
+                    "Want to learn how to make and monetize your own simulations? Check the link in my bio!",
                     ["marble racing","marble race","simulation","satisfying"],
                 )
                     .expect("Failed to upload to YouTube");

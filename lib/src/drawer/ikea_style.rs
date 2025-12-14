@@ -26,7 +26,7 @@ impl BallStyle for IkeaStyle {
     fn update(&self, ball: &PhysicsBall, dt: f64) -> Box<dyn BallStyle> {
         let mut new_style = self.clone();
 
-        new_style.theta += ball.get_velocity().x * 0.1 * dt;
+        new_style.theta += ball.get_velocity().x / (10.0 * ball.get_radius() / 8.0) * dt;
 
         Box::new(new_style)
     }
@@ -49,7 +49,7 @@ impl BallStyle for IkeaStyle {
                 ball.get_position().x + ball.get_radius() * (self.theta + PI).cos(),
                 ball.get_position().y + ball.get_radius() * (self.theta + PI).sin(),
             ),
-            2.0,
+            2.0 * ball.get_radius() / 8.0,
             yellow.into(),
         );
 
@@ -62,7 +62,7 @@ impl BallStyle for IkeaStyle {
                 ball.get_position().x + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).cos(),
                 ball.get_position().y + ball.get_radius() * (self.theta + 4.0 / 3.0 * PI).sin(),
             ),
-            2.0,
+            2.0 * ball.get_radius() / 8.0,
             yellow.into(),
         );
 

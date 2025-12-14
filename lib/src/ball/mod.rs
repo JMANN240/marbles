@@ -18,6 +18,7 @@ use crate::{
 
 #[derive(Clone)]
 pub struct Ball {
+    id: String,
     name: String,
     name_color: Srgba,
     physics_ball: PhysicsBall,
@@ -28,6 +29,7 @@ pub struct Ball {
 
 impl Ball {
     pub fn new(
+        id: String,
         name: String,
         name_color: Srgba,
         physics_ball: PhysicsBall,
@@ -37,6 +39,7 @@ impl Ball {
         style.init(&physics_ball);
 
         Self {
+            id,
             name,
             name_color,
             physics_ball,
@@ -46,8 +49,16 @@ impl Ball {
         }
     }
 
+    pub fn get_id(&self) -> &str {
+        &self.id
+    }
+
     pub fn get_name(&self) -> &str {
         &self.name
+    }
+
+    pub fn set_name(&mut self, name: impl Into<String>) {
+        self.name = name.into();
     }
 
     pub fn get_name_color(&self) -> Srgba {
@@ -105,7 +116,7 @@ impl Ball {
     }
 
     pub fn get_density(&self) -> f64 {
-        self.physics_ball.get_density()
+        *self.physics_ball.get_density().get_value(self.get_time())
     }
 
     pub fn set_density(&mut self, density: f64) {
@@ -135,7 +146,7 @@ impl Ball {
     pub fn handle_collision(&mut self, new_velocity: DVec2) {
         let dv = new_velocity.distance(self.get_velocity());
 
-        if (self.get_name() == "Deep Blue" || self.get_name() == "Blue's Wife") && dv >= 150.0 {
+        if (self.get_id() == "Deep Blue" || self.get_id() == "Blue's Wife") && dv >= 150.0 {
             // TODO: Fix this to not be hard coded.
             let velocity = self.get_velocity();
 
@@ -152,6 +163,31 @@ impl Ball {
                     lerp_color(
                         Srgba::new(0.0, 0.5, 1.0, 1.0),
                         Srgba::new(0.25, 0.0, 1.0, 1.0),
+                        random_range(0.0..=1.0),
+                    ),
+                    random_range(0.25..=0.75),
+                    ParticleLayer::random(),
+                )));
+            }
+        }
+        
+        if *self.get_physics_ball().get_bloodbath().get_value(self.get_time()) && dv >= 150.0 {
+            // TODO: Fix this to not be hard coded.
+            let velocity = self.get_velocity();
+
+            for _ in 0..20 {
+                self.particles.add_particle(Box::new(ShrinkingParticle::new(
+                    self.get_position()
+                        + self.get_radius() * DVec2::from_angle(random_range(0.0..(2.0 * PI))),
+                    random_range(0.125..=0.375)
+                        * velocity.length()
+                        * DVec2::from_angle(
+                            velocity.to_angle() + random_range((-PI / 2.0)..(PI / 2.0)),
+                        ),
+                    random_range(2.0..=6.0),
+                    lerp_color(
+                        Srgba::new(1.0, 0.0, 0.0, 1.0),
+                        Srgba::new(0.25, 0.0, 0.0, 1.0),
                         random_range(0.0..=1.0),
                     ),
                     random_range(0.25..=0.75),
@@ -198,11 +234,12 @@ pub struct PhysicsBall {
     time: f64,
     position: DVec2,
     velocity: DVec2,
-    velocity_coefficient: ValueOverTime,
-    gravity_coefficient: ValueOverTime,
+    velocity_coefficient: ValueOverTime<f64>,
+    gravity_coefficient: ValueOverTime<f64>,
     radius: f64,
-    density: f64,
+    density: ValueOverTime<f64>,
     elasticity: f64,
+    bloodbath: ValueOverTime<bool>,
 }
 
 impl PhysicsBall {
@@ -220,8 +257,9 @@ impl PhysicsBall {
             velocity_coefficient: ValueOverTime::new(1.0),
             gravity_coefficient: ValueOverTime::new(1.0),
             radius,
-            density,
+            density: ValueOverTime::new(density),
             elasticity,
+            bloodbath: ValueOverTime::new(false),
         }
     }
 
@@ -249,19 +287,19 @@ impl PhysicsBall {
         self.velocity = velocity;
     }
 
-    pub fn get_velocity_coefficient(&self) -> &ValueOverTime {
+    pub fn get_velocity_coefficient(&self) -> &ValueOverTime<f64> {
         &self.velocity_coefficient
     }
 
-    pub fn get_velocity_coefficient_mut(&mut self) -> &mut ValueOverTime {
+    pub fn get_velocity_coefficient_mut(&mut self) -> &mut ValueOverTime<f64> {
         &mut self.velocity_coefficient
     }
 
-    pub fn get_gravity_coefficient(&self) -> &ValueOverTime {
+    pub fn get_gravity_coefficient(&self) -> &ValueOverTime<f64> {
         &self.gravity_coefficient
     }
 
-    pub fn get_gravity_coefficient_mut(&mut self) -> &mut ValueOverTime {
+    pub fn get_gravity_coefficient_mut(&mut self) -> &mut ValueOverTime<f64> {
         &mut self.gravity_coefficient
     }
 
@@ -273,12 +311,16 @@ impl PhysicsBall {
         self.radius = radius;
     }
 
-    pub fn get_density(&self) -> f64 {
-        self.density
+    pub fn get_density(&self) -> &ValueOverTime<f64> {
+        &self.density
+    }
+
+    pub fn get_density_mut(&mut self) -> &mut ValueOverTime<f64> {
+        &mut self.density
     }
 
     pub fn set_density(&mut self, density: f64) {
-        self.density = density;
+        self.get_density_mut().set_value(density);
     }
 
     pub fn get_elasticity(&self) -> f64 {
@@ -294,6 +336,14 @@ impl PhysicsBall {
     }
 
     pub fn get_mass(&self) -> f64 {
-        self.get_volume() * self.get_density()
+        self.get_volume() * self.get_density().get_value(self.get_time())
+    }
+
+    pub fn get_bloodbath(&self) -> &ValueOverTime<bool> {
+        &self.bloodbath
+    }
+
+    pub fn get_bloodbath_mut(&mut self) -> &mut ValueOverTime<bool> {
+        &mut self.bloodbath
     }
 }

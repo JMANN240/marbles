@@ -35,15 +35,15 @@ pub fn random_powerup(
     viewport_height: f64,
 ) -> Box<dyn Powerup> {
     let powerups: Vec<Box<dyn Powerup>> = vec![
-        // Box::new(ChangeElasticity::new(position, 8.0, 0.9)),
-        // Box::new(ChangeDensity::new(position, 8.0, 4.0)),
-        // Box::new(ChangePosition::new(
-        //     position,
-        //     "Teleport",
-        //     8.0,
-        //     16.0..=(viewport_width - 16.0),
-        //     16.0..=(viewport_height - 16.0),
-        // )),
+        Box::new(ChangeElasticity::new(position, 8.0, 0.95)),
+        Box::new(ChangeDensity::new(position, 8.0, 2.0)),
+        Box::new(ChangePosition::new(
+            position,
+            "Teleport",
+            8.0,
+            16.0..=(viewport_width - 16.0),
+            16.0..=(viewport_height - 16.0),
+        )),
         Box::new(Special::new(position, 8.0)),
     ];
 
