@@ -5,7 +5,7 @@ use dyn_clone::DynClone;
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::{ParticleEmitter, ParticleSystem, VecParticleSystem};
-use rand::{rng, rngs::ThreadRng, seq::SliceRandom};
+use rand::{rng, seq::SliceRandom};
 use render_agnostic::Renderer;
 
 use crate::{

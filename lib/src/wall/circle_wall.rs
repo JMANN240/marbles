@@ -126,6 +126,7 @@ impl Render for CircleWall {
             self.get_position(),
             self.get_radius(),
             self.get_start(),
+            8,
             self.get_end() - self.get_start(),
             2.0,
             Srgba::new(1.0, 1.0, 1.0, 1.0),

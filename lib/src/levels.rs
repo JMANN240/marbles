@@ -150,10 +150,10 @@ pub fn level_5(n: usize, scene_width: f64, scene_height: f64) -> Level {
             .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
             .collect();
 
-    let max_columns = 12;
+    let max_columns = 6;
     let x_spacing = scene_width / (max_columns as f64 + 1.0);
 
-    for j in 0..24 {
+    for j in 0..12 {
         let column_offset = j % 2;
         let columns = max_columns + 2 - column_offset;
 
