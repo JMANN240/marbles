@@ -169,6 +169,8 @@ impl Scene {
                                 } else if new_ball.get_id() == "IKEA" {
                                     new_ball.set_radius(ball.get_radius() * 0.5);
                                     new_ball.set_name(format!("{} Junior", ball.get_name()));
+                                } else if new_ball.get_id() == "Hollow Knight" {
+                                    new_ball.set_radius(ball.get_radius() * 0.5);
                                 } else if new_ball.get_id() == "Jokester" {
                                     let new_physics_ball = new_ball.get_physics_ball_mut();
                                     let new_physics_ball_time = new_physics_ball.get_time();
@@ -210,6 +212,14 @@ impl Scene {
                                 && powerup.is_colliding_with(other_ball)
                             {
                                 if other_ball.get_id() == "Fireball" {
+                                    let direction =
+                                        new_ball.get_position() - other_ball.get_position();
+
+                                    new_ball.set_velocity(
+                                        direction.normalize() * 200000.0
+                                            / (direction.length() + 200.0),
+                                    );
+                                } else if other_ball.get_id() == "Creepy" {
                                     let direction =
                                         new_ball.get_position() - other_ball.get_position();
 
@@ -324,6 +334,10 @@ impl Scene {
                                     special.set_text("UNDERWATER");
                                 } else if ball.get_id() == "IKEA" {
                                     special.set_text("JUNIOR");
+                                } else if ball.get_id() == "Creepy" {
+                                    special.set_text("HISS BOOM");
+                                } else if ball.get_id() == "Hollow Knight" {
+                                    special.set_text("BUG");
                                 } else if ball.get_id() == "Giftbringer" {
                                     special.set_text("MERRY CHRISTMAS");
                                 } else if ball.get_id() == "Jokester" {
