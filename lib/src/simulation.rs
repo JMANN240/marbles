@@ -16,6 +16,7 @@ pub struct Simulation {
     viewport_height: f64,
     scene: Scene,
     maybe_all_won_time: Option<f64>,
+    maybe_any_won_time: Option<f64>,
     countdown_seconds: f64,
     reset_seconds: f64,
     engagement: String,
@@ -42,6 +43,7 @@ impl Simulation {
             viewport_height,
             scene,
             maybe_all_won_time: None,
+            maybe_any_won_time: None,
             countdown_seconds,
             reset_seconds,
             engagement,
@@ -70,6 +72,10 @@ impl Simulation {
 
     pub fn get_maybe_all_won_time(&self) -> Option<f64> {
         self.maybe_all_won_time
+    }
+
+    pub fn get_maybe_any_won_time(&self) -> Option<f64> {
+        self.maybe_any_won_time
     }
 
     pub fn get_countdown_seconds(&self) -> f64 {
@@ -110,6 +116,10 @@ impl Simulation {
         new_simulation.special_message_x +=
             (new_simulation.special_message_target_x - new_simulation.special_message_x) * 8.0 * dt;
 
+        if new_simulation.scene.any_won() && new_simulation.maybe_any_won_time.is_none() {
+            new_simulation.maybe_any_won_time = Some(new_simulation.time);
+        }
+
         if new_simulation.scene.all_won() && new_simulation.maybe_all_won_time.is_none() {
             new_simulation.maybe_all_won_time = Some(new_simulation.time);
         }
@@ -117,6 +127,10 @@ impl Simulation {
         new_simulation.time += dt;
 
         (new_simulation, collisions)
+    }
+
+    pub fn is_finished(&self) -> bool {
+        self.get_scene().get_finished_condition()(self)
     }
 }
 

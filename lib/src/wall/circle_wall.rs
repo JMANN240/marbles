@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f64::consts::{PI, TAU};
 
 use glam::{DVec2, dvec2};
 use palette::Srgba;
@@ -122,14 +122,25 @@ impl Wall for CircleWall {
 
 impl Render for CircleWall {
     fn render(&self, renderer: &mut dyn Renderer) {
-        renderer.render_arc_lines(
-            self.get_position(),
-            self.get_radius(),
-            self.get_start(),
-            8,
-            self.get_end() - self.get_start(),
-            2.0,
-            Srgba::new(1.0, 1.0, 1.0, 1.0),
-        );
+        let arc = self.get_end() - self.get_start();
+
+        if arc == TAU {
+            renderer.render_circle_lines(
+                self.get_position(),
+                self.get_radius(),
+                2.0,
+                Srgba::new(1.0, 1.0, 1.0, 1.0),
+            );
+        } else {
+            renderer.render_arc_lines(
+                self.get_position(),
+                self.get_radius(),
+                self.get_start(),
+                8,
+                self.get_end() - self.get_start(),
+                2.0,
+                Srgba::new(1.0, 1.0, 1.0, 1.0),
+            );
+        }
     }
 }

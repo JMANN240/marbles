@@ -124,7 +124,7 @@ impl Ball {
     }
 
     pub fn get_elasticity(&self) -> f64 {
-        self.physics_ball.get_elasticity()
+        *self.physics_ball.get_elasticity().get_value(self.get_time())
     }
 
     pub fn set_elasticity(&mut self, elasticity: f64) {
@@ -238,7 +238,7 @@ pub struct PhysicsBall {
     gravity_coefficient: ValueOverTime<f64>,
     radius: f64,
     density: ValueOverTime<f64>,
-    elasticity: f64,
+    elasticity: ValueOverTime<f64>,
     bloodbath: ValueOverTime<bool>,
 }
 
@@ -258,7 +258,7 @@ impl PhysicsBall {
             gravity_coefficient: ValueOverTime::new(1.0),
             radius,
             density: ValueOverTime::new(density),
-            elasticity,
+            elasticity: ValueOverTime::new(elasticity),
             bloodbath: ValueOverTime::new(false),
         }
     }
@@ -323,12 +323,16 @@ impl PhysicsBall {
         self.get_density_mut().set_value(density);
     }
 
-    pub fn get_elasticity(&self) -> f64 {
-        self.elasticity
+    pub fn get_elasticity(&self) -> &ValueOverTime<f64> {
+        &self.elasticity
+    }
+
+    pub fn get_elasticity_mut(&mut self) -> &mut ValueOverTime<f64> {
+        &mut self.elasticity
     }
 
     pub fn set_elasticity(&mut self, elasticity: f64) {
-        self.elasticity = elasticity;
+        self.get_elasticity_mut().set_value(elasticity);
     }
 
     pub fn get_volume(&self) -> f64 {

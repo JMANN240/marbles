@@ -400,7 +400,7 @@ image = "PerlBall.png"
 
 [[balls]]
 name = "Instabwillity"
-r = 5.0
+r = 1.0
 g = 0.25
 b = 0.25
 radius = 16
@@ -408,3 +408,69 @@ density = 1
 elasticity = 0.95
 sound = "piano_c7.wav"
 image = "InstabwillityBall.png"
+
+[[balls]]
+name = "Wario"
+r = 1.0
+g = 1.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "WarioBall.png"
+
+[[balls]]
+name = "Creepy"
+r = 0.0
+g = 1.0
+b = 0.25
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "CreepyBall.png"
+
+[[balls]]
+name = "Estonia"
+r = 0.0
+g = 0.5
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_g6.wav"
+image = "EstoniaBall.png"
+
+[[balls]]
+name = "Hollow Knight"
+r = 1.0
+g = 1.0
+b = 1.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c7.wav"
+image = "HollowKnightBall.png"
+
+[[balls]]
+name = "Neonman"
+r = 0.0
+g = 1.0
+b = 0.1
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_c6.wav"
+image = "NeonmanBall.png"
+
+[[balls]]
+name = "Amogus"
+r = 1.0
+g = 0.0
+b = 0.0
+radius = 16
+density = 1
+elasticity = 0.95
+sound = "piano_e6.wav"
+image = "AmogusBall.png"

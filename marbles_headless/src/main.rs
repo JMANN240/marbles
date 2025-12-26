@@ -151,11 +151,7 @@ fn main() {
             collisions.insert(simulation_states.len(), update_collisions);
             simulation_states.push(simulation.clone());
 
-            if simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + cli.reset_seconds as f64
-                })
+            if simulation.is_finished()
             {
                 break;
             }

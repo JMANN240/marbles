@@ -1,7 +1,7 @@
 use glam::DVec2;
 use rand::{Rng, seq::SliceRandom};
 
-use crate::{BallConfig, powerup::Powerup, scene::Scene, util::space_evenly, wall::Wall};
+use crate::{BallConfig, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly, wall::Wall};
 
 #[derive(Clone)]
 pub struct BallSpace {
@@ -60,6 +60,7 @@ impl Level {
         rng: &mut impl Rng,
         ball_configs: Vec<BallConfig>,
         powerup_function: impl Fn(&PowerupSpace) -> Box<dyn Powerup>,
+        finished_condition: fn(&Simulation) -> bool,
     ) -> Scene {
         let mut ball_spaces = self.ball_spaces.clone();
         ball_spaces.shuffle(rng);
@@ -74,6 +75,6 @@ impl Level {
 
         let powerups = self.powerup_spaces.iter().map(powerup_function).collect();
 
-        Scene::new(balls, powerups, self.walls.clone())
+        Scene::new(balls, powerups, self.walls.clone(), finished_condition)
     }
 }

@@ -150,6 +150,8 @@ pub fn level_5(n: usize, scene_width: f64, scene_height: f64) -> Level {
             .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
             .collect();
 
+    let mut powerup_spaces = Vec::new();
+
     let max_columns = 6;
     let x_spacing = scene_width / (max_columns as f64 + 1.0);
 
@@ -160,6 +162,10 @@ pub fn level_5(n: usize, scene_width: f64, scene_height: f64) -> Level {
         for i in 0..columns {
             let x = (x_spacing * 0.5 * column_offset as f64) + x_spacing * i as f64;
             let y = 100.0 + x_spacing * (2.0f64.sqrt() / 2.0) * j as f64;
+
+            if (j % 2) == 0 && j >= 5 && j < 11 && (i % 2) == 1 && i >= 1 && i < 6 {
+                powerup_spaces.push(PowerupSpace::new(dvec2(x + x_spacing * 0.5, y)));
+            }
 
             walls.push(Box::new(CircleWall::new(
                 dvec2(x, y),
@@ -173,7 +179,7 @@ pub fn level_5(n: usize, scene_width: f64, scene_height: f64) -> Level {
 
     Level::new(
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
-        Vec::new(),
+        powerup_spaces,
         walls,
     )
 }
