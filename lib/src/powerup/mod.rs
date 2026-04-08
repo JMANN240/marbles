@@ -37,6 +37,7 @@ pub fn random_powerup(
     let powerups: Vec<Box<dyn Powerup>> = vec![
         Box::new(ChangeElasticity::new(position, 8.0, 0.95)),
         Box::new(ChangeDensity::new(position, 8.0, 2.0)),
+        Box::new(ChangeDensity::new(position, 8.0, 0.5)),
         Box::new(ChangePosition::new(
             position,
             "Teleport",
