@@ -47,7 +47,7 @@ impl TailStyle {
     fn update_internal(&self, ball: &PhysicsBall, _dt: f64) -> Self {
         let mut new_style = self.clone();
 
-        if new_style.every_count % new_style.every == 0 {
+        if new_style.every_count.is_multiple_of(new_style.every) {
             new_style.positions.push_back(ball.get_position());
             if new_style.positions.len() > new_style.max_positions {
                 new_style.positions.pop_front();

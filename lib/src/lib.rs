@@ -9,7 +9,8 @@ use serde::Deserialize;
 use crate::{
     ball::{Ball, PhysicsBall},
     drawer::{
-        base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle, image_style::ImageStyle, outline_style::OutlineStyle, tail_style::TailStyle
+        base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle,
+        image_style::ImageStyle, outline_style::OutlineStyle, tail_style::TailStyle,
     },
     particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter},
 };

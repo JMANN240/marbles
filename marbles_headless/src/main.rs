@@ -125,7 +125,8 @@ fn main() {
             .unwrap()
             .message
             .unwrap_or(Message {
-                message: "Want to reach THOUSANDS of people  for just $1? Buy a custom message!".to_string(),
+                message: "Want to reach THOUSANDS of people  for just $1? Buy a custom message!"
+                    .to_string(),
                 user: "QMR".to_string(),
             });
 
@@ -144,15 +145,15 @@ fn main() {
 
         loop {
             debug!(simulation_time = simulation.get_time());
-            let (new_simulation, update_collisions) = simulation.update(1.0 / 60.0, cli.timescale, cli.physics_steps);
+            let (new_simulation, update_collisions) =
+                simulation.update(1.0 / 60.0, cli.timescale, cli.physics_steps);
 
             simulation = new_simulation;
 
             collisions.insert(simulation_states.len(), update_collisions);
             simulation_states.push(simulation.clone());
 
-            if simulation.is_finished()
-            {
+            if simulation.is_finished() {
                 break;
             }
         }
@@ -160,21 +161,38 @@ fn main() {
         let number_of_frames = simulation_states.len();
         let frames_rendered: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
-        let ball_images = config.get_balls().iter().filter_map(|ball_config| {
-            ball_config.image.as_ref().map(|image_name| (image_name, ImageReader::open(image_name).unwrap().decode().unwrap().into_rgba8()))
-        }).collect::<HashMap<_, _>>();
+        let ball_images = config
+            .get_balls()
+            .iter()
+            .filter_map(|ball_config| {
+                ball_config.image.as_ref().map(|image_name| {
+                    (
+                        image_name,
+                        ImageReader::open(image_name)
+                            .unwrap()
+                            .decode()
+                            .unwrap()
+                            .into_rgba8(),
+                    )
+                })
+            })
+            .collect::<HashMap<_, _>>();
 
         simulation_states
             .par_iter()
             .enumerate()
             .for_each(|(frame_number, simulation)| {
-                let mut renderer = ImageRenderer::new(WIDTH, HEIGHT, 0.875, DVec2::splat(0.5), 2, FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap());
+                let mut renderer = ImageRenderer::new(
+                    WIDTH,
+                    HEIGHT,
+                    0.875,
+                    DVec2::splat(0.5),
+                    2,
+                    FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap(),
+                );
 
                 for (image_name, image) in ball_images.iter() {
-                    renderer.register_image(
-                        image_name.to_string(),
-                        image.clone(),
-                    );
+                    renderer.register_image(image_name.to_string(), image.clone());
                 }
 
                 simulation.render(&mut renderer);

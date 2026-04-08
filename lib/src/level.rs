@@ -1,7 +1,10 @@
 use glam::DVec2;
 use rand::{Rng, seq::SliceRandom};
 
-use crate::{BallConfig, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly, wall::Wall};
+use crate::{
+    BallConfig, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly,
+    wall::Wall,
+};
 
 #[derive(Clone)]
 pub struct BallSpace {

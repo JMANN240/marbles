@@ -1,3 +1,4 @@
+use even_odd_traits::{IsEven, IsOdd};
 use glam::{DVec2, dvec2};
 
 use crate::{
@@ -163,7 +164,7 @@ pub fn level_5(n: usize, scene_width: f64, scene_height: f64) -> Level {
             let x = (x_spacing * 0.5 * column_offset as f64) + x_spacing * i as f64;
             let y = 100.0 + x_spacing * (2.0f64.sqrt() / 2.0) * j as f64;
 
-            if (j % 2) == 0 && j >= 5 && j < 11 && (i % 2) == 1 && i >= 1 && i < 6 {
+            if j.is_even() && (5..11).contains(&j) && i.is_odd() && (1..6).contains(&i) {
                 powerup_spaces.push(PowerupSpace::new(dvec2(x + x_spacing * 0.5, y)));
             }
 
@@ -205,7 +206,7 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
         false,
     )));
 
-    let ball_y =  scene_height * 0.1;
+    let ball_y = scene_height * 0.1;
 
     Level::new(
         BallSpace::spaced_evenly(
@@ -288,7 +289,10 @@ pub fn level_9(n: usize, scene_width: f64, scene_height: f64) -> Level {
     let wall_size = scene_width / 2.0 - 36.0;
 
     walls.push(Box::new(StraightWall::new(
-        Line::new(dvec2(0.0, 400.0), dvec2(wall_size, 400.0 + wall_size / 10.0)),
+        Line::new(
+            dvec2(0.0, 400.0),
+            dvec2(wall_size, 400.0 + wall_size / 10.0),
+        ),
         false,
     )));
     walls.push(Box::new(StraightWall::new(
@@ -299,7 +303,7 @@ pub fn level_9(n: usize, scene_width: f64, scene_height: f64) -> Level {
         false,
     )));
 
-    let ball_y =  scene_height * 0.1;
+    let ball_y = scene_height * 0.1;
 
     Level::new(
         BallSpace::spaced_evenly(
@@ -359,7 +363,10 @@ pub fn level_10(n: usize, scene_width: f64, scene_height: f64) -> Level {
         )));
 
         powerup_spaces.push(PowerupSpace::new(dvec2(64.0, 175.0 + offset * i as f64)));
-        powerup_spaces.push(PowerupSpace::new(dvec2(scene_width - 64.0, 175.0 + offset * i as f64)));
+        powerup_spaces.push(PowerupSpace::new(dvec2(
+            scene_width - 64.0,
+            175.0 + offset * i as f64,
+        )));
     }
 
     Level::new(

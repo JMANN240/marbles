@@ -1,3 +1,4 @@
+use even_odd_traits::IsEven;
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use render_agnostic::Renderer;
@@ -150,7 +151,7 @@ impl Render for Simulation {
                 Srgba::new(0.0, 0.0, 0.0, 1.0),
             );
 
-            if (self.get_time() * 2.0 + 1.5).floor() % 2.0 == 0.0 {
+            if (self.get_time() * 2.0 + 1.5).floor().is_even() {
                 renderer.render_text_outline(
                     self.get_engagement(),
                     dvec2(
@@ -208,7 +209,11 @@ impl Render for Simulation {
 
             let font_size = 24.0;
 
-            for (index, chunk) in chars.chunks(35).map(|chunk| chunk.iter().collect::<String>()).enumerate() {
+            for (index, chunk) in chars
+                .chunks(35)
+                .map(|chunk| chunk.iter().collect::<String>())
+                .enumerate()
+            {
                 renderer.render_text(
                     &chunk,
                     dvec2(

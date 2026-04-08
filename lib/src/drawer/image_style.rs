@@ -15,8 +15,12 @@ pub struct ImageStyle {
 }
 
 impl ImageStyle {
-    pub fn new(color: Srgba, image_name: String,) -> Self {
-        Self { color, image_name, theta: 0.0 }
+    pub fn new(color: Srgba, image_name: String) -> Self {
+        Self {
+            color,
+            image_name,
+            theta: 0.0,
+        }
     }
 
     pub fn get_color(&self) -> Srgba {
@@ -39,9 +43,21 @@ impl BallStyle for ImageStyle {
     }
 
     fn render(&self, ball: &Ball, renderer: &mut dyn Renderer) {
-        renderer.render_image(self.get_image_name(), ball.get_position(), ball.get_radius() * 2.0, ball.get_radius() * 2.0, DVec2::splat(0.5), self.theta);
+        renderer.render_image(
+            self.get_image_name(),
+            ball.get_position(),
+            ball.get_radius() * 2.0,
+            ball.get_radius() * 2.0,
+            DVec2::splat(0.5),
+            self.theta,
+        );
 
-        renderer.render_circle_lines(ball.get_position(), ball.get_radius(), 2.0, self.get_color());
+        renderer.render_circle_lines(
+            ball.get_position(),
+            ball.get_radius(),
+            2.0,
+            self.get_color(),
+        );
 
         renderer.render_text_outline(
             ball.get_name(),

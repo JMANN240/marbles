@@ -116,22 +116,22 @@ impl Render for Special {
                         * (1.0 - (self.time * 5.456456).cos() / 2.0);
                 renderer.render_line(start, end, 1.0, self.color);
             }
-        } else {
-            if let Some(consumed_time) = self.consumed_time && self.time < consumed_time + 2.0 {
-                let time_since_consumption = self.time - consumed_time;
+        } else if let Some(consumed_time) = self.consumed_time
+            && self.time < consumed_time + 2.0
+        {
+            let time_since_consumption = self.time - consumed_time;
 
-                let text_alpha = 1.0f64.min(2.0 - time_since_consumption);
+            let text_alpha = 1.0f64.min(2.0 - time_since_consumption);
 
-                renderer.render_text_outline(
-                    &self.text,
-                    self.position + DVec2::NEG_Y * 10.0 * time_since_consumption,
-                    anchor2d::CGC,
-                    24.0,
-                    1.0,
-                    Srgba::new(1.0, 1.0, 1.0, text_alpha as f32),
-                    Srgba::new(0.0, 0.0, 0.0, text_alpha as f32),
-                );
-            }
+            renderer.render_text_outline(
+                &self.text,
+                self.position + DVec2::NEG_Y * 10.0 * time_since_consumption,
+                anchor2d::CGC,
+                24.0,
+                1.0,
+                Srgba::new(1.0, 1.0, 1.0, text_alpha as f32),
+                Srgba::new(0.0, 0.0, 0.0, text_alpha as f32),
+            );
         }
     }
 }

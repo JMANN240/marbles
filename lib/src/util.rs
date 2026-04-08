@@ -17,7 +17,9 @@ use crate::{
         instagram::{InstagramPoster, MediaPublishResponse},
     },
     scene::Scene,
-    scenes::{scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10},
+    scenes::{
+        scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10,
+    },
 };
 
 #[cfg(feature = "macroquad")]
@@ -207,7 +209,10 @@ pub struct ValueOverTime<T> {
 
 impl<T> ValueOverTime<T> {
     pub fn new(base_value: T) -> Self {
-        Self { base_value, modifiers: Vec::new() }
+        Self {
+            base_value,
+            modifiers: Vec::new(),
+        }
     }
 
     pub fn set_value(&mut self, new_value: T) {

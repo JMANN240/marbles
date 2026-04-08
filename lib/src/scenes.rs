@@ -33,9 +33,7 @@ pub fn scene_1(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -60,9 +58,7 @@ pub fn scene_2(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -87,9 +83,7 @@ pub fn scene_3(
         |simulation| {
             simulation
                 .get_maybe_any_won_time()
-                .is_some_and(|any_won_time| {
-                    simulation.get_time() >= any_won_time + 15.0
-                })
+                .is_some_and(|any_won_time| simulation.get_time() >= any_won_time + 15.0)
         },
     )
 }
@@ -114,9 +108,7 @@ pub fn scene_4(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -143,9 +135,7 @@ pub fn scene_5(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -170,9 +160,7 @@ pub fn scene_6(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -226,9 +214,7 @@ pub fn scene_8(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -253,9 +239,7 @@ pub fn scene_9(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }
@@ -282,9 +266,7 @@ pub fn scene_10(
         |simulation| {
             simulation
                 .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| {
-                    simulation.get_time() >= all_won_time + 5.0
-                })
+                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
         },
     )
 }

@@ -211,15 +211,9 @@ impl Scene {
                             if (powerup.as_ref() as &dyn Any).is::<Special>()
                                 && powerup.is_colliding_with(other_ball)
                             {
-                                if other_ball.get_id() == "Fireball" {
-                                    let direction =
-                                        new_ball.get_position() - other_ball.get_position();
-
-                                    new_ball.set_velocity(
-                                        direction.normalize() * 200000.0
-                                            / (direction.length() + 200.0),
-                                    );
-                                } else if other_ball.get_id() == "Creepy" {
+                                if other_ball.get_id() == "Fireball"
+                                    || other_ball.get_id() == "Creepy"
+                                {
                                     let direction =
                                         new_ball.get_position() - other_ball.get_position();
 
@@ -249,26 +243,24 @@ impl Scene {
                                         new_physics_ball_time..=(new_physics_ball_time + 10.0),
                                         0.05,
                                     );
-                                } else if other_ball.get_id() == "Timmy J" {
-                                    if let Some(current_winner) = self.get_current_winner() {
-                                        new_ball.set_position(
-                                            if new_ball.get_id() == "Deep Blue" {
-                                                current_winner.get_position()
-                                            } else if new_ball.get_id() == current_winner.get_id() {
-                                                if let Some(deep_blue) = self
-                                                    .get_balls()
-                                                    .iter()
-                                                    .find(|ball| ball.get_id() == "Deep Blue")
-                                                {
-                                                    deep_blue.get_position()
-                                                } else {
-                                                    new_ball.get_position()
-                                                }
-                                            } else {
-                                                new_ball.get_position()
-                                            },
-                                        );
-                                    }
+                                } else if other_ball.get_id() == "Timmy J"
+                                    && let Some(current_winner) = self.get_current_winner()
+                                {
+                                    new_ball.set_position(if new_ball.get_id() == "Deep Blue" {
+                                        current_winner.get_position()
+                                    } else if new_ball.get_id() == current_winner.get_id() {
+                                        if let Some(deep_blue) = self
+                                            .get_balls()
+                                            .iter()
+                                            .find(|ball| ball.get_id() == "Deep Blue")
+                                        {
+                                            deep_blue.get_position()
+                                        } else {
+                                            new_ball.get_position()
+                                        }
+                                    } else {
+                                        new_ball.get_position()
+                                    });
                                 }
                             }
                         }
@@ -276,29 +268,27 @@ impl Scene {
                         for any_ball in resolved_collisions_scene.get_balls().iter() {
                             if (powerup.as_ref() as &dyn Any).is::<Special>()
                                 && powerup.is_colliding_with(any_ball)
+                                && any_ball.get_id() == "Timmy J"
+                                && let Some(current_winner) = self.get_current_winner()
                             {
-                                if any_ball.get_id() == "Timmy J" {
-                                    if let Some(current_winner) = self.get_current_winner() {
-                                        let target_ball = if new_ball.get_id() == "Deep Blue" {
-                                            current_winner.clone()
-                                        } else if new_ball.get_id() == current_winner.get_id() {
-                                            if let Some(deep_blue) = self
-                                                .get_balls()
-                                                .iter()
-                                                .find(|ball| ball.get_id() == "Deep Blue")
-                                            {
-                                                deep_blue.clone()
-                                            } else {
-                                                new_ball.clone()
-                                            }
-                                        } else {
-                                            new_ball.clone()
-                                        };
-
-                                        new_ball.set_position(target_ball.get_position());
-                                        new_ball.set_velocity(target_ball.get_velocity());
+                                let target_ball = if new_ball.get_id() == "Deep Blue" {
+                                    current_winner.clone()
+                                } else if new_ball.get_id() == current_winner.get_id() {
+                                    if let Some(deep_blue) = self
+                                        .get_balls()
+                                        .iter()
+                                        .find(|ball| ball.get_id() == "Deep Blue")
+                                    {
+                                        deep_blue.clone()
+                                    } else {
+                                        new_ball.clone()
                                     }
-                                }
+                                } else {
+                                    new_ball.clone()
+                                };
+
+                                new_ball.set_position(target_ball.get_position());
+                                new_ball.set_velocity(target_ball.get_velocity());
                             }
                         }
                     }
@@ -315,42 +305,40 @@ impl Scene {
                 let mut new_powerup = powerup.update(dt);
 
                 for ball in resolved_collisions_scene.get_balls() {
-                    if powerup.is_active() {
-                        if powerup.is_colliding_with(ball) {
-                            new_powerup.consume();
+                    if powerup.is_active() && powerup.is_colliding_with(ball) {
+                        new_powerup.consume();
 
-                            if let Some(special) =
-                                (new_powerup.as_mut() as &mut dyn Any).downcast_mut::<Special>()
-                            {
-                                if ball.get_id() == "Black Hole" {
-                                    special.set_text("SUPERMASSIVE");
-                                } else if ball.get_id() == "Green Machine" {
-                                    special.set_text("FASTFORWARD");
-                                } else if ball.get_id() == "Fireball" {
-                                    special.set_text("EXPLOSION");
-                                } else if ball.get_id() == "White Light" {
-                                    special.set_text("FREEZEFRAME");
-                                } else if ball.get_id() == "Deep Blue" {
-                                    special.set_text("UNDERWATER");
-                                } else if ball.get_id() == "IKEA" {
-                                    special.set_text("JUNIOR");
-                                } else if ball.get_id() == "Creepy" {
-                                    special.set_text("HISS BOOM");
-                                } else if ball.get_id() == "Hollow Knight" {
-                                    special.set_text("BUG");
-                                } else if ball.get_id() == "Giftbringer" {
-                                    special.set_text("MERRY CHRISTMAS");
-                                } else if ball.get_id() == "Jokester" {
-                                    special.set_text("WHY SO SERIOUS");
-                                } else if ball.get_id() == "Psycho" {
-                                    special.set_text("BLOODBATH");
-                                } else if ball.get_id() == "Timmy J" {
-                                    special.set_text("BLUE IS KING");
-                                } else if ball.get_id() == "Instabwillity" {
-                                    special.set_text("CHAOS");
-                                } else {
-                                    special.set_text("nothing");
-                                }
+                        if let Some(special) =
+                            (new_powerup.as_mut() as &mut dyn Any).downcast_mut::<Special>()
+                        {
+                            if ball.get_id() == "Black Hole" {
+                                special.set_text("SUPERMASSIVE");
+                            } else if ball.get_id() == "Green Machine" {
+                                special.set_text("FASTFORWARD");
+                            } else if ball.get_id() == "Fireball" {
+                                special.set_text("EXPLOSION");
+                            } else if ball.get_id() == "White Light" {
+                                special.set_text("FREEZEFRAME");
+                            } else if ball.get_id() == "Deep Blue" {
+                                special.set_text("UNDERWATER");
+                            } else if ball.get_id() == "IKEA" {
+                                special.set_text("JUNIOR");
+                            } else if ball.get_id() == "Creepy" {
+                                special.set_text("HISS BOOM");
+                            } else if ball.get_id() == "Hollow Knight" {
+                                special.set_text("BUG");
+                            } else if ball.get_id() == "Giftbringer" {
+                                special.set_text("MERRY CHRISTMAS");
+                            } else if ball.get_id() == "Jokester" {
+                                special.set_text("WHY SO SERIOUS");
+                            } else if ball.get_id() == "Psycho" {
+                                special.set_text("BLOODBATH");
+                            } else if ball.get_id() == "Timmy J" {
+                                special.set_text("BLUE IS KING");
+                            } else if ball.get_id() == "Instabwillity" {
+                                special.set_text("CHAOS");
+                            } else {
+                                special.set_text("nothing");
                             }
                         }
                     }
@@ -359,9 +347,10 @@ impl Scene {
                 new_powerup
             })
             .chain(new_balls.iter().filter_map(|new_ball| {
-                (should_bring_gifts && new_ball.get_id() != "Giftbringer").then_some(
-                    Box::new(Special::new(new_ball.get_position(), 1.0)) as Box<dyn Powerup>
-                )
+                (should_bring_gifts && new_ball.get_id() != "Giftbringer")
+                    .then_some(
+                        Box::new(Special::new(new_ball.get_position(), 1.0)) as Box<dyn Powerup>
+                    )
             }))
             .collect();
 

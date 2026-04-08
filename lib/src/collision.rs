@@ -17,7 +17,11 @@ pub struct Collision {
 
 impl Collision {
     pub fn new(sound_path: PathBuf, volume: f32, position: DVec2) -> Self {
-        Self { sound_path, volume, position }
+        Self {
+            sound_path,
+            volume,
+            position,
+        }
     }
 }
 
@@ -57,7 +61,10 @@ pub fn render_collisions<P: AsRef<Path>>(
         let time_sec = *frame as f32 / 60.0;
         let offset_samples = (2.0 * time_sec * sample_rate as f32).round() as usize;
 
-        let unique_collisions = collisions.iter().unique_by(|collision| &collision.sound_path).collect::<Vec<_>>();
+        let unique_collisions = collisions
+            .iter()
+            .unique_by(|collision| &collision.sound_path)
+            .collect::<Vec<_>>();
 
         for collision in unique_collisions {
             let samples = sound_samples.get(&collision.sound_path).unwrap();

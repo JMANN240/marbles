@@ -587,6 +587,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "even-odd-traits"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1cb790488732bec46bb5155ceb6a757803b71c5bd55db4e051c285e23e3e6874"
+
+[[package]]
 name = "exr"
 version = "1.74.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1315,6 +1321,7 @@ dependencies = [
  "clap",
  "dotenvy",
  "dyn-clone",
+ "even-odd-traits",
  "glam 0.30.9",
  "hex",
  "hound",

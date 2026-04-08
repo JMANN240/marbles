@@ -124,7 +124,10 @@ impl Ball {
     }
 
     pub fn get_elasticity(&self) -> f64 {
-        *self.physics_ball.get_elasticity().get_value(self.get_time())
+        *self
+            .physics_ball
+            .get_elasticity()
+            .get_value(self.get_time())
     }
 
     pub fn set_elasticity(&mut self, elasticity: f64) {
@@ -170,8 +173,13 @@ impl Ball {
                 )));
             }
         }
-        
-        if *self.get_physics_ball().get_bloodbath().get_value(self.get_time()) && dv >= 150.0 {
+
+        if *self
+            .get_physics_ball()
+            .get_bloodbath()
+            .get_value(self.get_time())
+            && dv >= 150.0
+        {
             // TODO: Fix this to not be hard coded.
             let velocity = self.get_velocity();
 
