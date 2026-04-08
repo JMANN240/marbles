@@ -10,8 +10,8 @@ use lib::collision::{Collision, render_collisions};
 use lib::rendering::Render;
 use lib::simulation::Simulation;
 use lib::util::{
-    MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
-    prepare_images_path, prepare_videos_path, render_video, upload_to_instagram, upload_to_youtube,
+    MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene, render_video,
+    upload_to_instagram, upload_to_youtube,
 };
 use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
@@ -72,6 +72,15 @@ pub struct Cli {
 
     #[arg(long, default_value_t = 0)]
     race_offset: usize,
+
+    #[arg(short, long)]
+    keep_audio: bool,
+
+    #[arg(short, long)]
+    keep_frames: bool,
+
+    #[arg(short, long)]
+    keep_video: bool,
 }
 
 const FRAME_PADDING: usize = 6;
@@ -82,6 +91,12 @@ async fn main() {
     tracing::subscriber::set_global_default(FmtSubscriber::default()).unwrap();
     let mut rng = rng();
     let cli = Cli::parse();
+
+    let renders_path = Path::new("renders/headless/");
+
+    if cli.render {
+        fs::create_dir_all(renders_path).unwrap();
+    }
 
     let mut renderer = MacroquadRenderer::new(Some(
         load_ttf_font_from_bytes(include_bytes!("../../roboto.ttf")).unwrap(),
@@ -122,17 +137,22 @@ async fn main() {
     );
     sounds.insert("ikea_g5.wav", load_sound("ikea_g5.wav").await.unwrap());
 
-    let images_path = Path::new("images/macroquad/");
-    let videos_path = Path::new("videos/macroquad/");
-
     while cli.endless || maybe_render_number.is_none_or(|render_number| render_number < cli.renders)
     {
         if let Some(render_number) = &mut maybe_render_number {
             *render_number += 1;
         }
 
+        let now = Local::now();
+
+        let render_path = renders_path.join(now.format("%Y-%m-%d-%H-%M-%S").to_string());
+
+        let frames_path = render_path.join("frames/");
+
         if cli.render {
-            prepare_images_path(images_path).unwrap();
+            fs::create_dir_all(&render_path).unwrap();
+
+            fs::create_dir_all(&frames_path).unwrap();
         }
 
         let config_string = std::fs::read_to_string("config.toml").unwrap();
@@ -142,7 +162,11 @@ async fn main() {
             if let Some(ball_image) = &ball_config.image {
                 renderer.register_image(
                     ball_image.to_string(),
-                    Texture2D::from_image(&load_image(ball_image).await.unwrap()),
+                    Texture2D::from_image(
+                        &load_image(Path::new("ball_images").join(ball_image).to_str().unwrap())
+                            .await
+                            .unwrap(),
+                    ),
                 );
             }
         }
@@ -266,7 +290,7 @@ async fn main() {
             if cli.render {
                 let screen_data = get_screen_data();
                 let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
-                screen_data.export_png(images_path.join(image_name).to_str().unwrap());
+                screen_data.export_png(frames_path.join(image_name).to_str().unwrap());
                 frame_number += 1;
             }
 
@@ -274,35 +298,39 @@ async fn main() {
         }
 
         if cli.render {
-            prepare_videos_path(videos_path).unwrap();
+            let audio_path = render_path.join("audio.wav");
 
             render_collisions(
-                "output.wav",
+                &audio_path,
                 &collisions,
                 Duration::from_secs_f64(300.0),
                 44100,
             );
 
-            let video_name = Local::now()
-                .format("video_%Y-%m-%d_%H-%M-%S.mp4")
-                .to_string();
-
-            let video_path = videos_path.join(video_name);
+            let video_path = render_path.join("video.mp4");
 
             info!("Rendering video...");
             let status = render_video(
                 &video_path,
-                images_path.join(get_frame_template(FRAME_PADDING)),
-                "output.wav",
+                frames_path.join(get_frame_template(FRAME_PADDING)),
+                &audio_path,
             )
             .expect("Failed to execute ffmpeg");
+
+            if !cli.keep_audio && audio_path.exists() {
+                fs::remove_file(audio_path).expect("Could not delete audio");
+            }
+
+            if !cli.keep_frames && frames_path.exists() {
+                fs::remove_dir_all(frames_path).expect("Could not delete frames");
+            }
 
             if status.success() {
                 info!("Video saved as {:?}!", video_path);
 
                 let today = Local::now().date_naive();
 
-                let count = fs::read_dir(videos_path)
+                let count = fs::read_dir(renders_path)
                     .unwrap()
                     .filter_map(|entry| {
                         let entry = entry.ok()?;
@@ -361,6 +389,14 @@ async fn main() {
                 }
             } else {
                 info!("Rendering failed!");
+            }
+
+            if !cli.keep_video && video_path.exists() {
+                fs::remove_file(video_path).expect("Could not delete video");
+            }
+
+            if !cli.keep_audio && !cli.keep_frames && !cli.keep_video {
+                fs::remove_dir_all(render_path).expect("Could not delete render directory");
             }
         }
     }

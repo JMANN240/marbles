@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    env,
+    env, fs,
     path::Path,
     sync::{Arc, Mutex},
     time::Duration,
@@ -20,8 +20,7 @@ use lib::{
     simulation::Simulation,
     util::{
         MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
-        prepare_images_path, prepare_videos_path, render_video, upload_to_instagram,
-        upload_to_youtube,
+        render_video, upload_to_instagram, upload_to_youtube,
     },
 };
 use rand::{rng, seq::IndexedRandom};
@@ -60,6 +59,15 @@ pub struct Cli {
 
     #[arg(long, default_value_t = 0)]
     race_offset: usize,
+
+    #[arg(short, long)]
+    keep_audio: bool,
+
+    #[arg(short, long)]
+    keep_frames: bool,
+
+    #[arg(short, long)]
+    keep_video: bool,
 }
 
 const FRAME_PADDING: usize = 6;
@@ -76,8 +84,8 @@ fn main() {
     let mut rng = rng();
     let cli = Cli::parse();
 
-    let images_path = Path::new("images/headless/");
-    let videos_path = Path::new("videos/headless/");
+    let renders_path = Path::new("renders/headless/");
+    fs::create_dir_all(renders_path).unwrap();
 
     const WIDTH: u32 = 1080 / 2;
     const HEIGHT: u32 = 1920 / 2;
@@ -86,8 +94,13 @@ fn main() {
     let config = from_str::<Config>(&config_string).unwrap();
 
     for _ in 0..cli.renders {
-        prepare_images_path(images_path).unwrap();
-        prepare_videos_path(videos_path).unwrap();
+        let now = Local::now();
+
+        let render_path = renders_path.join(now.format("%Y-%m-%d-%H-%M-%S").to_string());
+        fs::create_dir_all(&render_path).unwrap();
+
+        let frames_path = render_path.join("frames/");
+        fs::create_dir_all(&frames_path).unwrap();
 
         let scene = get_scene(
             &mut rand::rng(),
@@ -168,7 +181,7 @@ fn main() {
                 ball_config.image.as_ref().map(|image_name| {
                     (
                         image_name,
-                        ImageReader::open(image_name)
+                        ImageReader::open(Path::new("ball_images").join(image_name))
                             .unwrap()
                             .decode()
                             .unwrap()
@@ -200,40 +213,48 @@ fn main() {
                 let image = renderer.render_image_onto(renderer.black());
                 let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
 
-                image.save(images_path.join(image_name)).unwrap();
+                image.save(frames_path.join(image_name)).unwrap();
 
                 let mut frames_rendered = frames_rendered.lock().unwrap();
                 *frames_rendered += 1;
                 debug!("Rendered {}/{} frames", *frames_rendered, number_of_frames);
             });
 
+        let audio_path = render_path.join("audio.wav");
+
         render_collisions(
-            "output.wav",
+            &audio_path,
             &collisions,
             Duration::from_secs_f64(300.0),
             44100,
         );
 
-        let video_name = Local::now()
-            .format("video_%Y-%m-%d_%H-%M-%S.mp4")
-            .to_string();
+        let video_name = Local::now().format("video.mp4").to_string();
 
-        let video_path = videos_path.join(video_name);
+        let video_path = render_path.join(video_name);
 
         info!("Rendering video...");
         let status = render_video(
             &video_path,
-            images_path.join(get_frame_template(FRAME_PADDING)),
-            "output.wav",
+            frames_path.join(get_frame_template(FRAME_PADDING)),
+            &audio_path,
         )
         .expect("Failed to execute ffmpeg");
+
+        if !cli.keep_audio && audio_path.exists() {
+            fs::remove_file(audio_path).expect("Could not delete audio");
+        }
+
+        if !cli.keep_frames && frames_path.exists() {
+            fs::remove_dir_all(frames_path).expect("Could not delete frames");
+        }
 
         if status.success() {
             info!("Video saved as {:?}!", video_path);
 
             let today = Local::now().date_naive();
 
-            let count = std::fs::read_dir(videos_path)
+            let count = std::fs::read_dir(renders_path)
                 .unwrap()
                 .filter_map(|entry| {
                     let entry = entry.ok()?;
@@ -290,6 +311,14 @@ fn main() {
             }
         } else {
             info!("Rendering failed!");
+        }
+
+        if !cli.keep_video && video_path.exists() {
+            fs::remove_file(video_path).expect("Could not delete video");
+        }
+
+        if !cli.keep_audio && !cli.keep_frames && !cli.keep_video {
+            fs::remove_dir_all(render_path).expect("Could not delete render directory");
         }
     }
 }

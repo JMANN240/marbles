@@ -136,25 +136,6 @@ pub fn upload_to_instagram<V: AsRef<Path>>(
     }
 }
 
-pub fn prepare_images_path<P: AsRef<Path>>(images_path: P) -> std::io::Result<()> {
-    if images_path.as_ref().exists() {
-        info!("Clearing previous frames!");
-        std::fs::remove_dir_all(&images_path)?;
-    }
-
-    std::fs::create_dir(images_path)?;
-
-    Ok(())
-}
-
-pub fn prepare_videos_path<P: AsRef<Path>>(videos_path: P) -> std::io::Result<()> {
-    if !videos_path.as_ref().exists() {
-        std::fs::create_dir(videos_path)?;
-    }
-
-    Ok(())
-}
-
 fn format_frame_name(content: &str) -> String {
     format!("frame_{content}.png")
 }

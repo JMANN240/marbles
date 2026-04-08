@@ -1,4 +1,4 @@
-use std::{f64::consts::PI, path::PathBuf, sync::Arc};
+use std::{f64::consts::PI, path::Path, sync::Arc};
 
 use glam::{DVec2, dvec2};
 use palette::Srgba;
@@ -104,7 +104,7 @@ impl BallConfig {
             } else {
                 Box::new(BaseStyle::new(color))
             },
-            PathBuf::from(self.sound.clone()),
+            Path::new("ball_sounds").join(&self.sound),
         );
 
         if self.name == "Fireball" {
