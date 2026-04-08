@@ -1,0 +1,55 @@
+# .github/workflows/deploy.yml
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ffmpeg \
+            libasound2-dev
+
+      - name: Build release binary
+        run: cargo build --release --package marbles-headless
+
+      - name: Start ssh-agent and add key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Add droplet to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DROPLET_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy binary to droplet
+        run: |
+          scp target/release/marbles-headless \
+            ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}:/tmp/marbles-headless.new
+
+      - name: Deploy on droplet
+        run: |
+          ssh ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }} << 'EOF'
+            set -e
+
+            cd /home/deploy/marbles
+            git pull origin master
+
+            sudo install -m 755 /tmp/marbles-headless.new /usr/local/bin/marbles-headless
+            rm -f /tmp/marbles-headless.new
+          EOF
