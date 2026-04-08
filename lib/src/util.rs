@@ -8,7 +8,6 @@ use macroquad::color::Color;
 use palette::Srgba;
 use rand::Rng;
 use serde::Deserialize;
-use tracing::info;
 
 use crate::{
     Config,
