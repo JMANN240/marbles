@@ -17,6 +17,7 @@ use crate::{
 
 pub mod ball;
 pub mod collision;
+pub mod database;
 pub mod drawer;
 pub mod level;
 pub mod levels;

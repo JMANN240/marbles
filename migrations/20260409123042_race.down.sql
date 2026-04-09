@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS race_participant;
+DROP TABLE IF EXISTS race;

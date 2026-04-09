@@ -7,7 +7,7 @@ use std::{
 };
 
 use ab_glyph::FontArc;
-use chrono::{Local, TimeZone};
+use chrono::{Local, TimeDelta, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
 use glam::DVec2;
@@ -15,6 +15,7 @@ use image::ImageReader;
 use lib::{
     Config, ENGAGEMENTS,
     collision::{Collision, render_collisions},
+    database::DbRace,
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::Render,
     simulation::Simulation,
@@ -27,6 +28,7 @@ use rand::{rng, seq::IndexedRandom};
 use rayon::prelude::*;
 use render_agnostic::renderers::image::ImageRenderer;
 use reqwest::blocking::Client;
+use sqlx::SqlitePool;
 use toml::from_str;
 use tracing::{Level, debug, error, info};
 use tracing_subscriber::FmtSubscriber;
@@ -68,11 +70,15 @@ pub struct Cli {
 
     #[arg(short, long)]
     keep_video: bool,
+
+    #[arg(short, long)]
+    stats: bool,
 }
 
 const FRAME_PADDING: usize = 6;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     dotenv().unwrap();
     tracing::subscriber::set_global_default(
         FmtSubscriber::builder()
@@ -83,6 +89,12 @@ fn main() {
     .unwrap();
     let mut rng = rng();
     let cli = Cli::parse();
+
+    let pool = SqlitePool::connect(
+        &env::var("DATABASE_URL").expect("DATABASE_URL environment variable not set"),
+    )
+    .await
+    .unwrap();
 
     let renders_path = Path::new("renders/headless/");
     fs::create_dir_all(renders_path).unwrap();
@@ -167,6 +179,33 @@ fn main() {
             simulation_states.push(simulation.clone());
 
             if simulation.is_finished() {
+                if cli.stats {
+                    let race = DbRace::insert(&pool, now.timestamp())
+                        .await
+                        .expect("Could not insert race into database");
+
+                    for (winner_index, win_time) in simulation
+                        .get_scene()
+                        .get_winners()
+                        .iter()
+                        .zip(simulation.get_scene().get_win_times())
+                    {
+                        let winner = simulation
+                            .get_scene()
+                            .get_balls()
+                            .get(*winner_index)
+                            .unwrap();
+
+                        race.insert_participant(
+                            &pool,
+                            winner.get_name().to_string(),
+                            TimeDelta::from_std(*win_time).unwrap(),
+                        )
+                        .await
+                        .expect("Could not insert race participant into database");
+                    }
+                }
+
                 break;
             }
         }
