@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Read refs from stdin (provided by git)
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Only act on pushes to master
+  if [[ "$remote_ref" == "refs/heads/master" ]]; then
+    echo "Running sqlx prepare check for push to master..."
+
+    # Ensure offline mode is NOT set
+    if ! cargo sqlx prepare --check --workspace; then
+      echo
+      echo "ERROR: sqlx metadata is out of date."
+      echo "Run:"
+      echo "  cargo sqlx prepare --workspace"
+      echo "Then commit the updated .sqlx directory."
+      exit 1
+    fi
+  fi
+done
+
+exit 0
