@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["lib", "marbles_headless", "marbles_macroquad"]
+members = ["lib", "marbles_headless", "marbles_macroquad", "render_scenes"]
 
 [workspace.dependencies]
 anchor2d = "0.1.10"

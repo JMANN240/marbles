@@ -1,5 +1,6 @@
 /target
 /renders
+/scenes
 youtube_client_secrets.json
 youtube_token.json
 .env
