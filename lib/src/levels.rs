@@ -192,7 +192,7 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
             .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
             .collect();
 
-    let wall_size = scene_width / 2.0 - 10.0;
+    let wall_size = scene_width / 2.0 - 20.0;
 
     walls.push(Box::new(StraightWall::new(
         Line::new(dvec2(0.0, 400.0), dvec2(wall_size, 400.0 + wall_size)),

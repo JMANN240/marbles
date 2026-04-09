@@ -147,12 +147,7 @@ pub fn get_frame_template(padding: usize) -> String {
     format_frame_name(&format!("%0{padding}d"))
 }
 
-pub fn get_scenes(
-    rng: &mut impl Rng,
-    config: &Config,
-    width: f64,
-    height: f64,
-) -> Vec<Scene> {
+pub fn get_scenes(rng: &mut impl Rng, config: &Config, width: f64, height: f64) -> Vec<Scene> {
     vec![
         scene_1(rng, config.get_balls().clone(), width, height),
         scene_2(rng, config.get_balls().clone(), width, height),

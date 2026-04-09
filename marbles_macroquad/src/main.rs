@@ -107,35 +107,35 @@ async fn main() {
     let zoom = 1.125;
 
     let mut sounds = HashMap::new();
-    sounds.insert("piano_c6.wav", load_sound("piano_c6.wav").await.unwrap());
-    sounds.insert("piano_e6.wav", load_sound("piano_e6.wav").await.unwrap());
-    sounds.insert("piano_g6.wav", load_sound("piano_g6.wav").await.unwrap());
-    sounds.insert("piano_c7.wav", load_sound("piano_c7.wav").await.unwrap());
+    sounds.insert("ball_sounds/piano_c6.wav", load_sound("ball_sounds/piano_c6.wav").await.unwrap());
+    sounds.insert("ball_sounds/piano_e6.wav", load_sound("ball_sounds/piano_e6.wav").await.unwrap());
+    sounds.insert("ball_sounds/piano_g6.wav", load_sound("ball_sounds/piano_g6.wav").await.unwrap());
+    sounds.insert("ball_sounds/piano_c7.wav", load_sound("ball_sounds/piano_c7.wav").await.unwrap());
     sounds.insert(
-        "deepblue_e5.wav",
-        load_sound("deepblue_e5.wav").await.unwrap(),
+        "ball_sounds/deepblue_e5.wav",
+        load_sound("ball_sounds/deepblue_e5.wav").await.unwrap(),
     );
     sounds.insert(
-        "fireball_c4.wav",
-        load_sound("fireball_c4.wav").await.unwrap(),
+        "ball_sounds/fireball_c4.wav",
+        load_sound("ball_sounds/fireball_c4.wav").await.unwrap(),
     );
     sounds.insert(
-        "whitelight_c6.wav",
-        load_sound("whitelight_c6.wav").await.unwrap(),
+        "ball_sounds/whitelight_c6.wav",
+        load_sound("ball_sounds/whitelight_c6.wav").await.unwrap(),
     );
     sounds.insert(
-        "blackhole_g4.wav",
-        load_sound("blackhole_g4.wav").await.unwrap(),
+        "ball_sounds/blackhole_g4.wav",
+        load_sound("ball_sounds/blackhole_g4.wav").await.unwrap(),
     );
     sounds.insert(
-        "greenmachine_e4.wav",
-        load_sound("greenmachine_e4.wav").await.unwrap(),
+        "ball_sounds/greenmachine_e4.wav",
+        load_sound("ball_sounds/greenmachine_e4.wav").await.unwrap(),
     );
     sounds.insert(
-        "greenmachine_e5.wav",
-        load_sound("greenmachine_e5.wav").await.unwrap(),
+        "ball_sounds/greenmachine_e5.wav",
+        load_sound("ball_sounds/greenmachine_e5.wav").await.unwrap(),
     );
-    sounds.insert("ikea_g5.wav", load_sound("ikea_g5.wav").await.unwrap());
+    sounds.insert("ball_sounds/ikea_g5.wav", load_sound("ball_sounds/ikea_g5.wav").await.unwrap());
 
     while cli.endless || maybe_render_number.is_none_or(|render_number| render_number < cli.renders)
     {
