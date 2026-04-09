@@ -30,8 +30,7 @@ pub struct Simulation {
 impl Simulation {
     pub fn new(
         scene: Scene,
-        viewport_width: f64,
-        viewport_height: f64,
+        viewport: (f64, f64),
         countdown_seconds: f64,
         reset_seconds: f64,
         engagement: String,
@@ -40,8 +39,8 @@ impl Simulation {
     ) -> Self {
         Self {
             time: 0.0,
-            viewport_width,
-            viewport_height,
+            viewport_width: viewport.0,
+            viewport_height: viewport.1,
             scene,
             maybe_all_won_time: None,
             maybe_any_won_time: None,
@@ -50,8 +49,8 @@ impl Simulation {
             engagement,
             special_message,
             special_message_user,
-            special_message_x: -viewport_width,
-            special_message_target_x: -viewport_width,
+            special_message_x: -viewport.0,
+            special_message_target_x: -viewport.0,
         }
     }
 

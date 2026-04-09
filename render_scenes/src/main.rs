@@ -55,8 +55,7 @@ async fn main() {
 
         let simulation = Simulation::new(
             scene,
-            1080.0 / 2.0,
-            1920.0 / 2.0,
+            (1080.0 / 2.0, 1920.0 / 2.0),
             0.0,
             0.0,
             String::default(),

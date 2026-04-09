@@ -107,10 +107,22 @@ async fn main() {
     let zoom = 1.125;
 
     let mut sounds = HashMap::new();
-    sounds.insert("ball_sounds/piano_c6.wav", load_sound("ball_sounds/piano_c6.wav").await.unwrap());
-    sounds.insert("ball_sounds/piano_e6.wav", load_sound("ball_sounds/piano_e6.wav").await.unwrap());
-    sounds.insert("ball_sounds/piano_g6.wav", load_sound("ball_sounds/piano_g6.wav").await.unwrap());
-    sounds.insert("ball_sounds/piano_c7.wav", load_sound("ball_sounds/piano_c7.wav").await.unwrap());
+    sounds.insert(
+        "ball_sounds/piano_c6.wav",
+        load_sound("ball_sounds/piano_c6.wav").await.unwrap(),
+    );
+    sounds.insert(
+        "ball_sounds/piano_e6.wav",
+        load_sound("ball_sounds/piano_e6.wav").await.unwrap(),
+    );
+    sounds.insert(
+        "ball_sounds/piano_g6.wav",
+        load_sound("ball_sounds/piano_g6.wav").await.unwrap(),
+    );
+    sounds.insert(
+        "ball_sounds/piano_c7.wav",
+        load_sound("ball_sounds/piano_c7.wav").await.unwrap(),
+    );
     sounds.insert(
         "ball_sounds/deepblue_e5.wav",
         load_sound("ball_sounds/deepblue_e5.wav").await.unwrap(),
@@ -135,7 +147,10 @@ async fn main() {
         "ball_sounds/greenmachine_e5.wav",
         load_sound("ball_sounds/greenmachine_e5.wav").await.unwrap(),
     );
-    sounds.insert("ball_sounds/ikea_g5.wav", load_sound("ball_sounds/ikea_g5.wav").await.unwrap());
+    sounds.insert(
+        "ball_sounds/ikea_g5.wav",
+        load_sound("ball_sounds/ikea_g5.wav").await.unwrap(),
+    );
 
     while cli.endless || maybe_render_number.is_none_or(|render_number| render_number < cli.renders)
     {
@@ -216,8 +231,7 @@ async fn main() {
 
         let mut simulation = Simulation::new(
             scene,
-            screen_width() as f64,
-            screen_height() as f64,
+            (screen_width() as f64, screen_height() as f64),
             cli.countdown_seconds as f64,
             cli.reset_seconds as f64,
             engagement.to_string(),

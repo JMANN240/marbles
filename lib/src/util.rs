@@ -19,6 +19,7 @@ use crate::{
     scenes::{
         scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10,
     },
+    simulation::Simulation,
 };
 
 #[cfg(feature = "macroquad")]
@@ -217,5 +218,21 @@ impl<T> ValueOverTime<T> {
 
     pub fn add_modifier(&mut self, time_range: RangeInclusive<f64>, modified_value: T) {
         self.modifiers.push((time_range, modified_value));
+    }
+}
+
+pub fn all_won_condition(tail_seconds: f64) -> impl Fn(&Simulation) -> bool {
+    move |simulation| {
+        simulation
+            .get_maybe_all_won_time()
+            .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + tail_seconds)
+    }
+}
+
+pub fn any_won_condition(tail_seconds: f64) -> impl Fn(&Simulation) -> bool {
+    move |simulation| {
+        simulation
+            .get_maybe_any_won_time()
+            .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + tail_seconds)
     }
 }

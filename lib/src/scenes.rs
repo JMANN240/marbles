@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use crate::{
     BallConfig,
@@ -7,6 +7,7 @@ use crate::{
     levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8, level_9, level_10},
     powerup::{change_position::ChangePosition, random_powerup},
     scene::Scene,
+    util::{all_won_condition, any_won_condition},
     wall::{Wall, straight_wall::StraightWall},
 };
 use glam::dvec2;
@@ -30,11 +31,7 @@ pub fn scene_1(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -55,11 +52,7 @@ pub fn scene_2(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -80,11 +73,7 @@ pub fn scene_3(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_any_won_time()
-                .is_some_and(|any_won_time| simulation.get_time() >= any_won_time + 15.0)
-        },
+        any_won_condition(15.0),
     )
 }
 
@@ -105,11 +94,7 @@ pub fn scene_4(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -132,11 +117,7 @@ pub fn scene_5(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -157,11 +138,7 @@ pub fn scene_6(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -190,7 +167,7 @@ pub fn scene_7(scene_width: f64, scene_height: f64) -> Scene {
         .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
         .collect();
 
-    Scene::new(balls, Vec::new(), walls, |_| false)
+    Scene::new(balls, Vec::new(), walls, Arc::new(|_| false))
 }
 
 pub fn scene_8(
@@ -211,11 +188,7 @@ pub fn scene_8(
                 16.0..=(scene_height - 16.0),
             ))
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -236,11 +209,7 @@ pub fn scene_9(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }
 
@@ -263,10 +232,6 @@ pub fn scene_10(
                 scene_height,
             )
         },
-        |simulation| {
-            simulation
-                .get_maybe_all_won_time()
-                .is_some_and(|all_won_time| simulation.get_time() >= all_won_time + 5.0)
-        },
+        all_won_condition(5.0),
     )
 }

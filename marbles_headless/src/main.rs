@@ -157,8 +157,7 @@ async fn main() {
 
         let mut simulation = Simulation::new(
             scene,
-            1080.0 / 2.0,
-            1920.0 / 2.0,
+            (1080.0 / 2.0, 1920.0 / 2.0),
             cli.countdown_seconds as f64,
             cli.reset_seconds as f64,
             engagement.to_string(),

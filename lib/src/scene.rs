@@ -1,4 +1,4 @@
-use std::{any::Any, f64::consts::PI, time::Duration};
+use std::{any::Any, f64::consts::PI, sync::Arc, time::Duration};
 
 use ::rand::random_range;
 use dyn_clone::DynClone;
@@ -39,7 +39,7 @@ pub struct Scene {
     winners: Vec<usize>,
     win_times: Vec<Duration>,
     particles: SceneParticleSystem,
-    finished_condition: fn(&Simulation) -> bool,
+    finished_condition: Arc<dyn Fn(&Simulation) -> bool + Send + Sync>,
 }
 
 impl Scene {
@@ -47,7 +47,7 @@ impl Scene {
         balls: Vec<Ball>,
         powerups: Vec<Box<dyn Powerup>>,
         walls: Vec<Box<dyn Wall>>,
-        finished_condition: fn(&Simulation) -> bool,
+        finished_condition: Arc<dyn Fn(&Simulation) -> bool + Send + Sync>,
     ) -> Self {
         Self {
             time: 0.0,
@@ -103,8 +103,8 @@ impl Scene {
         &self.particles
     }
 
-    pub fn get_finished_condition(&self) -> fn(&Simulation) -> bool {
-        self.finished_condition
+    pub fn get_finished_condition(&self) -> Arc<dyn Fn(&Simulation) -> bool + Send + Sync> {
+        Arc::clone(&self.finished_condition)
     }
 
     pub fn update(&self, dt: f64, timescale: f64, physics_steps: usize) -> (Self, Vec<Collision>) {
@@ -402,7 +402,7 @@ impl Scene {
             winners: new_winners,
             win_times: new_win_times,
             particles: new_particles,
-            finished_condition: self.finished_condition,
+            finished_condition: self.get_finished_condition(),
         };
 
         for collision in &collisions {

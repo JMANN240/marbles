@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use glam::DVec2;
 use rand::{Rng, seq::SliceRandom};
 
@@ -63,7 +65,7 @@ impl Level {
         rng: &mut impl Rng,
         ball_configs: Vec<BallConfig>,
         powerup_function: impl Fn(&PowerupSpace) -> Box<dyn Powerup>,
-        finished_condition: fn(&Simulation) -> bool,
+        finished_condition: impl Fn(&Simulation) -> bool + Send + Sync + 'static,
     ) -> Scene {
         let mut ball_spaces = self.ball_spaces.clone();
         ball_spaces.shuffle(rng);
@@ -78,6 +80,11 @@ impl Level {
 
         let powerups = self.powerup_spaces.iter().map(powerup_function).collect();
 
-        Scene::new(balls, powerups, self.walls.clone(), finished_condition)
+        Scene::new(
+            balls,
+            powerups,
+            self.walls.clone(),
+            Arc::new(finished_condition),
+        )
     }
 }
