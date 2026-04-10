@@ -3,7 +3,7 @@ use glam::{DVec2, dvec2};
 use palette::Srgba;
 use render_agnostic::Renderer;
 
-use crate::{collision::Collision, rendering::Render, scene::Scene};
+use crate::{collision::Collision, rendering::Render, scene::Scene, util::ValueOverTime};
 
 pub enum SimulationPhase {
     Countdown,
@@ -25,6 +25,8 @@ pub struct Simulation {
     special_message_user: String,
     special_message_x: f64,
     special_message_target_x: f64,
+    zoom: ValueOverTime<f64>,
+    focus: ValueOverTime<DVec2>,
 }
 
 impl Simulation {
@@ -37,6 +39,10 @@ impl Simulation {
         special_message: String,
         special_message_user: String,
     ) -> Self {
+        let zoom = ValueOverTime::new(0.875);
+
+        let focus = ValueOverTime::new(DVec2::splat(0.5));
+
         Self {
             time: 0.0,
             viewport_width: viewport.0,
@@ -51,6 +57,8 @@ impl Simulation {
             special_message_user,
             special_message_x: -viewport.0,
             special_message_target_x: -viewport.0,
+            zoom,
+            focus,
         }
     }
 
@@ -131,6 +139,14 @@ impl Simulation {
 
     pub fn is_finished(&self) -> bool {
         self.get_scene().get_finished_condition()(self)
+    }
+
+    pub fn zoom(&self, time: f64) -> f64 {
+        *self.zoom.get_value(time)
+    }
+
+    pub fn focus(&self, time: f64) -> DVec2 {
+        *self.focus.get_value(time)
     }
 }
 

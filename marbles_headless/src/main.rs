@@ -10,7 +10,6 @@ use ab_glyph::FontArc;
 use chrono::{Local, TimeDelta, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
-use glam::DVec2;
 use image::ImageReader;
 use lib::{
     Config,
@@ -236,11 +235,13 @@ async fn main() {
             .par_iter()
             .enumerate()
             .for_each(|(frame_number, simulation)| {
+                let t = frame_number as f64 / 60.0;
+
                 let mut renderer = ImageRenderer::new(
                     WIDTH,
                     HEIGHT,
-                    0.875,
-                    DVec2::splat(0.5),
+                    simulation.zoom(t),
+                    simulation.focus(t),
                     2,
                     FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap(),
                 );
