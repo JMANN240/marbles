@@ -13,9 +13,10 @@ use dotenvy::dotenv;
 use glam::DVec2;
 use image::ImageReader;
 use lib::{
-    Config, ENGAGEMENTS,
+    Config,
     collision::{Collision, render_collisions},
     database::DbRace,
+    engagement::get_engagement_for_scene,
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::Render,
     simulation::Simulation,
@@ -24,7 +25,7 @@ use lib::{
         render_video, upload_to_instagram, upload_to_youtube,
     },
 };
-use rand::{rng, seq::IndexedRandom};
+use rand::rng;
 use rayon::prelude::*;
 use render_agnostic::renderers::image::ImageRenderer;
 use reqwest::blocking::Client;
@@ -122,7 +123,9 @@ async fn main() {
             HEIGHT as f64,
         );
         let mut collisions: HashMap<usize, Vec<Collision>> = HashMap::new();
-        let engagement = ENGAGEMENTS.choose(&mut rng).unwrap();
+        let engagement = get_engagement_for_scene(&pool, &mut rng, &scene)
+            .await
+            .unwrap();
 
         let mut query = HashMap::new();
 
@@ -160,7 +163,7 @@ async fn main() {
             (1080.0 / 2.0, 1920.0 / 2.0),
             cli.countdown_seconds as f64,
             cli.reset_seconds as f64,
-            engagement.to_string(),
+            textwrap::fill(&engagement, 20),
             special_message.message,
             special_message.user,
         );

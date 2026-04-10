@@ -19,6 +19,7 @@ pub mod ball;
 pub mod collision;
 pub mod database;
 pub mod drawer;
+pub mod engagement;
 pub mod level;
 pub mod levels;
 pub mod particle;

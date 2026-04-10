@@ -46,6 +46,16 @@ impl DbRaceParticipant {
         .await
     }
 
+    pub async fn get_by_name(pool: &SqlitePool, name: &str) -> sqlx::Result<Vec<Self>> {
+        query_as!(
+            Self,
+            "SELECT * FROM race_participant WHERE name = ?",
+            name,
+        )
+        .fetch_all(pool)
+        .await
+    }
+
     pub async fn insert(
         pool: &SqlitePool,
         race_id: i64,

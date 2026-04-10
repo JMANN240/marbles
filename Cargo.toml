@@ -3,10 +3,10 @@ resolver = "3"
 members = ["lib", "marbles_headless", "marbles_macroquad", "render_scenes"]
 
 [workspace.dependencies]
-anchor2d = "0.1.10"
+anchor2d = "0.1.12"
 glam = "0.30.5"
 image = { version = "0.25.6" }
 macroquad = { version = "0.4.14", features = ["audio", "glam-serde"] }
 palette = "0.7.6"
-render-agnostic = { version = "0.1.15", default-features = false }
+render-agnostic = { version = "0.1.17", default-features = false }
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-native-tls", "sqlite"] }

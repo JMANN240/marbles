@@ -17,7 +17,7 @@ use crate::{
     },
     scene::Scene,
     scenes::{
-        scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10,
+        scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10, scene_11,
     },
     simulation::Simulation,
 };
@@ -160,6 +160,7 @@ pub fn get_scenes(rng: &mut impl Rng, config: &Config, width: f64, height: f64) 
         scene_8(rng, config.get_balls().clone(), width, height),
         scene_9(rng, config.get_balls().clone(), width, height),
         scene_10(rng, config.get_balls().clone(), width, height),
+        scene_11(rng, config.get_balls().clone(), width, height),
     ]
 }
 

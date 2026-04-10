@@ -235,3 +235,24 @@ pub fn scene_10(
         all_won_condition(5.0),
     )
 }
+
+pub fn scene_11(
+    rng: &mut impl Rng,
+    ball_configs: Vec<BallConfig>,
+    scene_width: f64,
+    scene_height: f64,
+) -> Scene {
+    level_3(4, scene_width, scene_height).build_scene(
+        rng,
+        ball_configs,
+        |powerup_space| {
+            random_powerup(
+                &mut rand::rng(),
+                powerup_space.get_position(),
+                scene_width,
+                scene_height,
+            )
+        },
+        all_won_condition(5.0),
+    )
+}
