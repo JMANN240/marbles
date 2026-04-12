@@ -242,9 +242,11 @@ pub fn scene_11(
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
+    let mut shuffled_ball_configs = ball_configs.clone();
+    shuffled_ball_configs.shuffle(rng);
     level_3(4, scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        shuffled_ball_configs,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
