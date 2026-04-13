@@ -10,16 +10,12 @@ use rand::Rng;
 use serde::Deserialize;
 
 use crate::{
-    Config,
-    posting::{
+    api::Marble, posting::{
         cloudinary::Cloudinary,
         instagram::{InstagramPoster, MediaPublishResponse},
-    },
-    scene::Scene,
-    scenes::{
+    }, scene::Scene, scenes::{
         scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10, scene_11,
-    },
-    simulation::Simulation,
+    }, simulation::Simulation
 };
 
 #[cfg(feature = "macroquad")]
@@ -148,30 +144,30 @@ pub fn get_frame_template(padding: usize) -> String {
     format_frame_name(&format!("%0{padding}d"))
 }
 
-pub fn get_scenes(rng: &mut impl Rng, config: &Config, width: f64, height: f64) -> Vec<Scene> {
+pub fn get_scenes(rng: &mut impl Rng, marbles: &[Marble], width: f64, height: f64) -> Vec<Scene> {
     vec![
-        scene_1(rng, config.get_balls().clone(), width, height),
-        scene_2(rng, config.get_balls().clone(), width, height),
-        scene_3(rng, config.get_balls().clone(), width, height),
-        scene_4(rng, config.get_balls().clone(), width, height),
-        scene_5(rng, config.get_balls().clone(), width, height),
-        scene_6(rng, config.get_balls().clone(), width, height),
+        scene_1(rng, marbles, width, height),
+        scene_2(rng, marbles, width, height),
+        scene_3(rng, marbles, width, height),
+        scene_4(rng, marbles, width, height),
+        scene_5(rng, marbles, width, height),
+        scene_6(rng, marbles, width, height),
         scene_7(width, height),
-        scene_8(rng, config.get_balls().clone(), width, height),
-        scene_9(rng, config.get_balls().clone(), width, height),
-        scene_10(rng, config.get_balls().clone(), width, height),
-        scene_11(rng, config.get_balls().clone(), width, height),
+        scene_8(rng, marbles, width, height),
+        scene_9(rng, marbles, width, height),
+        scene_10(rng, marbles, width, height),
+        scene_11(rng, marbles, width, height),
     ]
 }
 
 pub fn get_scene(
     rng: &mut impl Rng,
     scene_number: usize,
-    config: &Config,
+    marbles: &[Marble],
     width: f64,
     height: f64,
 ) -> Scene {
-    let scenes = get_scenes(rng, config, width, height);
+    let scenes = get_scenes(rng, marbles, width, height);
 
     scenes[scene_number - 1].clone()
 }

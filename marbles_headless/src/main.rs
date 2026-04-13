@@ -13,8 +13,9 @@ use dotenvy::dotenv;
 use image::ImageReader;
 use lib::{
     Config,
+    api::Marble,
     collision::{Collision, render_collisions},
-    database::DbRace,
+    database::{marble::DbMarble, race::DbRace},
     engagement::get_engagement_for_scene,
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::Render,
@@ -24,7 +25,7 @@ use lib::{
         render_video, upload_to_instagram, upload_to_youtube,
     },
 };
-use rand::rng;
+use rand::rngs::SmallRng;
 use rayon::prelude::*;
 use render_agnostic::renderers::image::ImageRenderer;
 use reqwest::blocking::Client;
@@ -87,7 +88,7 @@ async fn main() {
             .finish(),
     )
     .unwrap();
-    let mut rng = rng();
+    let mut rng = rand::make_rng::<SmallRng>();
     let cli = Cli::parse();
 
     let pool = SqlitePool::connect(
@@ -105,6 +106,13 @@ async fn main() {
     let config_string = std::fs::read_to_string("config.toml").unwrap();
     let config = from_str::<Config>(&config_string).unwrap();
 
+    let marbles = DbMarble::get_all_active(&pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|db_marble| db_marble.into())
+        .collect::<Vec<Marble>>();
+
     for _ in 0..cli.renders {
         let now = Local::now();
 
@@ -115,9 +123,9 @@ async fn main() {
         fs::create_dir_all(&frames_path).unwrap();
 
         let scene = get_scene(
-            &mut rand::rng(),
+            &mut rng,
             config.get_scene(),
-            &config,
+            &marbles,
             WIDTH as f64,
             HEIGHT as f64,
         );
@@ -214,11 +222,10 @@ async fn main() {
         let number_of_frames = simulation_states.len();
         let frames_rendered: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
-        let ball_images = config
-            .get_balls()
+        let ball_images = marbles
             .iter()
-            .filter_map(|ball_config| {
-                ball_config.image.as_ref().map(|image_name| {
+            .filter_map(|marble| {
+                marble.maybe_image_path.as_ref().map(|image_name| {
                     (
                         image_name,
                         ImageReader::open(Path::new("ball_images").join(image_name))
@@ -247,7 +254,8 @@ async fn main() {
                 );
 
                 for (image_name, image) in ball_images.iter() {
-                    renderer.register_image(image_name.to_string(), image.clone());
+                    renderer
+                        .register_image(image_name.to_str().unwrap().to_string(), image.clone());
                 }
 
                 simulation.render(&mut renderer);

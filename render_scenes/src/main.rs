@@ -1,12 +1,15 @@
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, env, fs, path::Path};
 
 use ab_glyph::FontArc;
 use dotenvy::dotenv;
 use glam::DVec2;
 use image::ImageReader;
-use lib::{Config, rendering::Render, simulation::Simulation, util::get_scenes};
+use lib::{
+    api::Marble, database::marble::DbMarble, rendering::Render, simulation::Simulation,
+    util::get_scenes,
+};
 use render_agnostic::renderers::image::ImageRenderer;
-use toml::from_str;
+use sqlx::SqlitePool;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
@@ -21,20 +24,29 @@ async fn main() {
     )
     .unwrap();
 
+    let pool = SqlitePool::connect(
+        &env::var("DATABASE_URL").expect("DATABASE_URL environment variable not set"),
+    )
+    .await
+    .unwrap();
+
     let scenes_path = Path::new("scenes/");
     fs::create_dir_all(scenes_path).unwrap();
 
     const WIDTH: u32 = 1080 / 2;
     const HEIGHT: u32 = 1920 / 2;
 
-    let config_string = std::fs::read_to_string("config.toml").unwrap();
-    let config = from_str::<Config>(&config_string).unwrap();
+    let marbles = DbMarble::get_all_active(&pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|db_marble| db_marble.into())
+        .collect::<Vec<Marble>>();
 
-    let ball_images = config
-        .get_balls()
+    let ball_images = marbles
         .iter()
-        .filter_map(|ball_config| {
-            ball_config.image.as_ref().map(|image_name| {
+        .filter_map(|marble| {
+            marble.maybe_image_path.as_ref().map(|image_name| {
                 (
                     image_name,
                     ImageReader::open(Path::new("ball_images").join(image_name))
@@ -47,9 +59,14 @@ async fn main() {
         })
         .collect::<HashMap<_, _>>();
 
-    for (scene_index, scene) in get_scenes(&mut rand::rng(), &config, WIDTH as f64, HEIGHT as f64)
-        .into_iter()
-        .enumerate()
+    for (scene_index, scene) in get_scenes(
+        &mut rand::rng(),
+        &marbles,
+        WIDTH as f64,
+        HEIGHT as f64,
+    )
+    .into_iter()
+    .enumerate()
     {
         let scene_number = scene_index + 1;
 
@@ -73,7 +90,7 @@ async fn main() {
         );
 
         for (image_name, image) in ball_images.iter() {
-            renderer.register_image(image_name.to_string(), image.clone());
+            renderer.register_image(image_name.to_str().unwrap().to_string(), image.clone());
         }
 
         simulation.render(&mut renderer);

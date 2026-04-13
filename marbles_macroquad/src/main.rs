@@ -2,7 +2,9 @@ use std::env;
 use std::time::Duration;
 use std::{collections::HashMap, fs, path::Path};
 
-use ::rand::{rng, seq::IndexedRandom};
+use lib::api::Marble;
+use lib::database::marble::DbMarble;
+use ::rand::rngs::SmallRng;
 use chrono::{Local, TimeZone};
 use clap::Parser;
 use dotenvy::dotenv;
@@ -17,9 +19,11 @@ use lib::{Config, ENGAGEMENTS};
 use macroquad::audio::{PlaySoundParams, load_sound, play_sound};
 use macroquad::prelude::*;
 use palette::Srgba;
+use ::rand::seq::IndexedRandom;
 use render_agnostic::Renderer;
 use render_agnostic::renderers::macroquad::MacroquadRenderer;
 use reqwest::blocking::Client;
+use sqlx::SqlitePool;
 use toml::from_str;
 use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
@@ -89,8 +93,15 @@ const FRAME_PADDING: usize = 6;
 async fn main() {
     dotenv().unwrap();
     tracing::subscriber::set_global_default(FmtSubscriber::default()).unwrap();
-    let mut rng = rng();
+
+    let mut rng = ::rand::make_rng::<SmallRng>();
     let cli = Cli::parse();
+
+    let pool = SqlitePool::connect(
+        &env::var("DATABASE_URL").expect("DATABASE_URL environment variable not set"),
+    )
+    .await
+    .unwrap();
 
     let renders_path = Path::new("renders/headless/");
 
@@ -173,10 +184,17 @@ async fn main() {
         let config_string = std::fs::read_to_string("config.toml").unwrap();
         let config = from_str::<Config>(&config_string).unwrap();
 
-        for ball_config in config.get_balls() {
-            if let Some(ball_image) = &ball_config.image {
+        let marbles = DbMarble::get_all_active(&pool)
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|db_marble| db_marble.into())
+            .collect::<Vec<Marble>>();
+
+        for marble in &marbles {
+            if let Some(ball_image) = &marble.maybe_image_path {
                 renderer.register_image(
-                    ball_image.to_string(),
+                    ball_image.to_str().unwrap().to_string(),
                     Texture2D::from_image(
                         &load_image(Path::new("ball_images").join(ball_image).to_str().unwrap())
                             .await
@@ -189,7 +207,7 @@ async fn main() {
         let scene = get_scene(
             &mut ::rand::rng(),
             config.get_scene(),
-            &config,
+            &marbles,
             screen_width() as f64,
             screen_height() as f64,
         );

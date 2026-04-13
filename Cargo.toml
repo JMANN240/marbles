@@ -7,6 +7,7 @@ anchor2d = "0.1.12"
 glam = "0.30.5"
 image = { version = "0.25.6" }
 macroquad = { version = "0.4.14", features = ["audio", "glam-serde"] }
-palette = "0.7.6"
+palette = { version = "0.7.6", features = ["serializing"] }
+rand = { version = "0.10.1", features = ["sys_rng"] }
 render-agnostic = { version = "0.1.17", default-features = false }
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-native-tls", "sqlite"] }
