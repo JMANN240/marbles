@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
+use api::marble::Marble;
 use glam::DVec2;
 use rand::{Rng, seq::IndexedRandom};
 
 use crate::{
-    api::Marble, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly, wall::Wall
+    ball::Ball, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly, wall::Wall
 };
 
 #[derive(Clone)]
@@ -70,7 +71,7 @@ impl Level {
             .sample(rng, self.ball_spaces.len())
             .zip(self.ball_spaces.iter())
             .map(|(marble, ball_space)| {
-                marble.build(ball_space.position, ball_space.velocity)
+                Ball::from_marble(marble, ball_space.position, ball_space.velocity)
             })
             .collect();
 

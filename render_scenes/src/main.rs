@@ -1,12 +1,13 @@
 use std::{collections::HashMap, env, fs, path::Path};
 
 use ab_glyph::FontArc;
+use api::marble::Marble;
+use database::marble::DbMarble;
 use dotenvy::dotenv;
 use glam::DVec2;
 use image::ImageReader;
 use lib::{
-    api::Marble, database::marble::DbMarble, rendering::Render, simulation::Simulation,
-    util::get_scenes,
+    rendering::Render, simulation::Simulation, util::get_scenes
 };
 use render_agnostic::renderers::image::ImageRenderer;
 use sqlx::SqlitePool;
@@ -40,7 +41,7 @@ async fn main() {
         .await
         .unwrap()
         .into_iter()
-        .map(|db_marble| db_marble.into())
+        .map(Marble::from)
         .collect::<Vec<Marble>>();
 
     let ball_images = marbles

@@ -1,5 +1,6 @@
 use std::{error::Error, ops::RangeInclusive, path::Path, process::ExitStatus};
 
+use api::marble::Marble;
 use glam::DVec2;
 #[cfg(feature = "image")]
 use image::Rgba;
@@ -10,7 +11,7 @@ use rand::Rng;
 use serde::Deserialize;
 
 use crate::{
-    api::Marble, posting::{
+    posting::{
         cloudinary::Cloudinary,
         instagram::{InstagramPoster, MediaPublishResponse},
     }, scene::Scene, scenes::{

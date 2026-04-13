@@ -1,8 +1,15 @@
 use std::{path::PathBuf, sync::Arc};
 
 use crate::{
-    api::Marble, ball::{Ball, PhysicsBall}, drawer::base_style::BaseStyle, levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8, level_9, level_10}, powerup::{change_position::ChangePosition, random_powerup}, scene::Scene, util::{all_won_condition, any_won_condition}, wall::{Wall, straight_wall::StraightWall}
+    ball::{Ball, PhysicsBall},
+    drawer::base_style::BaseStyle,
+    levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8, level_9, level_10},
+    powerup::{change_position::ChangePosition, random_powerup},
+    scene::Scene,
+    util::{all_won_condition, any_won_condition},
+    wall::{Wall, straight_wall::StraightWall},
 };
+use api::marble::Marble;
 use glam::dvec2;
 use palette::Srgba;
 use rand::Rng;

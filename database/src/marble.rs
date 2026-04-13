@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use palette::Srgba;
 use sqlx::{SqlitePool, query_as};
 
-use crate::api::{Marble, WriteMarble};
+use api::marble::{Marble, WriteMarble};
 
 pub struct DbMarble {
     pub id: i64,

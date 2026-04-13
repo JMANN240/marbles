@@ -6,7 +6,8 @@ edition = "2024"
 [dependencies]
 ab_glyph = { version = "0.2.31", optional = true }
 anchor2d = { workspace = true }
-chrono = "0.4.41"
+api = { path = "../api" }
+chrono = { workspace = true }
 clap = { version = "4.5.41", features = ["derive"] }
 dotenvy = "0.15.7"
 dyn-clone = "1.0.20"
@@ -19,12 +20,12 @@ imageproc = { version = "0.25.0", optional = true }
 itertools = "0.14.0"
 macroquad = { workspace = true, optional = true }
 palette = { workspace = true }
-particula-rs = { git = "https://github.com/JMANN240/particula-rs" }
+particula-rs = { workspace = true }
 rand = { workspace = true }
 rayon = "1.10.0"
 render-agnostic = { workspace = true }
 reqwest = { version = "0.12.22", features = ["blocking", "json", "multipart"] }
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { workspace = true }
 serde_json = "1.0.142"
 sha1 = "0.10.6"
 sqlx = { workspace = true }

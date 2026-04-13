@@ -1,0 +1,24 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+api = { path = "../api" }
+base64 = "0.22.1"
+futures = "0.3.31"
+gloo = "0.11.0"
+heck = "0.5.0"
+jwt = { workspace = true }
+reqwest = { version = "0.12.23", features = ["json"] }
+reqwest-client-bearer-auth = "0.1.0"
+serde = { workspace = true }
+serde_json = "1.0.143"
+serde_plain = "1.0.2"
+wasm-bindgen-futures = "0.4.50"
+web-sys = { version = "0.3.77", features = ["console", "HtmlFormElement", "HtmlDivElement", "HtmlSelectElement"] }
+yew = { version = "0.21.0", features = ["csr"] }
+yew-hooks = "0.3.4"
+yew-nav = "0.1.0"
+yew-router = "0.18.0"
+yew_icons = { version = "0.8.0", features = ["LucideArrowLeft", "LucideMinus", "LucidePlus", "LucideTrash", "LucideX"] }

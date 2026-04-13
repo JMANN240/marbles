@@ -7,23 +7,17 @@ use std::{
 };
 
 use ab_glyph::FontArc;
+use api::marble::Marble;
 use chrono::{Local, TimeDelta, TimeZone};
 use clap::Parser;
+use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
 use image::ImageReader;
 use lib::{
-    Config,
-    api::Marble,
-    collision::{Collision, render_collisions},
-    database::{marble::DbMarble, race::DbRace},
-    engagement::get_engagement_for_scene,
-    posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
-    rendering::Render,
-    simulation::Simulation,
-    util::{
+    Config, collision::{Collision, render_collisions}, engagement::get_engagement_for_scene, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::Render, simulation::Simulation, util::{
         MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
         render_video, upload_to_instagram, upload_to_youtube,
-    },
+    }
 };
 use rand::rngs::SmallRng;
 use rayon::prelude::*;

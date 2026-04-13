@@ -1,7 +1,7 @@
 use chrono::TimeDelta;
 use sqlx::{SqlitePool, query_as};
 
-use crate::database::race_participant::DbRaceParticipant;
+use crate::race_participant::DbRaceParticipant;
 
 pub struct DbRace {
     pub id: i64,
