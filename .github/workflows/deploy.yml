@@ -48,6 +48,7 @@ jobs:
 
             cd /home/deploy/marbles
             git pull origin master
+            sqlx migrate run
 
             sudo install -m 755 /tmp/marbles-headless.new /usr/local/bin/marbles-headless
             rm -f /tmp/marbles-headless.new
