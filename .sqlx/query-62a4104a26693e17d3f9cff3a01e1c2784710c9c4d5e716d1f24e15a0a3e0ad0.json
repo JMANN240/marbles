@@ -1,0 +1,80 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO marble\n            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n            ON CONFLICT DO UPDATE SET\n            name = ?,\n            red = ?,\n            green = ?,\n            blue = ?,\n            radius = ?,\n            density = ?,\n            elasticity = ?,\n            sound = ?,\n            maybe_image = ?,\n            active = ?\n            RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "red",
+        "ordinal": 2,
+        "type_info": "Float"
+      },
+      {
+        "name": "green",
+        "ordinal": 3,
+        "type_info": "Float"
+      },
+      {
+        "name": "blue",
+        "ordinal": 4,
+        "type_info": "Float"
+      },
+      {
+        "name": "radius",
+        "ordinal": 5,
+        "type_info": "Float"
+      },
+      {
+        "name": "density",
+        "ordinal": 6,
+        "type_info": "Float"
+      },
+      {
+        "name": "elasticity",
+        "ordinal": 7,
+        "type_info": "Float"
+      },
+      {
+        "name": "sound",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "maybe_image",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "active",
+        "ordinal": 10,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 21
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "62a4104a26693e17d3f9cff3a01e1c2784710c9c4d5e716d1f24e15a0a3e0ad0"
+}
