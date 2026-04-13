@@ -1,12 +1,10 @@
+/db
 /target
 /renders
 /scenes
 youtube_client_secrets.json
 youtube_token.json
 .env
-database.db
-database.db-shm
-database.db-wal
 create_instagram_container.sh
 get_instagram_container_status.sh
 get_instagram_publishing_limit.sh
