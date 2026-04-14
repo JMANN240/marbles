@@ -1,0 +1,5 @@
+CREATE TABLE user (
+	id INTEGER PRIMARY KEY NOT NULL,
+	username TEXT UNIQUE NOT NULL,
+	passhash TEXT NOT NULL
+);

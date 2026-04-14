@@ -7,14 +7,15 @@ use std::{
 };
 
 use ab_glyph::FontArc;
+use api::marble::Marble;
 use chrono::{Local, TimeDelta, TimeZone};
 use clap::Parser;
+use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
 use image::ImageReader;
 use lib::{
     Config,
     collision::{Collision, render_collisions},
-    database::DbRace,
     engagement::get_engagement_for_scene,
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::Render,
@@ -24,7 +25,7 @@ use lib::{
         render_video, upload_to_instagram, upload_to_youtube,
     },
 };
-use rand::rng;
+use rand::rngs::SmallRng;
 use rayon::prelude::*;
 use render_agnostic::renderers::image::ImageRenderer;
 use reqwest::blocking::Client;
@@ -87,7 +88,7 @@ async fn main() {
             .finish(),
     )
     .unwrap();
-    let mut rng = rng();
+    let mut rng = rand::make_rng::<SmallRng>();
     let cli = Cli::parse();
 
     let pool = SqlitePool::connect(
@@ -105,6 +106,13 @@ async fn main() {
     let config_string = std::fs::read_to_string("config.toml").unwrap();
     let config = from_str::<Config>(&config_string).unwrap();
 
+    let marbles = DbMarble::get_all_active(&pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|db_marble| db_marble.into())
+        .collect::<Vec<Marble>>();
+
     for _ in 0..cli.renders {
         let now = Local::now();
 
@@ -115,9 +123,9 @@ async fn main() {
         fs::create_dir_all(&frames_path).unwrap();
 
         let scene = get_scene(
-            &mut rand::rng(),
+            &mut rng,
             config.get_scene(),
-            &config,
+            &marbles,
             WIDTH as f64,
             HEIGHT as f64,
         );
@@ -181,15 +189,20 @@ async fn main() {
 
             if simulation.is_finished() {
                 if cli.stats {
-                    let race = DbRace::insert(&pool, now.timestamp())
-                        .await
-                        .expect("Could not insert race into database");
+                    let race = DbRace::insert(
+                        &pool,
+                        now.timestamp(),
+                        simulation.get_scene().get_level_id(),
+                    )
+                    .await
+                    .expect("Could not insert race into database");
 
-                    for (winner_index, win_time) in simulation
+                    for (index, (winner_index, win_time)) in simulation
                         .get_scene()
                         .get_winners()
                         .iter()
                         .zip(simulation.get_scene().get_win_times())
+                        .enumerate()
                     {
                         let winner = simulation
                             .get_scene()
@@ -197,13 +210,19 @@ async fn main() {
                             .get(*winner_index)
                             .unwrap();
 
-                        race.insert_participant(
-                            &pool,
-                            winner.get_name().to_string(),
-                            TimeDelta::from_std(*win_time).unwrap(),
-                        )
-                        .await
-                        .expect("Could not insert race participant into database");
+                        if let Some(marble) = DbMarble::get_by_name(&pool, winner.get_name())
+                            .await
+                            .unwrap()
+                        {
+                            race.insert_marble(
+                                &pool,
+                                marble.id,
+                                TimeDelta::from_std(*win_time).unwrap(),
+                                (index + 1) as i64,
+                            )
+                            .await
+                            .expect("Could not insert race participant into database");
+                        }
                     }
                 }
 
@@ -214,11 +233,10 @@ async fn main() {
         let number_of_frames = simulation_states.len();
         let frames_rendered: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
-        let ball_images = config
-            .get_balls()
+        let ball_images = marbles
             .iter()
-            .filter_map(|ball_config| {
-                ball_config.image.as_ref().map(|image_name| {
+            .filter_map(|marble| {
+                marble.maybe_image_path.as_ref().map(|image_name| {
                     (
                         image_name,
                         ImageReader::open(Path::new("ball_images").join(image_name))
@@ -247,7 +265,8 @@ async fn main() {
                 );
 
                 for (image_name, image) in ball_images.iter() {
-                    renderer.register_image(image_name.to_string(), image.clone());
+                    renderer
+                        .register_image(image_name.to_str().unwrap().to_string(), image.clone());
                 }
 
                 simulation.render(&mut renderer);

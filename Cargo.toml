@@ -1,12 +1,17 @@
 [workspace]
 resolver = "3"
-members = ["lib", "marbles_headless", "marbles_macroquad", "render_scenes"]
+members = ["api", "backend", "database", "frontend", "lib", "marbles_headless", "render_scenes"]
 
 [workspace.dependencies]
 anchor2d = "0.1.12"
-glam = "0.30.5"
-image = { version = "0.25.6" }
+chrono = "0.4.44"
+glam = "0.32.1"
+image = { version = "0.25.10" }
+jwt = "0.16.0"
 macroquad = { version = "0.4.14", features = ["audio", "glam-serde"] }
-palette = "0.7.6"
-render-agnostic = { version = "0.1.17", default-features = false }
+palette = { version = "0.7.6", features = ["serializing"] }
+particula-rs = { git = "https://github.com/JMANN240/particula-rs" }
+rand = { version = "0.10.1", features = ["sys_rng"] }
+render-agnostic = { version = "0.1.18", default-features = false }
+serde = { version = "1.0.219", features = ["derive"] }
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-native-tls", "sqlite"] }

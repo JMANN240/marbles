@@ -1,0 +1,12 @@
+[package]
+name = "database"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+argon2 = { version = "0.5.3" }
+chrono = { workspace = true }
+api = { path = "../api" }
+palette = { workspace = true }
+sqlx = { workspace = true }
+rand_core = { version = "*", features = ["getrandom"] }

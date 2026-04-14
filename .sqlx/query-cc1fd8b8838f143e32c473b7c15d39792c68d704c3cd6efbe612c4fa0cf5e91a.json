@@ -1,0 +1,80 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT * FROM marble WHERE active = TRUE",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "red",
+        "ordinal": 2,
+        "type_info": "Float"
+      },
+      {
+        "name": "green",
+        "ordinal": 3,
+        "type_info": "Float"
+      },
+      {
+        "name": "blue",
+        "ordinal": 4,
+        "type_info": "Float"
+      },
+      {
+        "name": "radius",
+        "ordinal": 5,
+        "type_info": "Float"
+      },
+      {
+        "name": "density",
+        "ordinal": 6,
+        "type_info": "Float"
+      },
+      {
+        "name": "elasticity",
+        "ordinal": 7,
+        "type_info": "Float"
+      },
+      {
+        "name": "sound",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "maybe_image",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "active",
+        "ordinal": 10,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "cc1fd8b8838f143e32c473b7c15d39792c68d704c3cd6efbe612c4fa0cf5e91a"
+}

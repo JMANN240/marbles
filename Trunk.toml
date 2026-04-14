@@ -1,0 +1,9 @@
+[watch]
+ignore = [ "db/" ]
+
+[serve]
+port = 3000
+
+[[proxy]]
+backend = "http://localhost:4000/"
+rewrite = "/api/"

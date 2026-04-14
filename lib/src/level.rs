@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
+use api::marble::Marble;
 use glam::DVec2;
-use rand::{Rng, seq::SliceRandom};
+use rand::{Rng, seq::IndexedRandom};
 
 use crate::{
-    BallConfig, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly,
+    ball::Ball, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly,
     wall::Wall,
 };
 
@@ -42,6 +43,7 @@ impl PowerupSpace {
 }
 
 pub struct Level {
+    id: i64,
     ball_spaces: Vec<BallSpace>,
     powerup_spaces: Vec<PowerupSpace>,
     walls: Vec<Box<dyn Wall>>,
@@ -49,11 +51,13 @@ pub struct Level {
 
 impl Level {
     pub fn new(
+        id: i64,
         ball_spaces: Vec<BallSpace>,
         powerup_spaces: Vec<PowerupSpace>,
         walls: Vec<Box<dyn Wall>>,
     ) -> Self {
         Self {
+            id,
             ball_spaces,
             powerup_spaces,
             walls,
@@ -63,24 +67,22 @@ impl Level {
     pub fn build_scene(
         &self,
         rng: &mut impl Rng,
-        ball_configs: Vec<BallConfig>,
+        marbles: &[Marble],
         powerup_function: impl Fn(&PowerupSpace) -> Box<dyn Powerup>,
         finished_condition: impl Fn(&Simulation) -> bool + Send + Sync + 'static,
     ) -> Scene {
-        let mut ball_spaces = self.ball_spaces.clone();
-        ball_spaces.shuffle(rng);
-
-        let balls = ball_configs
-            .iter()
-            .zip(ball_spaces)
-            .map(|(ball_config, ball_space)| {
-                ball_config.build(ball_space.position, ball_space.velocity)
+        let balls = marbles
+            .sample(rng, self.ball_spaces.len())
+            .zip(self.ball_spaces.iter())
+            .map(|(marble, ball_space)| {
+                Ball::from_marble(marble, ball_space.position, ball_space.velocity)
             })
             .collect();
 
         let powerups = self.powerup_spaces.iter().map(powerup_function).collect();
 
         Scene::new(
+            self.id,
             balls,
             powerups,
             self.walls.clone(),

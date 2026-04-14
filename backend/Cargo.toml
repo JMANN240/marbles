@@ -1,0 +1,25 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+api = { path = "../api" }
+axum = { version = "0.8.4", features = ["multipart"] }
+axum-extra = { version = "0.10.1", features = ["typed-header"] }
+base64 = "0.22.1"
+chrono = { workspace = true }
+clap = { version = "4.5.45", features = ["derive"] }
+database = { path = "../database" }
+dotenvy = "0.15.7"
+futures = "0.3.31"
+hmac = "0.12.1"
+itertools = "0.14.0"
+jwt = { workspace = true }
+palette = { workspace = true }
+rand_core = { version ="0.6.4", features = ["getrandom"] }
+serde = { workspace = true }
+sha2 = "0.10.9"
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite"] }
+tokio = { version = "1.47.1", features = ["full"] }
+tower-http = { version = "0.6.6", features = ["cors", "fs"] }

@@ -1,7 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
 use crate::{
-    BallConfig,
     ball::{Ball, PhysicsBall},
     drawer::base_style::BaseStyle,
     levels::{level_1, level_2, level_3, level_4, level_5, level_6, level_8, level_9, level_10},
@@ -10,19 +9,20 @@ use crate::{
     util::{all_won_condition, any_won_condition},
     wall::{Wall, straight_wall::StraightWall},
 };
+use api::marble::Marble;
 use glam::dvec2;
 use palette::Srgba;
-use rand::{Rng, seq::SliceRandom};
+use rand::Rng;
 
 pub fn scene_1(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_1(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_1(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -37,13 +37,13 @@ pub fn scene_1(
 
 pub fn scene_2(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_2(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_2(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -58,13 +58,13 @@ pub fn scene_2(
 
 pub fn scene_3(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_3(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_3(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -79,13 +79,13 @@ pub fn scene_3(
 
 pub fn scene_4(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_4(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_4(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -100,15 +100,13 @@ pub fn scene_4(
 
 pub fn scene_5(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    let mut shuffled_ball_configs = ball_configs.clone();
-    shuffled_ball_configs.shuffle(rng);
     level_5(4, scene_width, scene_height).build_scene(
         rng,
-        shuffled_ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -123,13 +121,13 @@ pub fn scene_5(
 
 pub fn scene_6(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_6(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_6(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -167,18 +165,18 @@ pub fn scene_7(scene_width: f64, scene_height: f64) -> Scene {
         .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
         .collect();
 
-    Scene::new(balls, Vec::new(), walls, Arc::new(|_| false))
+    Scene::new(0, balls, Vec::new(), walls, Arc::new(|_| false))
 }
 
 pub fn scene_8(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_8(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_8(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             Box::new(ChangePosition::new(
                 powerup_space.get_position(),
@@ -194,13 +192,13 @@ pub fn scene_8(
 
 pub fn scene_9(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    level_9(ball_configs.len(), scene_width, scene_height).build_scene(
+    level_9(marbles.len(), scene_width, scene_height).build_scene(
         rng,
-        ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -215,15 +213,13 @@ pub fn scene_9(
 
 pub fn scene_10(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    let mut shuffled_ball_configs = ball_configs.clone();
-    shuffled_ball_configs.shuffle(rng);
     level_10(4, scene_width, scene_height).build_scene(
         rng,
-        shuffled_ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),
@@ -238,15 +234,13 @@ pub fn scene_10(
 
 pub fn scene_11(
     rng: &mut impl Rng,
-    ball_configs: Vec<BallConfig>,
+    marbles: &[Marble],
     scene_width: f64,
     scene_height: f64,
 ) -> Scene {
-    let mut shuffled_ball_configs = ball_configs.clone();
-    shuffled_ball_configs.shuffle(rng);
     level_3(4, scene_width, scene_height).build_scene(
         rng,
-        shuffled_ball_configs,
+        marbles,
         |powerup_space| {
             random_powerup(
                 &mut rand::rng(),

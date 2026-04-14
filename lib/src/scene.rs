@@ -32,6 +32,7 @@ pub type SceneParticleSystem =
 
 #[derive(Clone)]
 pub struct Scene {
+    level_id: i64,
     time: f64,
     balls: Vec<Ball>,
     powerups: Vec<Box<dyn Powerup>>,
@@ -44,12 +45,14 @@ pub struct Scene {
 
 impl Scene {
     pub fn new(
+        level_id: i64,
         balls: Vec<Ball>,
         powerups: Vec<Box<dyn Powerup>>,
         walls: Vec<Box<dyn Wall>>,
         finished_condition: Arc<dyn Fn(&Simulation) -> bool + Send + Sync>,
     ) -> Self {
         Self {
+            level_id,
             time: 0.0,
             balls,
             powerups,
@@ -59,6 +62,10 @@ impl Scene {
             particles: VecParticleSystem::default(),
             finished_condition,
         }
+    }
+
+    pub fn get_level_id(&self) -> i64 {
+        self.level_id
     }
 
     pub fn get_balls(&self) -> &Vec<Ball> {
@@ -395,6 +402,7 @@ impl Scene {
         }
 
         let mut updated_scene = Scene {
+            level_id: self.get_level_id(),
             time: new_time,
             balls: new_balls,
             powerups: new_powerups,
