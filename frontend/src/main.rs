@@ -4,7 +4,10 @@ use yew::prelude::*;
 use yew_nav::NavMenuStateProvider;
 use yew_router::prelude::*;
 
-use crate::{components::nav::navbar::QuantumNavBar, pages::{login::LoginPage, logout::LogoutPage, register::RegisterPage}};
+use crate::{
+    components::nav::navbar::QuantumNavBar,
+    pages::{login::LoginPage, logout::LogoutPage, register::RegisterPage},
+};
 
 pub mod components;
 pub mod pages;
@@ -38,7 +41,7 @@ fn switch(routes: Route) -> Html {
         Route::Logout => {
             html! { <LogoutPage /> }
         }
-        Route::Marble { id } => {
+        Route::Marble { id: _ } => {
             html! { <RootPage /> }
         }
     }

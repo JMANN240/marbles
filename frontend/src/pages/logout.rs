@@ -5,9 +5,7 @@ use yew_router::hooks::use_navigator;
 
 use crate::{
     Route,
-    components::{
-        token_provider::{TokenAction, TokenContext},
-    },
+    components::token_provider::{TokenAction, TokenContext},
 };
 
 #[function_component]

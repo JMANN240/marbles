@@ -1,5 +1,5 @@
-use gloo::storage::{LocalStorage, Storage};
 use api::{RegisterRequest, TokenRequest};
+use gloo::storage::{LocalStorage, Storage};
 use reqwest::Client;
 use web_sys::{HtmlInputElement, wasm_bindgen::JsCast};
 use yew::prelude::*;

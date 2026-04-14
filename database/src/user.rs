@@ -1,8 +1,8 @@
+use api::User;
 use argon2::{
     Argon2, PasswordHash, PasswordVerifier,
     password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
-use api::User;
 use sqlx::{QueryBuilder, SqlitePool, prelude::FromRow, query_as};
 
 #[derive(Clone, FromRow)]

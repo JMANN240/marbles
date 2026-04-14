@@ -5,6 +5,8 @@ use sqlx::{SqlitePool, query_as};
 
 use api::marble::{Marble, WriteMarble};
 
+use crate::race_marble::DbRaceMarble;
+
 pub struct DbMarble {
     pub id: i64,
     pub name: String,
@@ -29,6 +31,12 @@ impl DbMarble {
     pub async fn get_all_active(pool: &SqlitePool) -> sqlx::Result<Vec<Self>> {
         query_as!(Self, "SELECT * FROM marble WHERE active = TRUE")
             .fetch_all(pool)
+            .await
+    }
+
+    pub async fn get_by_name(pool: &SqlitePool, name: &str) -> sqlx::Result<Option<Self>> {
+        query_as!(Self, "SELECT * FROM marble WHERE name = ?", name,)
+            .fetch_optional(pool)
             .await
     }
 
@@ -99,12 +107,9 @@ impl DbMarble {
     //     DbRaceParticipant::insert(pool, self.id, name, time).await
     // }
 
-    // pub async fn get_participants(
-    //     &self,
-    //     pool: &SqlitePool,
-    // ) -> sqlx::Result<Vec<DbRaceParticipant>> {
-    //     DbRaceParticipant::get_by_race_id(pool, self.id).await
-    // }
+    pub async fn get_race_marble(&self, pool: &SqlitePool) -> sqlx::Result<Vec<DbRaceMarble>> {
+        DbRaceMarble::get_by_marble_id(pool, self.id).await
+    }
 }
 
 impl From<DbMarble> for Marble {
@@ -117,7 +122,7 @@ impl From<DbMarble> for Marble {
             density: value.density,
             elasticity: value.elasticity,
             sound_path: PathBuf::from(value.sound),
-            maybe_image_path: value.maybe_image.map(|image| PathBuf::from(image)),
+            maybe_image_path: value.maybe_image.map(PathBuf::from),
             active: value.active > 0,
         }
     }

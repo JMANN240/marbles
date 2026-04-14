@@ -5,7 +5,8 @@ use glam::DVec2;
 use rand::{Rng, seq::IndexedRandom};
 
 use crate::{
-    ball::Ball, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly, wall::Wall
+    ball::Ball, powerup::Powerup, scene::Scene, simulation::Simulation, util::space_evenly,
+    wall::Wall,
 };
 
 #[derive(Clone)]
@@ -42,6 +43,7 @@ impl PowerupSpace {
 }
 
 pub struct Level {
+    id: i64,
     ball_spaces: Vec<BallSpace>,
     powerup_spaces: Vec<PowerupSpace>,
     walls: Vec<Box<dyn Wall>>,
@@ -49,11 +51,13 @@ pub struct Level {
 
 impl Level {
     pub fn new(
+        id: i64,
         ball_spaces: Vec<BallSpace>,
         powerup_spaces: Vec<PowerupSpace>,
         walls: Vec<Box<dyn Wall>>,
     ) -> Self {
         Self {
+            id,
             ball_spaces,
             powerup_spaces,
             walls,
@@ -78,6 +82,7 @@ impl Level {
         let powerups = self.powerup_spaces.iter().map(powerup_function).collect();
 
         Scene::new(
+            self.id,
             balls,
             powerups,
             self.walls.clone(),

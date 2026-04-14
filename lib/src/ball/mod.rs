@@ -1,18 +1,25 @@
 use std::{
     f64::consts::PI,
-    path::{Path, PathBuf}, sync::Arc,
+    path::{Path, PathBuf},
+    sync::Arc,
 };
 
-use api::marble::Marble;
 use ::rand::random_range;
+use api::marble::Marble;
 use glam::{DVec2, dvec2};
 use palette::Srgba;
 use particula_rs::ParticleSystem;
 use render_agnostic::Renderer;
 
 use crate::{
-    drawer::{BallStyle, base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle, image_style::ImageStyle, outline_style::OutlineStyle, tail_style::TailStyle},
-    particle::{FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter, system::BallParticleSystem},
+    drawer::{
+        BallStyle, base_style::BaseStyle, glow_style::GlowStyle, ikea_style::IkeaStyle,
+        image_style::ImageStyle, outline_style::OutlineStyle, tail_style::TailStyle,
+    },
+    particle::{
+        FireParticle, ParticleLayer, ShrinkingParticle, emitter::BallParticleEmitter,
+        system::BallParticleSystem,
+    },
     util::{ValueOverTime, lerp_color},
     wall::Wall,
 };
@@ -104,7 +111,10 @@ impl Ball {
                     10,
                 ))
             } else if let Some(image_path) = &marble.maybe_image_path {
-                Box::new(ImageStyle::new(marble.color, image_path.to_str().unwrap().to_string()))
+                Box::new(ImageStyle::new(
+                    marble.color,
+                    image_path.to_str().unwrap().to_string(),
+                ))
             } else {
                 Box::new(BaseStyle::new(marble.color))
             },

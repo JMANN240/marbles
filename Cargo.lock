@@ -757,6 +757,7 @@ dependencies = [
  "argon2",
  "chrono",
  "palette",
+ "rand_core 0.6.4",
  "sqlx",
 ]
 

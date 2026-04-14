@@ -4,10 +4,7 @@ use yew_router::prelude::*;
 
 use crate::{
     Route,
-    components::{
-        nav::navlink::QuantumNavLink,
-        token_provider::TokenContext,
-    },
+    components::{nav::navlink::QuantumNavLink, token_provider::TokenContext},
 };
 
 #[function_component]

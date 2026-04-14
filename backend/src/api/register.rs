@@ -1,11 +1,8 @@
-use axum::{Json, extract::State, http::StatusCode};
 use api::{RegisterRequest, User};
+use axum::{Json, extract::State, http::StatusCode};
 use database::user::DbUser;
 
-use crate::{
-    AppState,
-    util::internal_server_error,
-};
+use crate::{AppState, util::internal_server_error};
 
 pub async fn post_register(
     State(state): State<AppState>,

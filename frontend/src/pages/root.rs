@@ -1,4 +1,3 @@
-
 use api::marble::Marble;
 use reqwest::Client;
 use yew::prelude::*;
@@ -27,7 +26,7 @@ pub fn RootPage() -> Html {
     });
 
     html! {
-        <main class="grid gap-2 sm:gap-4 auto-rows-fr grid-cols-2 sm:grid-cols-8 p-4 sm:p-8">
+        <main class="grid gap-2 sm:gap-3 md:gap-4 auto-rows-fr grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 p-4 sm:p-6 md:p-8">
             if let Some(marbles) = &*marbles_state {
                 {
                     marbles.iter().map(|marble| {

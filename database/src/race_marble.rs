@@ -1,28 +1,29 @@
 use chrono::TimeDelta;
 use sqlx::{SqlitePool, query_as};
 
-pub struct DbRaceParticipant {
-    pub id: i64,
-    pub name: String,
+pub struct DbRaceMarble {
+    pub race_id: i64,
+    pub marble_id: i64,
     pub time: f64,
+    pub place: i64,
 }
 
-impl DbRaceParticipant {
+impl DbRaceMarble {
     pub async fn get_by_race_id(pool: &SqlitePool, race_id: i64) -> sqlx::Result<Vec<Self>> {
         query_as!(
             Self,
-            "SELECT * FROM race_participant WHERE id = ? ORDER BY time ASC",
+            "SELECT * FROM race_marble WHERE race_id = ? ORDER BY time ASC",
             race_id,
         )
         .fetch_all(pool)
         .await
     }
 
-    pub async fn get_by_name(pool: &SqlitePool, name: &str) -> sqlx::Result<Vec<Self>> {
+    pub async fn get_by_marble_id(pool: &SqlitePool, marble_id: i64) -> sqlx::Result<Vec<Self>> {
         query_as!(
             Self,
-            "SELECT * FROM race_participant WHERE name = ?",
-            name,
+            "SELECT * FROM race_marble WHERE marble_id = ?",
+            marble_id,
         )
         .fetch_all(pool)
         .await
@@ -31,17 +32,19 @@ impl DbRaceParticipant {
     pub async fn insert(
         pool: &SqlitePool,
         race_id: i64,
-        name: String,
+        marble_id: i64,
         time: TimeDelta,
+        place: i64,
     ) -> sqlx::Result<Self> {
         let seconds = time.as_seconds_f64();
 
         query_as!(
             Self,
-            "INSERT INTO race_participant VALUES (?, ?, ?) RETURNING *",
+            "INSERT INTO race_marble VALUES (?, ?, ?, ?) RETURNING *",
             race_id,
-            name,
+            marble_id,
             seconds,
+            place,
         )
         .fetch_one(pool)
         .await

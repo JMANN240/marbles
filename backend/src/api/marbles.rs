@@ -1,7 +1,5 @@
-use axum::{
-    extract::State, http::StatusCode, Json
-};
 use api::marble::Marble;
+use axum::{Json, extract::State, http::StatusCode};
 use database::marble::DbMarble;
 
 use crate::{AppState, util::internal_server_error};

@@ -1,8 +1,5 @@
 use api::marble::Marble;
 use yew::prelude::*;
-use yew_router::prelude::*;
-
-use crate::Route;
 
 #[derive(Properties, PartialEq)]
 pub struct MarbleCardProps {
@@ -16,7 +13,7 @@ pub struct MarbleCardProps {
 pub fn MarbleCard(MarbleCardProps { marble, classes }: &MarbleCardProps) -> Html {
     html! {
         <div
-            class={ classes!("border", "flex", "flex-col", "p-4", "rounded-xl", classes.clone()) }
+            class={ classes!("border", "flex", "flex-col", "p-4", "rounded-xl", "break-all", classes.clone()) }
             style={format!("border-color: rgb({} {} {})", (marble.color.red * 255.0) as u8, (marble.color.green * 255.0) as u8, (marble.color.blue * 255.0) as u8)}
         >
             if let Some(image_path) = &marble.maybe_image_path {

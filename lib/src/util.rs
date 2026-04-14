@@ -14,9 +14,13 @@ use crate::{
     posting::{
         cloudinary::Cloudinary,
         instagram::{InstagramPoster, MediaPublishResponse},
-    }, scene::Scene, scenes::{
-        scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10, scene_11,
-    }, simulation::Simulation
+    },
+    scene::Scene,
+    scenes::{
+        scene_1, scene_2, scene_3, scene_4, scene_5, scene_6, scene_7, scene_8, scene_9, scene_10,
+        scene_11,
+    },
+    simulation::Simulation,
 };
 
 #[cfg(feature = "macroquad")]

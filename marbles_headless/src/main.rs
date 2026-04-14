@@ -14,10 +14,16 @@ use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
 use image::ImageReader;
 use lib::{
-    Config, collision::{Collision, render_collisions}, engagement::get_engagement_for_scene, posting::{cloudinary::Cloudinary, instagram::InstagramPoster}, rendering::Render, simulation::Simulation, util::{
+    Config,
+    collision::{Collision, render_collisions},
+    engagement::get_engagement_for_scene,
+    posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
+    rendering::Render,
+    simulation::Simulation,
+    util::{
         MaybeMessage, Message, get_formatted_frame_name, get_frame_template, get_scene,
         render_video, upload_to_instagram, upload_to_youtube,
-    }
+    },
 };
 use rand::rngs::SmallRng;
 use rayon::prelude::*;
@@ -183,15 +189,20 @@ async fn main() {
 
             if simulation.is_finished() {
                 if cli.stats {
-                    let race = DbRace::insert(&pool, now.timestamp())
-                        .await
-                        .expect("Could not insert race into database");
+                    let race = DbRace::insert(
+                        &pool,
+                        now.timestamp(),
+                        simulation.get_scene().get_level_id(),
+                    )
+                    .await
+                    .expect("Could not insert race into database");
 
-                    for (winner_index, win_time) in simulation
+                    for (index, (winner_index, win_time)) in simulation
                         .get_scene()
                         .get_winners()
                         .iter()
                         .zip(simulation.get_scene().get_win_times())
+                        .enumerate()
                     {
                         let winner = simulation
                             .get_scene()
@@ -199,13 +210,19 @@ async fn main() {
                             .get(*winner_index)
                             .unwrap();
 
-                        race.insert_participant(
-                            &pool,
-                            winner.get_name().to_string(),
-                            TimeDelta::from_std(*win_time).unwrap(),
-                        )
-                        .await
-                        .expect("Could not insert race participant into database");
+                        if let Some(marble) = DbMarble::get_by_name(&pool, winner.get_name())
+                            .await
+                            .unwrap()
+                        {
+                            race.insert_marble(
+                                &pool,
+                                marble.id,
+                                TimeDelta::from_std(*win_time).unwrap(),
+                                (index + 1) as i64,
+                            )
+                            .await
+                            .expect("Could not insert race participant into database");
+                        }
                     }
                 }
 

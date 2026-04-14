@@ -165,7 +165,7 @@ pub fn scene_7(scene_width: f64, scene_height: f64) -> Scene {
         .map(|straight_wall| Box::new(straight_wall) as Box<dyn Wall>)
         .collect();
 
-    Scene::new(balls, Vec::new(), walls, Arc::new(|_| false))
+    Scene::new(0, balls, Vec::new(), walls, Arc::new(|_| false))
 }
 
 pub fn scene_8(

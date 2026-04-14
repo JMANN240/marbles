@@ -1,7 +1,7 @@
+use api::{TokenClaims, TokenRequest};
 use axum::{Json, extract::State, http::StatusCode};
 use database::user::DbUser;
 use jwt::SignWithKey;
-use api::{TokenClaims, TokenRequest};
 
 use crate::{AppState, util::internal_server_error};
 

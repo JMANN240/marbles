@@ -6,9 +6,7 @@ use database::marble::DbMarble;
 use dotenvy::dotenv;
 use glam::DVec2;
 use image::ImageReader;
-use lib::{
-    rendering::Render, simulation::Simulation, util::get_scenes
-};
+use lib::{rendering::Render, simulation::Simulation, util::get_scenes};
 use render_agnostic::renderers::image::ImageRenderer;
 use sqlx::SqlitePool;
 use tracing::Level;
@@ -60,14 +58,9 @@ async fn main() {
         })
         .collect::<HashMap<_, _>>();
 
-    for (scene_index, scene) in get_scenes(
-        &mut rand::rng(),
-        &marbles,
-        WIDTH as f64,
-        HEIGHT as f64,
-    )
-    .into_iter()
-    .enumerate()
+    for (scene_index, scene) in get_scenes(&mut rand::rng(), &marbles, WIDTH as f64, HEIGHT as f64)
+        .into_iter()
+        .enumerate()
     {
         let scene_number = scene_index + 1;
 

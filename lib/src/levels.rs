@@ -51,6 +51,7 @@ pub fn level_1(n: usize, scene_width: f64, scene_height: f64) -> Level {
     }
 
     Level::new(
+        1,
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
         vec![
             PowerupSpace::new(dvec2(64.0, 250.0)),
@@ -90,6 +91,7 @@ pub fn level_2(n: usize, scene_width: f64, scene_height: f64) -> Level {
     }
 
     Level::new(
+        2,
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
         Vec::new(),
         walls,
@@ -103,6 +105,7 @@ pub fn level_3(n: usize, scene_width: f64, scene_height: f64) -> Level {
         .collect();
 
     Level::new(
+        3,
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
         Vec::new(),
         walls,
@@ -133,6 +136,7 @@ pub fn level_4(n: usize, scene_width: f64, scene_height: f64) -> Level {
     )));
 
     Level::new(
+        4,
         BallSpace::spaced_evenly(
             n,
             dvec2(scene_width / 2.0, 0.0),
@@ -179,6 +183,7 @@ pub fn level_5(n: usize, scene_width: f64, scene_height: f64) -> Level {
     }
 
     Level::new(
+        5,
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
         powerup_spaces,
         walls,
@@ -209,6 +214,7 @@ pub fn level_6(n: usize, scene_width: f64, scene_height: f64) -> Level {
     let ball_y = scene_height * 0.1;
 
     Level::new(
+        6,
         BallSpace::spaced_evenly(
             n,
             dvec2(0.0, ball_y),
@@ -273,6 +279,7 @@ pub fn level_8(n: usize, scene_width: f64, scene_height: f64) -> Level {
     }
 
     Level::new(
+        8,
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
         powerup_spaces,
         walls,
@@ -306,6 +313,7 @@ pub fn level_9(n: usize, scene_width: f64, scene_height: f64) -> Level {
     let ball_y = scene_height * 0.1;
 
     Level::new(
+        9,
         BallSpace::spaced_evenly(
             n,
             dvec2(0.0, ball_y),
@@ -370,6 +378,7 @@ pub fn level_10(n: usize, scene_width: f64, scene_height: f64) -> Level {
     }
 
     Level::new(
+        10,
         BallSpace::spaced_evenly(n, dvec2(0.0, 50.0), dvec2(scene_width, 50.0), DVec2::ZERO),
         powerup_spaces,
         walls,
