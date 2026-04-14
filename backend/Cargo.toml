@@ -7,19 +7,16 @@ edition = "2024"
 api = { path = "../api" }
 axum = { version = "0.8.4", features = ["multipart"] }
 axum-extra = { version = "0.10.1", features = ["typed-header"] }
-base64 = "0.22.1"
+base64 = { workspace = true }
 chrono = { workspace = true }
-clap = { version = "4.5.45", features = ["derive"] }
+clap = { workspace = true }
 database = { path = "../database" }
-dotenvy = "0.15.7"
-futures = "0.3.31"
+dotenvy = { workspace = true }
 hmac = "0.12.1"
-itertools = "0.14.0"
 jwt = { workspace = true }
 palette = { workspace = true }
-rand_core = { version ="0.6.4", features = ["getrandom"] }
 serde = { workspace = true }
 sha2 = "0.10.9"
-sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite"] }
-tokio = { version = "1.47.1", features = ["full"] }
+sqlx = { workspace = true }
+tokio = { workspace = true }
 tower-http = { version = "0.6.6", features = ["cors", "fs"] }

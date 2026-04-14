@@ -4,12 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ab_glyph = { version = "0.2.31", optional = true }
+ab_glyph = { workspace = true, optional = true }
 anchor2d = { workspace = true }
 api = { path = "../api" }
 chrono = { workspace = true }
-clap = { version = "4.5.41", features = ["derive"] }
-dotenvy = "0.15.7"
 dyn-clone = "1.0.20"
 even-odd-traits = "1.0.0"
 glam = { workspace = true }
@@ -22,16 +20,13 @@ macroquad = { workspace = true, optional = true }
 palette = { workspace = true }
 particula-rs = { workspace = true }
 rand = { workspace = true }
-rayon = "1.10.0"
 render-agnostic = { workspace = true }
-reqwest = { version = "0.12.22", features = ["blocking", "json", "multipart"] }
+reqwest = { workspace = true, features = ["blocking", "multipart"] }
 serde = { workspace = true }
-serde_json = "1.0.142"
+serde_json = { workspace = true }
 sha1 = "0.10.6"
 sqlx = { workspace = true }
-toml = "0.9.2"
-tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
+tracing = { workspace = true }
 
 [features]
 default = ["macroquad"]
