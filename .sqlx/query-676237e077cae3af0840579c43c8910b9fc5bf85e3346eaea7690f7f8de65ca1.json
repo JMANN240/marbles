@@ -1,22 +1,27 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT * FROM race_participant WHERE name = ?",
+  "query": "SELECT * FROM race_marble WHERE marble_id = ?",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "race_id",
         "ordinal": 0,
         "type_info": "Integer"
       },
       {
-        "name": "name",
+        "name": "marble_id",
         "ordinal": 1,
-        "type_info": "Text"
+        "type_info": "Integer"
       },
       {
         "name": "time",
         "ordinal": 2,
         "type_info": "Float"
+      },
+      {
+        "name": "place",
+        "ordinal": 3,
+        "type_info": "Integer"
       }
     ],
     "parameters": {
@@ -25,8 +30,9 @@
     "nullable": [
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "d50f428bd2583102642933b5c4ca1d0287a02782ece54eb09fb3b39a8faa8435"
+  "hash": "676237e077cae3af0840579c43c8910b9fc5bf85e3346eaea7690f7f8de65ca1"
 }

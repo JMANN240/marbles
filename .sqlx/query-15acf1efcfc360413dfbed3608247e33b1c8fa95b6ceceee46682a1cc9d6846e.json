@@ -1,32 +1,38 @@
 {
   "db_name": "SQLite",
-  "query": "INSERT INTO race_participant VALUES (?, ?, ?) RETURNING *",
+  "query": "INSERT INTO race_marble VALUES (?, ?, ?, ?) RETURNING *",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "race_id",
         "ordinal": 0,
         "type_info": "Integer"
       },
       {
-        "name": "name",
+        "name": "marble_id",
         "ordinal": 1,
-        "type_info": "Text"
+        "type_info": "Integer"
       },
       {
         "name": "time",
         "ordinal": 2,
         "type_info": "Float"
+      },
+      {
+        "name": "place",
+        "ordinal": 3,
+        "type_info": "Integer"
       }
     ],
     "parameters": {
-      "Right": 3
+      "Right": 4
     },
     "nullable": [
+      false,
       false,
       false,
       false
     ]
   },
-  "hash": "9196e6dd5352a26f0c457c43fff6cd861f11c1eaf84ae8138a3a012a4186ec98"
+  "hash": "15acf1efcfc360413dfbed3608247e33b1c8fa95b6ceceee46682a1cc9d6846e"
 }
