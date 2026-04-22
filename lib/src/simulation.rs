@@ -1,9 +1,17 @@
 use even_odd_traits::IsEven;
 use glam::{DVec2, dvec2};
+use keyframe::{AnimationSequence, functions::EaseOutQuart, keyframes};
+use mint::Vector2;
 use palette::Srgba;
 use render_agnostic::Renderer;
 
-use crate::{collision::Collision, rendering::Render, scene::Scene, util::ValueOverTime};
+use crate::{
+    collision::Collision,
+    graphic::{Graphic, SpecialMessageState},
+    rendering::Render,
+    scene::Scene,
+    util::ValueOverTime,
+};
 
 pub enum SimulationPhase {
     Countdown,
@@ -21,10 +29,7 @@ pub struct Simulation {
     countdown_seconds: f64,
     reset_seconds: f64,
     engagement: String,
-    special_message: String,
-    special_message_user: String,
-    special_message_x: f64,
-    special_message_target_x: f64,
+    special_message: Graphic<SpecialMessageState>,
     zoom: ValueOverTime<f64>,
     focus: ValueOverTime<DVec2>,
 }
@@ -53,10 +58,36 @@ impl Simulation {
             countdown_seconds,
             reset_seconds,
             engagement,
-            special_message,
-            special_message_user,
-            special_message_x: -viewport.0,
-            special_message_target_x: -viewport.0,
+            special_message: Graphic::special_message(
+                keyframes![
+                    (
+                        Vector2::from(dvec2(-viewport.0, 0.0)),
+                        countdown_seconds + 0.0
+                    ),
+                    (
+                        Vector2::from(dvec2(-viewport.0, 0.0)),
+                        countdown_seconds + 1.5,
+                        EaseOutQuart
+                    ),
+                    (Vector2::from(dvec2(0.0, 0.0)), countdown_seconds + 2.0),
+                    (
+                        Vector2::from(dvec2(0.0, 0.0)),
+                        countdown_seconds + 7.0,
+                        EaseOutQuart
+                    ),
+                    (
+                        Vector2::from(dvec2(-viewport.0, 0.0)),
+                        countdown_seconds + 7.5
+                    )
+                ],
+                countdown_seconds,
+                SpecialMessageState {
+                    viewport_width: viewport.0,
+                    viewport_height: viewport.1,
+                    message: special_message,
+                    user: special_message_user,
+                },
+            ),
             zoom,
             focus,
         }
@@ -115,14 +146,7 @@ impl Simulation {
         let mut new_simulation = self.clone();
         new_simulation.scene = new_scene;
 
-        if new_simulation.get_time() > new_simulation.get_countdown_seconds() + 7.0 {
-            new_simulation.special_message_target_x = -new_simulation.viewport_width;
-        } else if new_simulation.get_time() > new_simulation.get_countdown_seconds() + 2.0 {
-            new_simulation.special_message_target_x = 0.0;
-        }
-
-        new_simulation.special_message_x +=
-            (new_simulation.special_message_target_x - new_simulation.special_message_x) * 8.0 * dt;
+        new_simulation.special_message.update(dt);
 
         if new_simulation.scene.any_won() && new_simulation.maybe_any_won_time.is_none() {
             new_simulation.maybe_any_won_time = Some(new_simulation.time);
@@ -192,74 +216,7 @@ impl Render for Simulation {
             );
         }
 
-        if self.get_time() > self.get_countdown_seconds() + 2.0
-            && self.get_time() < self.get_countdown_seconds() + 12.0
-        {
-            renderer.render_rectangle(
-                dvec2(
-                    self.special_message_x - self.viewport_width,
-                    self.viewport_height * 0.8,
-                ),
-                self.viewport_width + self.viewport_width * 0.9,
-                self.viewport_height * 0.1,
-                DVec2::ZERO,
-                0.0,
-                Srgba::new(0.0, 0.0, 0.0, 1.0),
-            );
-
-            renderer.render_rectangle_lines(
-                dvec2(
-                    self.special_message_x - self.viewport_width,
-                    self.viewport_height * 0.8,
-                ),
-                self.viewport_width + self.viewport_width * 0.9,
-                self.viewport_height * 0.1,
-                DVec2::ZERO,
-                0.0,
-                2.0,
-                Srgba::new(1.0, 1.0, 1.0, 1.0),
-            );
-
-            let chars = self.special_message.chars().collect::<Vec<char>>();
-
-            let font_size = 24.0;
-
-            for (index, chunk) in chars
-                .chunks(35)
-                .map(|chunk| chunk.iter().collect::<String>())
-                .enumerate()
-            {
-                renderer.render_text(
-                    &chunk,
-                    dvec2(
-                        self.special_message_x + self.viewport_width * 0.4,
-                        self.viewport_height * 0.825 + font_size * index as f64,
-                    ),
-                    anchor2d::CGC,
-                    font_size,
-                    Srgba::new(1.0, 1.0, 1.0, 1.0),
-                );
-            }
-
-            renderer.render_text(
-                "Submit your own message at https://quantummarbleracing.com",
-                dvec2(self.special_message_x, self.viewport_height * 0.9 - 8.0),
-                anchor2d::LGB,
-                16.0,
-                Srgba::new(0.5, 0.5, 0.5, 1.0),
-            );
-
-            renderer.render_text(
-                &format!("-{}", self.special_message_user),
-                dvec2(
-                    self.special_message_x + self.viewport_width * 0.9 - 8.0,
-                    self.viewport_height * 0.85,
-                ),
-                anchor2d::RGB,
-                16.0,
-                Srgba::new(0.5, 0.5, 0.5, 1.0),
-            );
-        }
+        self.special_message.render(renderer);
 
         for (index, (winner_index, win_time)) in self
             .get_scene()

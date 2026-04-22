@@ -4,6 +4,7 @@ pub mod ball;
 pub mod collision;
 pub mod drawer;
 pub mod engagement;
+pub mod graphic;
 pub mod level;
 pub mod levels;
 pub mod particle;
