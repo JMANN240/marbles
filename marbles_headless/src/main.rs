@@ -3,7 +3,7 @@ use std::{
     env, fs,
     path::Path,
     sync::{Arc, Mutex},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use ab_glyph::FontArc;
@@ -12,11 +12,14 @@ use chrono::{Local, TimeDelta, TimeZone};
 use clap::Parser;
 use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
-use image::ImageReader;
+use glam::{DVec2, dvec2};
+use image::{ImageReader, imageops::{FilterType, resize}};
+use keyframe::{AnimationSequence, functions::EaseOutQuart, keyframes};
 use lib::{
     Config,
     collision::{Collision, render_collisions},
     engagement::get_engagement_for_scene,
+    graphic::{countdown::Countdown, engagement::Engagement, special_message::SpecialMessage},
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::Render,
     simulation::Simulation,
@@ -25,9 +28,10 @@ use lib::{
         render_video, upload_to_instagram, upload_to_youtube,
     },
 };
+use mint::Vector2;
 use rand::rngs::SmallRng;
 use rayon::prelude::*;
-use render_agnostic::renderers::image::ImageRenderer;
+use render_agnostic::{image_registries::image_image_registry::ImageImageRegistry, renderers::image::ImageRenderer};
 use reqwest::blocking::Client;
 use sqlx::SqlitePool;
 use toml::from_str;
@@ -165,14 +169,59 @@ async fn main() {
                 user: "QMR".to_string(),
             });
 
+        let viewport = (1080.0 / 2.0, 1920.0 / 2.0);
+
         let mut simulation = Simulation::new(
             scene,
-            (1080.0 / 2.0, 1920.0 / 2.0),
+            viewport,
             cli.countdown_seconds as f64,
             cli.reset_seconds as f64,
-            textwrap::fill(&engagement, 20),
-            special_message.message,
-            special_message.user,
+            vec![
+                Box::new(SpecialMessage::new(
+                    keyframes![
+                        (
+                            Vector2::from(dvec2(-viewport.0, 0.0)),
+                            cli.countdown_seconds as f64 + 0.0
+                        ),
+                        (
+                            Vector2::from(dvec2(-viewport.0, 0.0)),
+                            cli.countdown_seconds as f64 + 1.5,
+                            EaseOutQuart
+                        ),
+                        (
+                            Vector2::from(dvec2(0.0, 0.0)),
+                            cli.countdown_seconds as f64 + 2.0
+                        ),
+                        (
+                            Vector2::from(dvec2(0.0, 0.0)),
+                            cli.countdown_seconds as f64 + 7.0,
+                            EaseOutQuart
+                        ),
+                        (
+                            Vector2::from(dvec2(-viewport.0, 0.0)),
+                            cli.countdown_seconds as f64 + 7.5
+                        )
+                    ],
+                    viewport,
+                    special_message.message,
+                    special_message.user,
+                )),
+                Box::new(Countdown::new(
+                    keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
+                    0.0,
+                    3.0,
+                    1.0,
+                    String::from("Go!"),
+                    viewport,
+                )),
+                Box::new(Engagement::new(
+                    keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
+                    0.0,
+                    3.0,
+                    textwrap::fill(&engagement, 20),
+                    viewport,
+                )),
+            ],
         );
 
         let mut simulation_states = Vec::new();
@@ -249,10 +298,23 @@ async fn main() {
             })
             .collect::<HashMap<_, _>>();
 
+        let mut image_registry = ImageImageRegistry::default();
+
+        for (image_name, image) in ball_images.iter() {
+            image_registry
+                .register_image(image_name.to_str().unwrap().to_string(), image.clone());
+        }
+
+        let image_registry = Arc::new(image_registry);
+
+        let roboto = FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap();
+
         simulation_states
-            .par_iter()
+            .iter()
             .enumerate()
             .for_each(|(frame_number, simulation)| {
+                let now = Instant::now();
+
                 let t = frame_number as f64 / 60.0;
 
                 let mut renderer = ImageRenderer::new(
@@ -261,20 +323,29 @@ async fn main() {
                     simulation.zoom(t),
                     simulation.focus(t),
                     2,
-                    FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap(),
+                    FontArc::clone(&roboto),
+                    Arc::clone(&image_registry),
                 );
 
-                for (image_name, image) in ball_images.iter() {
-                    renderer
-                        .register_image(image_name.to_str().unwrap().to_string(), image.clone());
-                }
+                println!("made renderer {:?}", Instant::now().duration_since(now));
+                let now = Instant::now();
 
                 simulation.render(&mut renderer);
 
+                println!("rendered {:?}", Instant::now().duration_since(now));
+                let now = Instant::now();
+
                 let image = renderer.render_image_onto(renderer.black());
+
+                println!("rendered onto {:?}", Instant::now().duration_since(now));
+                let now = Instant::now();
+
                 let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
 
                 image.save(frames_path.join(image_name)).unwrap();
+
+                println!("saved {:?}", Instant::now().duration_since(now));
+                let now = Instant::now();
 
                 let mut frames_rendered = frames_rendered.lock().unwrap();
                 *frames_rendered += 1;

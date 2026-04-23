@@ -188,7 +188,7 @@ pub struct MaybeMessage {
     pub message: Option<Message>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ValueOverTime<T> {
     base_value: T,
     modifiers: Vec<(RangeInclusive<f64>, T)>,

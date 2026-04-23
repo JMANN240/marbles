@@ -7,7 +7,7 @@ use dotenvy::dotenv;
 use glam::DVec2;
 use image::ImageReader;
 use lib::{rendering::Render, simulation::Simulation, util::get_scenes};
-use render_agnostic::renderers::image::ImageRenderer;
+use render_agnostic::{image_registries::image_image_registry::ImageImageRegistry, renderers::image::ImageRenderer};
 use sqlx::SqlitePool;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -69,10 +69,14 @@ async fn main() {
             (1080.0 / 2.0, 1920.0 / 2.0),
             0.0,
             0.0,
-            String::default(),
-            String::default(),
-            String::default(),
+            Vec::default(),
         );
+
+        let mut image_registry = ImageImageRegistry::default();
+
+        for (image_name, image) in ball_images.iter() {
+            image_registry.register_image(image_name.to_str().unwrap().to_string(), image.clone());
+        }
 
         let mut renderer = ImageRenderer::new(
             WIDTH,
@@ -81,11 +85,8 @@ async fn main() {
             DVec2::splat(0.5),
             2,
             FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap(),
+            image_registry,
         );
-
-        for (image_name, image) in ball_images.iter() {
-            renderer.register_image(image_name.to_str().unwrap().to_string(), image.clone());
-        }
 
         simulation.render(&mut renderer);
 

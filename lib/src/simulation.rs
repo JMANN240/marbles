@@ -1,16 +1,9 @@
-use even_odd_traits::IsEven;
 use glam::{DVec2, dvec2};
-use keyframe::{AnimationSequence, functions::EaseOutQuart, keyframes};
-use mint::Vector2;
 use palette::Srgba;
 use render_agnostic::Renderer;
 
 use crate::{
-    collision::Collision,
-    graphic::{Graphic, SpecialMessageState},
-    rendering::Render,
-    scene::Scene,
-    util::ValueOverTime,
+    collision::Collision, graphic::Graphic, rendering::Render, scene::Scene, util::ValueOverTime,
 };
 
 pub enum SimulationPhase {
@@ -28,8 +21,7 @@ pub struct Simulation {
     maybe_any_won_time: Option<f64>,
     countdown_seconds: f64,
     reset_seconds: f64,
-    engagement: String,
-    special_message: Graphic<SpecialMessageState>,
+    graphics: Vec<Box<dyn Graphic>>,
     zoom: ValueOverTime<f64>,
     focus: ValueOverTime<DVec2>,
 }
@@ -40,9 +32,7 @@ impl Simulation {
         viewport: (f64, f64),
         countdown_seconds: f64,
         reset_seconds: f64,
-        engagement: String,
-        special_message: String,
-        special_message_user: String,
+        graphics: Vec<Box<dyn Graphic>>,
     ) -> Self {
         let zoom = ValueOverTime::new(0.875);
 
@@ -57,37 +47,7 @@ impl Simulation {
             maybe_any_won_time: None,
             countdown_seconds,
             reset_seconds,
-            engagement,
-            special_message: Graphic::special_message(
-                keyframes![
-                    (
-                        Vector2::from(dvec2(-viewport.0, 0.0)),
-                        countdown_seconds + 0.0
-                    ),
-                    (
-                        Vector2::from(dvec2(-viewport.0, 0.0)),
-                        countdown_seconds + 1.5,
-                        EaseOutQuart
-                    ),
-                    (Vector2::from(dvec2(0.0, 0.0)), countdown_seconds + 2.0),
-                    (
-                        Vector2::from(dvec2(0.0, 0.0)),
-                        countdown_seconds + 7.0,
-                        EaseOutQuart
-                    ),
-                    (
-                        Vector2::from(dvec2(-viewport.0, 0.0)),
-                        countdown_seconds + 7.5
-                    )
-                ],
-                countdown_seconds,
-                SpecialMessageState {
-                    viewport_width: viewport.0,
-                    viewport_height: viewport.1,
-                    message: special_message,
-                    user: special_message_user,
-                },
-            ),
+            graphics,
             zoom,
             focus,
         }
@@ -125,10 +85,6 @@ impl Simulation {
         self.reset_seconds
     }
 
-    pub fn get_engagement(&self) -> &str {
-        &self.engagement
-    }
-
     pub fn get_phase(&self) -> SimulationPhase {
         if self.get_time() < self.countdown_seconds {
             SimulationPhase::Countdown
@@ -146,7 +102,10 @@ impl Simulation {
         let mut new_simulation = self.clone();
         new_simulation.scene = new_scene;
 
-        new_simulation.special_message.update(dt);
+        new_simulation
+            .graphics
+            .iter_mut()
+            .for_each(|graphic| graphic.update(dt));
 
         if new_simulation.scene.any_won() && new_simulation.maybe_any_won_time.is_none() {
             new_simulation.maybe_any_won_time = Some(new_simulation.time);
@@ -178,45 +137,9 @@ impl Render for Simulation {
     fn render(&self, renderer: &mut dyn Renderer) {
         self.get_scene().render(renderer);
 
-        if self.get_time().floor() < self.get_countdown_seconds() {
-            let text = format!("{}", self.get_countdown_seconds() - self.get_time().floor());
-            renderer.render_text_outline(
-                &text,
-                dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),
-                anchor2d::CGB,
-                196.0,
-                1.0,
-                Srgba::new(1.0, 1.0, 1.0, 1.0),
-                Srgba::new(0.0, 0.0, 0.0, 1.0),
-            );
-
-            if (self.get_time() * 2.0 + 1.5).floor().is_even() {
-                renderer.render_text_outline(
-                    self.get_engagement(),
-                    dvec2(
-                        self.viewport_width / 2.0,
-                        self.viewport_height / 2.0 + 100.0,
-                    ),
-                    anchor2d::CGB,
-                    48.0,
-                    1.0,
-                    Srgba::new(1.0, 1.0, 1.0, 1.0),
-                    Srgba::new(0.0, 0.0, 0.0, 1.0),
-                );
-            }
-        } else if self.get_time().floor() < self.get_countdown_seconds() + 1.0 {
-            renderer.render_text_outline(
-                "Go!",
-                dvec2(self.viewport_width / 2.0, self.viewport_height / 2.0),
-                anchor2d::CGB,
-                196.0,
-                1.0,
-                Srgba::new(1.0, 1.0, 1.0, 1.0),
-                Srgba::new(0.0, 0.0, 0.0, 1.0),
-            );
+        for graphic in self.graphics.iter() {
+            graphic.render(renderer);
         }
-
-        self.special_message.render(renderer);
 
         for (index, (winner_index, win_time)) in self
             .get_scene()

@@ -16,9 +16,9 @@ hound = "3.5.1"
 image = { workspace = true, optional = true }
 imageproc = { version = "0.25.0", optional = true }
 itertools = "0.14.0"
-keyframe = "1.1.1"
+keyframe = { workspace = true }
 macroquad = { workspace = true, optional = true }
-mint = "0.5.9"
+mint = { workspace = true }
 palette = { workspace = true }
 particula-rs = { workspace = true }
 rand = { workspace = true }

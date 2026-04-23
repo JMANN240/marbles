@@ -2538,7 +2538,9 @@ dependencies = [
  "dotenvy",
  "glam 0.32.1",
  "image 0.25.10",
+ "keyframe",
  "lib",
+ "mint",
  "particula-rs",
  "rand 0.10.1",
  "rayon",
@@ -3601,9 +3603,9 @@ dependencies = [
 
 [[package]]
 name = "render-agnostic"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c1223e57dfa35e2179bd0df33510917243f6217e7dcc7dc4bad44179e5f3e9e"
+checksum = "b38570b4fe37f7834e31b32e0777c0385aae076113c5acc1148aa30919ef6fbf"
 dependencies = [
  "ab_glyph",
  "anchor2d",

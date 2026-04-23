@@ -12,7 +12,9 @@ database = { path = "../database" }
 dotenvy = { workspace = true }
 glam = { workspace = true }
 image = { workspace = true }
+keyframe = { workspace = true }
 lib = { path = "../lib" }
+mint = { workspace = true }
 particula-rs = { git = "https://github.com/JMANN240/particula-rs" }
 rand = { workspace = true }
 rayon = "1.10.0"
