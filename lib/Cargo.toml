@@ -11,8 +11,10 @@ chrono = { workspace = true }
 database = { path = "../database" }
 dyn-clone = "1.0.20"
 even-odd-traits = "1.0.0"
+fake = { workspace = true }
 futures = "0.3.32"
 glam = { workspace = true }
+heck = "0.5.0"
 hex = "0.4.3"
 hound = "3.5.1"
 image = { workspace = true, optional = true }

@@ -14,6 +14,7 @@ pub mod rendering;
 pub mod scene;
 pub mod scenes;
 pub mod simulation;
+pub mod username;
 pub mod util;
 pub mod wall;
 

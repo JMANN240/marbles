@@ -1,5 +1,4 @@
 use even_odd_traits::IsEven;
-use glam::dvec2;
 use keyframe::AnimationSequence;
 use mint::Vector2;
 use palette::Srgba;
@@ -40,7 +39,7 @@ impl Graphic for Engagement {
     fn draw(&self, renderer: &mut dyn Renderer) {
         renderer.render_text_outline(
             &self.message,
-            self.origin() + dvec2(self.viewport.0 / 2.0, self.viewport.1 / 2.0 + 100.0),
+            self.origin(),
             anchor2d::CGB,
             48.0,
             1.0,

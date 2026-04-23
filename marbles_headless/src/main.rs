@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     env, fs,
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -207,7 +207,10 @@ async fn main() {
                 special_message.user,
             )),
             Box::new(Countdown::new(
-                keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
+                keyframes![(
+                    Vector2::from(dvec2(viewport.0 * 0.5, viewport.1 * 0.65)),
+                    0.0
+                )],
                 0.0,
                 3.0,
                 1.0,
@@ -215,7 +218,10 @@ async fn main() {
                 viewport,
             )),
             Box::new(Engagement::new(
-                keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
+                keyframes![(
+                    Vector2::from(dvec2(viewport.0 * 0.5, viewport.1 * 0.65 + 100.0)),
+                    0.0
+                )],
                 0.0,
                 3.0,
                 textwrap::fill(&engagement, 20),
@@ -224,7 +230,7 @@ async fn main() {
         ];
 
         let distance_from_top = 0.15;
-        let vertical_spacing = 48.0;
+        let vertical_spacing = 80.0;
         let temporal_spacing = 0.125;
         let start = 0.25;
         let end = 3.0;
@@ -333,6 +339,39 @@ async fn main() {
                 break;
             }
         }
+
+        collisions.insert(
+            ((start + travel_time) * 60.0) as usize,
+            vec![Collision::new(
+                PathBuf::from("ball_sounds/piano_c6.wav"),
+                0.5,
+                DVec2::ZERO,
+            )],
+        );
+        collisions.insert(
+            ((start + travel_time + temporal_spacing) * 60.0) as usize,
+            vec![Collision::new(
+                PathBuf::from("ball_sounds/piano_e6.wav"),
+                0.5,
+                DVec2::ZERO,
+            )],
+        );
+        collisions.insert(
+            ((start + travel_time + temporal_spacing * 2.0) * 60.0) as usize,
+            vec![Collision::new(
+                PathBuf::from("ball_sounds/piano_g6.wav"),
+                0.5,
+                DVec2::ZERO,
+            )],
+        );
+        collisions.insert(
+            ((start + travel_time + temporal_spacing * 3.0) * 60.0) as usize,
+            vec![Collision::new(
+                PathBuf::from("ball_sounds/piano_c7.wav"),
+                0.5,
+                DVec2::ZERO,
+            )],
+        );
 
         let number_of_frames = simulation_states.len();
         let frames_rendered: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));

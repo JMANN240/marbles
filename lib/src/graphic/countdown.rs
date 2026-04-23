@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use glam::dvec2;
 use keyframe::AnimationSequence;
 use mint::Vector2;
 use palette::Srgba;
@@ -52,7 +51,7 @@ impl Countdown {
 
 impl Graphic for Countdown {
     fn draw(&self, renderer: &mut dyn Renderer) {
-        let position = self.origin() + dvec2(self.viewport.0 / 2.0, self.viewport.1 / 2.0);
+        let position = self.origin();
 
         let maybe_text = self.text();
 

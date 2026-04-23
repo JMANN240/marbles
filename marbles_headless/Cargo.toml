@@ -10,6 +10,7 @@ chrono = { workspace = true }
 clap = { workspace = true }
 database = { path = "../database" }
 dotenvy = { workspace = true }
+fake = { workspace = true }
 glam = { workspace = true }
 image = { workspace = true }
 keyframe = { workspace = true }

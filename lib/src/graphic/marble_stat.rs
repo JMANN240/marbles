@@ -1,12 +1,14 @@
 use api::marble::Marble;
 use database::marble::DbMarble;
+use glam::DVec2;
 use keyframe::AnimationSequence;
 use mint::Vector2;
 use palette::Srgba;
+use rand::{RngExt, rng};
 use render_agnostic::Renderer;
 use sqlx::SqlitePool;
 
-use crate::graphic::Graphic;
+use crate::{graphic::Graphic, username::generate_username};
 
 #[derive(Clone)]
 pub struct MarbleStat {
@@ -15,6 +17,7 @@ pub struct MarbleStat {
     wins: usize,
     pub origin: AnimationSequence<Vector2<f64>>,
     pub viewport: (f64, f64),
+    pub maybe_sponsor_name: Option<String>,
 }
 
 impl MarbleStat {
@@ -40,6 +43,9 @@ impl MarbleStat {
                 .count(),
             origin,
             viewport,
+            maybe_sponsor_name: rng()
+                .random_bool(0.2)
+                .then_some(generate_username(&mut rng())),
         }
     }
 }
@@ -53,6 +59,20 @@ impl Graphic for MarbleStat {
             48.0,
             1.0,
             self.marble.color,
+            Srgba::new(0.0, 0.0, 0.0, 1.0),
+        );
+
+        renderer.render_text_outline(
+            &if let Some(sponsor_name) = &self.maybe_sponsor_name {
+                format!("Sponsored by {}!", sponsor_name)
+            } else {
+                format!("Sponsor {}, link in bio!", self.marble.name)
+            },
+            self.origin() + DVec2::Y * 36.0,
+            anchor2d::CGC,
+            24.0,
+            1.0,
+            Srgba::new(1.0, 1.0, 1.0, 1.0),
             Srgba::new(0.0, 0.0, 0.0, 1.0),
         );
     }
