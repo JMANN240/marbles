@@ -1,6 +1,7 @@
 use chrono::TimeDelta;
 use sqlx::{SqlitePool, query_as};
 
+#[derive(Debug, Clone, Copy)]
 pub struct DbRaceMarble {
     pub race_id: i64,
     pub marble_id: i64,

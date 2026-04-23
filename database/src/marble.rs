@@ -7,6 +7,7 @@ use api::marble::{Marble, WriteMarble};
 
 use crate::race_marble::DbRaceMarble;
 
+#[derive(Debug, Clone)]
 pub struct DbMarble {
     pub id: i64,
     pub name: String,
@@ -107,7 +108,7 @@ impl DbMarble {
     //     DbRaceParticipant::insert(pool, self.id, name, time).await
     // }
 
-    pub async fn get_race_marble(&self, pool: &SqlitePool) -> sqlx::Result<Vec<DbRaceMarble>> {
+    pub async fn get_race_marbles(&self, pool: &SqlitePool) -> sqlx::Result<Vec<DbRaceMarble>> {
         DbRaceMarble::get_by_marble_id(pool, self.id).await
     }
 }

@@ -8,8 +8,10 @@ ab_glyph = { workspace = true, optional = true }
 anchor2d = { workspace = true }
 api = { path = "../api" }
 chrono = { workspace = true }
+database = { path = "../database" }
 dyn-clone = "1.0.20"
 even-odd-traits = "1.0.0"
+futures = "0.3.32"
 glam = { workspace = true }
 hex = "0.4.3"
 hound = "3.5.1"

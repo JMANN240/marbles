@@ -8,6 +8,7 @@ use crate::rendering::Render;
 
 pub mod countdown;
 pub mod engagement;
+pub mod marble_stat;
 pub mod special_message;
 
 dyn_clone::clone_trait_object!(Graphic);

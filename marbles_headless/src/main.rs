@@ -3,7 +3,7 @@ use std::{
     env, fs,
     path::Path,
     sync::{Arc, Mutex},
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 use ab_glyph::FontArc;
@@ -13,13 +13,16 @@ use clap::Parser;
 use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
 use glam::{DVec2, dvec2};
-use image::{ImageReader, imageops::{FilterType, resize}};
+use image::ImageReader;
 use keyframe::{AnimationSequence, functions::EaseOutQuart, keyframes};
 use lib::{
     Config,
     collision::{Collision, render_collisions},
     engagement::get_engagement_for_scene,
-    graphic::{countdown::Countdown, engagement::Engagement, special_message::SpecialMessage},
+    graphic::{
+        Graphic, countdown::Countdown, engagement::Engagement, marble_stat::MarbleStat,
+        special_message::SpecialMessage,
+    },
     posting::{cloudinary::Cloudinary, instagram::InstagramPoster},
     rendering::Render,
     simulation::Simulation,
@@ -31,7 +34,9 @@ use lib::{
 use mint::Vector2;
 use rand::rngs::SmallRng;
 use rayon::prelude::*;
-use render_agnostic::{image_registries::image_image_registry::ImageImageRegistry, renderers::image::ImageRenderer};
+use render_agnostic::{
+    image_registries::image_image_registry::ImageImageRegistry, renderers::image::ImageRenderer,
+};
 use reqwest::blocking::Client;
 use sqlx::SqlitePool;
 use toml::from_str;
@@ -171,57 +176,107 @@ async fn main() {
 
         let viewport = (1080.0 / 2.0, 1920.0 / 2.0);
 
+        let mut graphics: Vec<Box<dyn Graphic>> = vec![
+            Box::new(SpecialMessage::new(
+                keyframes![
+                    (
+                        Vector2::from(dvec2(-viewport.0, 0.0)),
+                        cli.countdown_seconds as f64 + 0.0
+                    ),
+                    (
+                        Vector2::from(dvec2(-viewport.0, 0.0)),
+                        cli.countdown_seconds as f64 + 1.5,
+                        EaseOutQuart
+                    ),
+                    (
+                        Vector2::from(dvec2(0.0, 0.0)),
+                        cli.countdown_seconds as f64 + 2.0
+                    ),
+                    (
+                        Vector2::from(dvec2(0.0, 0.0)),
+                        cli.countdown_seconds as f64 + 7.0,
+                        EaseOutQuart
+                    ),
+                    (
+                        Vector2::from(dvec2(-viewport.0, 0.0)),
+                        cli.countdown_seconds as f64 + 7.5
+                    )
+                ],
+                viewport,
+                special_message.message,
+                special_message.user,
+            )),
+            Box::new(Countdown::new(
+                keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
+                0.0,
+                3.0,
+                1.0,
+                String::from("Go!"),
+                viewport,
+            )),
+            Box::new(Engagement::new(
+                keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
+                0.0,
+                3.0,
+                textwrap::fill(&engagement, 20),
+                viewport,
+            )),
+        ];
+
+        let distance_from_top = 0.15;
+        let vertical_spacing = 48.0;
+        let temporal_spacing = 0.125;
+        let start = 0.25;
+        let end = 3.0;
+        let travel_time = 0.25;
+
+        for (i, ball) in scene.get_balls().iter().enumerate() {
+            graphics.push(Box::new(
+                MarbleStat::new(
+                    &pool,
+                    keyframes![
+                        (
+                            Vector2::from(dvec2(
+                                -viewport.0,
+                                viewport.1 * distance_from_top + i as f64 * vertical_spacing
+                            )),
+                            start + i as f64 * temporal_spacing
+                        ),
+                        (
+                            Vector2::from(dvec2(
+                                viewport.0 * 0.5,
+                                viewport.1 * distance_from_top + i as f64 * vertical_spacing
+                            )),
+                            start + travel_time + i as f64 * temporal_spacing
+                        ),
+                        (
+                            Vector2::from(dvec2(
+                                viewport.0 * 0.5,
+                                viewport.1 * distance_from_top + i as f64 * vertical_spacing
+                            )),
+                            end - travel_time + i as f64 * temporal_spacing
+                        ),
+                        (
+                            Vector2::from(dvec2(
+                                viewport.0 * 2.0,
+                                viewport.1 * distance_from_top + i as f64 * vertical_spacing
+                            )),
+                            end + i as f64 * temporal_spacing
+                        )
+                    ],
+                    ball.get_name().to_owned(),
+                    viewport,
+                )
+                .await,
+            ));
+        }
+
         let mut simulation = Simulation::new(
             scene,
             viewport,
             cli.countdown_seconds as f64,
             cli.reset_seconds as f64,
-            vec![
-                Box::new(SpecialMessage::new(
-                    keyframes![
-                        (
-                            Vector2::from(dvec2(-viewport.0, 0.0)),
-                            cli.countdown_seconds as f64 + 0.0
-                        ),
-                        (
-                            Vector2::from(dvec2(-viewport.0, 0.0)),
-                            cli.countdown_seconds as f64 + 1.5,
-                            EaseOutQuart
-                        ),
-                        (
-                            Vector2::from(dvec2(0.0, 0.0)),
-                            cli.countdown_seconds as f64 + 2.0
-                        ),
-                        (
-                            Vector2::from(dvec2(0.0, 0.0)),
-                            cli.countdown_seconds as f64 + 7.0,
-                            EaseOutQuart
-                        ),
-                        (
-                            Vector2::from(dvec2(-viewport.0, 0.0)),
-                            cli.countdown_seconds as f64 + 7.5
-                        )
-                    ],
-                    viewport,
-                    special_message.message,
-                    special_message.user,
-                )),
-                Box::new(Countdown::new(
-                    keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
-                    0.0,
-                    3.0,
-                    1.0,
-                    String::from("Go!"),
-                    viewport,
-                )),
-                Box::new(Engagement::new(
-                    keyframes![(Vector2::from(DVec2::ZERO), 0.0)],
-                    0.0,
-                    3.0,
-                    textwrap::fill(&engagement, 20),
-                    viewport,
-                )),
-            ],
+            graphics,
         );
 
         let mut simulation_states = Vec::new();
@@ -301,8 +356,7 @@ async fn main() {
         let mut image_registry = ImageImageRegistry::default();
 
         for (image_name, image) in ball_images.iter() {
-            image_registry
-                .register_image(image_name.to_str().unwrap().to_string(), image.clone());
+            image_registry.register_image(image_name.to_str().unwrap().to_string(), image.clone());
         }
 
         let image_registry = Arc::new(image_registry);
@@ -310,11 +364,9 @@ async fn main() {
         let roboto = FontArc::try_from_slice(include_bytes!("../../roboto.ttf")).unwrap();
 
         simulation_states
-            .iter()
+            .par_iter()
             .enumerate()
             .for_each(|(frame_number, simulation)| {
-                let now = Instant::now();
-
                 let t = frame_number as f64 / 60.0;
 
                 let mut renderer = ImageRenderer::new(
@@ -327,25 +379,12 @@ async fn main() {
                     Arc::clone(&image_registry),
                 );
 
-                println!("made renderer {:?}", Instant::now().duration_since(now));
-                let now = Instant::now();
-
                 simulation.render(&mut renderer);
 
-                println!("rendered {:?}", Instant::now().duration_since(now));
-                let now = Instant::now();
-
                 let image = renderer.render_image_onto(renderer.black());
-
-                println!("rendered onto {:?}", Instant::now().duration_since(now));
-                let now = Instant::now();
-
                 let image_name = get_formatted_frame_name(FRAME_PADDING, frame_number);
 
                 image.save(frames_path.join(image_name)).unwrap();
-
-                println!("saved {:?}", Instant::now().duration_since(now));
-                let now = Instant::now();
 
                 let mut frames_rendered = frames_rendered.lock().unwrap();
                 *frames_rendered += 1;
