@@ -1,6 +1,8 @@
 use std::{
     collections::HashMap,
-    env, fs,
+    env,
+    fmt::Display,
+    fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
     time::Duration,
@@ -9,7 +11,7 @@ use std::{
 use ab_glyph::FontArc;
 use api::marble::Marble;
 use chrono::{Local, TimeDelta, TimeZone};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
 use glam::{DVec2, dvec2};
@@ -42,6 +44,27 @@ use sqlx::SqlitePool;
 use toml::from_str;
 use tracing::{Level, debug, error, info};
 use tracing_subscriber::FmtSubscriber;
+
+#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
+pub enum League {
+    Major,
+    Minor,
+    Fan,
+}
+
+impl Display for League {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Major => "Major League",
+                Self::Minor => "Minor League",
+                Self::Fan => "Fan League",
+            }
+        )
+    }
+}
 
 #[derive(Parser)]
 pub struct Cli {
@@ -83,6 +106,9 @@ pub struct Cli {
 
     #[arg(short, long)]
     stats: bool,
+
+    #[arg(short, long, value_enum)]
+    league: Option<League>,
 }
 
 const FRAME_PADDING: usize = 6;
@@ -115,12 +141,15 @@ async fn main() {
     let config_string = std::fs::read_to_string("config.toml").unwrap();
     let config = from_str::<Config>(&config_string).unwrap();
 
-    let marbles = DbMarble::get_all_active(&pool)
-        .await
-        .unwrap()
-        .into_iter()
-        .map(|db_marble| db_marble.into())
-        .collect::<Vec<Marble>>();
+    let marbles = if let Some(league) = cli.league {
+        DbMarble::get_by_league(&pool, &league.to_string()).await
+    } else {
+        DbMarble::get_all_active(&pool).await
+    }
+    .unwrap()
+    .into_iter()
+    .map(|db_marble| db_marble.into())
+    .collect::<Vec<Marble>>();
 
     for _ in 0..cli.renders {
         let now = Local::now();

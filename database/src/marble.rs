@@ -41,6 +41,12 @@ impl DbMarble {
             .await
     }
 
+    pub async fn get_by_league(pool: &SqlitePool, league_name: &str) -> sqlx::Result<Vec<Self>> {
+        query_as!(Self, "SELECT marble.* FROM marble INNER JOIN league_marble ON marble.id = league_marble.marble_id INNER JOIN league ON league_marble.league_id = league.id WHERE league.name = ?", league_name)
+            .fetch_all(pool)
+            .await
+    }
+
     pub async fn upsert_by_id(
         pool: &SqlitePool,
         id: i64,

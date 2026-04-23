@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS league_marble;
+DROP TABLE IF EXISTS league;
