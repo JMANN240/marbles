@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod marble;
+pub mod race;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RegisterRequest {

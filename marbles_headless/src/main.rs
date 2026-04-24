@@ -332,6 +332,7 @@ async fn main() {
                         &pool,
                         now.timestamp(),
                         simulation.get_scene().get_level_id(),
+                        now.to_utc(),
                     )
                     .await
                     .expect("Could not insert race into database");
@@ -493,25 +494,7 @@ async fn main() {
 
             let today = Local::now().date_naive();
 
-            let count = std::fs::read_dir(renders_path)
-                .unwrap()
-                .filter_map(|entry| {
-                    let entry = entry.ok()?;
-                    let metadata = entry.metadata().ok()?;
-                    let created = metadata.created().ok()?;
-                    let created_date = created
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .ok()
-                        .and_then(|d| Local.timestamp_opt(d.as_secs() as i64, 0).single())?
-                        .date_naive();
-
-                    if created_date == today {
-                        Some(())
-                    } else {
-                        None
-                    }
-                })
-                .count();
+            let count = DbRace::get_by_date(&pool, today).await.unwrap().len();
 
             if cli.instagram {
                 let cloudinary = Cloudinary::from_env();
