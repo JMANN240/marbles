@@ -28,7 +28,7 @@ impl Engagement {
             time: 0.0,
             start,
             length,
-            message: message,
+            message,
             origin,
             viewport,
         }

@@ -64,7 +64,7 @@ pub fn generate_username<R: Rng>(rng: &mut R) -> String {
     }
 
     if rng.random_bool(0.05) {
-        username.push_str("_");
+        username.push('_');
     }
 
     if username.len() < 6 {
