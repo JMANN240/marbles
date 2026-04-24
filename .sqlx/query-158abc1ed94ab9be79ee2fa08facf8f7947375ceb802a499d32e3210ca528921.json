@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "INSERT INTO race VALUES (?, ?) RETURNING *",
+  "query": "INSERT INTO race VALUES (?, ?, ?) RETURNING *",
   "describe": {
     "columns": [
       {
@@ -12,15 +12,21 @@
         "name": "level_id",
         "ordinal": 1,
         "type_info": "Integer"
+      },
+      {
+        "name": "time",
+        "ordinal": 2,
+        "type_info": "Integer"
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 3
     },
     "nullable": [
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "1736f1b66bfaf7c731eb52423cb2196b71a367e2b8a629aae36ba079c6e264c9"
+  "hash": "158abc1ed94ab9be79ee2fa08facf8f7947375ceb802a499d32e3210ca528921"
 }

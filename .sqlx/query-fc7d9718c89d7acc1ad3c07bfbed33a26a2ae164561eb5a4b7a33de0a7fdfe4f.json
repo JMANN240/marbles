@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT * FROM race WHERE id = ?",
+  "query": "SELECT * FROM race WHERE DATE(time) == ?",
   "describe": {
     "columns": [
       {
@@ -28,5 +28,5 @@
       true
     ]
   },
-  "hash": "9cb399be698b24bb91b26726976573db5cad879b9c0277265b46634783bfcba8"
+  "hash": "fc7d9718c89d7acc1ad3c07bfbed33a26a2ae164561eb5a4b7a33de0a7fdfe4f"
 }
