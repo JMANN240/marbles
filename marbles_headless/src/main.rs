@@ -10,7 +10,7 @@ use std::{
 
 use ab_glyph::FontArc;
 use api::marble::Marble;
-use chrono::{Local, TimeDelta, TimeZone};
+use chrono::{Local, TimeDelta};
 use clap::{Parser, ValueEnum};
 use database::{marble::DbMarble, race::DbRace};
 use dotenvy::dotenv;
@@ -109,6 +109,21 @@ pub struct Cli {
 
     #[arg(short, long, value_enum)]
     league: Option<League>,
+
+    #[arg(long)]
+    instagram_caption: Option<String>,
+
+    #[arg(long)]
+    youtube_title: Option<String>,
+
+    #[arg(long)]
+    youtube_description: Option<String>,
+
+    #[arg(long)]
+    hashtags: Option<String>,
+
+    #[arg(long)]
+    special_message: Option<String>,
 }
 
 const FRAME_PADDING: usize = 6;
@@ -198,7 +213,12 @@ async fn main() {
             .unwrap()
             .message
             .unwrap_or(Message {
-                message: "Want to reach THOUSANDS of people  for just $1? Buy a custom message!"
+                message: cli
+                    .special_message
+                    .as_ref()
+                    .unwrap_or(&String::from(
+                        "Want to reach THOUSANDS of people for just $1? Buy a custom message!",
+                    ))
                     .to_string(),
                 user: "QMR".to_string(),
             });
@@ -504,7 +524,7 @@ async fn main() {
                     cloudinary,
                     instagram,
                     &video_path,
-                    "Want to learn how to make and monetize your own simulations? Check the link in my bio!\n\n#satisfying #marblerace",
+                    &format!("{}\n\n{}", cli.instagram_caption.as_ref().unwrap_or(&String::from("Want to learn how to make and monetize your own simulations? Check the link in my bio!")), cli.hashtags.as_ref().unwrap_or(&String::from("#satisfying #marblerace #simulation")))
                 ) {
                     Some(media_publish_response_result) => match media_publish_response_result {
                         Ok(media_publish_response) => info!(?media_publish_response),
@@ -520,7 +540,7 @@ async fn main() {
                 let status = upload_to_youtube(
                     &video_path,
                     &format!("Marble Race {}, {} #satisfying #marblerace", count + cli.race_offset, Local::now().format("%B %-d, %Y")),
-                    "Want to learn how to make and monetize your own simulations? Check the link in my bio!",
+                    cli.youtube_description.as_ref().unwrap_or(&String::from("Want to learn how to make and monetize your own simulations? Check the link in my bio!")),
                     ["marble racing","marble race","simulation","satisfying"],
                 )
                     .expect("Failed to upload to YouTube");
